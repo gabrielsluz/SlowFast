@@ -30,5 +30,6 @@ class Linear(nn.Module):
         self.lin = nn.Linear(224*224*3, num_classes) #Requires TRAIN_CROP_SIZE: 224 TEST_CROP_SIZE: 224
 
     def forward(self, x):
-        x = torch.flatten(x, start_dim=1)
+        print(x)
+        x = torch.flatten(x[0], start_dim=1)
         return self.lin(x)
