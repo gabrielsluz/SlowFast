@@ -66,6 +66,7 @@ def construct_optimizer(model, cfg):
             betas=(0.9, 0.999),
             weight_decay=cfg.SOLVER.WEIGHT_DECAY,
         )
+    #Added later    
     elif cfg.SOLVER.OPTIMIZING_METHOD == "rmsprop":
         return torch.optim.RMSprop(
             optim_params,
