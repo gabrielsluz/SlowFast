@@ -66,6 +66,13 @@ def construct_optimizer(model, cfg):
             betas=(0.9, 0.999),
             weight_decay=cfg.SOLVER.WEIGHT_DECAY,
         )
+    elif fg.SOLVER.OPTIMIZING_METHOD == "rmsprop":
+        return torch.optim.RMSprop(
+            optim_params,
+            lr=cfg.SOLVER.BASE_LR,
+            momentum=cfg.SOLVER.MOMENTUM,
+            weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+        )
     else:
         raise NotImplementedError(
             "Does not support {} optimizer".format(cfg.SOLVER.OPTIMIZING_METHOD)
