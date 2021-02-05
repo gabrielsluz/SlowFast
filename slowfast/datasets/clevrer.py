@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import random
 import torch
@@ -50,7 +52,7 @@ class ClevrerFrame(torch.utils.data.Dataset):
         logger.info("Constructing Clevrer Frame {}...".format(mode))
         self._construct_loader()
     
-    def _get_filepath(mode, video_id):
+    def _get_filepath(self, mode, video_id):
         """
         Return the filepath of the video in the clevrer directory
         Args:
@@ -125,8 +127,8 @@ class ClevrerFrame(torch.utils.data.Dataset):
                 "Failed to load video from {} with error {}".format(
                     self._path_to_videos[index], e
                 )
-                exit(-1)
             )
+            exit()
         # Decode video. Meta info is used to perform selective decoding.
         frames = decoder.decode(
             container=video_container,
@@ -137,7 +139,7 @@ class ClevrerFrame(torch.utils.data.Dataset):
             video_meta=None,
             target_fps=self.cfg.DATA.TARGET_FPS,
             backend=self.cfg.DATA.DECODING_BACKEND,
-            max_spatial_scale=min_scale,
+            max_spatial_scale=0
         )
 
         if frames is None:
@@ -155,7 +157,7 @@ class ClevrerFrame(torch.utils.data.Dataset):
         #C T H W -> C H W
         frames = torch.squeeze(frames, 1)
         # Perform resize
-        frames = transforms.Resize([3, 64, 64])(frames)
+        frames = transforms.Resize([64, 64])(frames)
         return frames
 
     def __len__(self):
