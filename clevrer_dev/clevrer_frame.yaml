@@ -1,6 +1,6 @@
 TRAIN:
   ENABLE: True
-  DATASET: ClevrerFrame
+  DATASET: Clevrerframe
   BATCH_SIZE: 64
   EVAL_PERIOD: 10
   CHECKPOINT_PERIOD: 1

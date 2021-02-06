@@ -18,7 +18,7 @@ import slowfast.utils.misc as misc
 import slowfast.visualization.tensorboard_vis as tb
 from slowfast.datasets import loader
 from slowfast.models import build_model
-from slowfast.utils.meters import AVAMeter, TrainMeter, ValMeter
+from slowfast.utils.meters import AVAMeter, TrainMeter
 from slowfast.utils.multigrid import MultigridSchedule
 
 logger = logging.get_logger(__name__)
@@ -69,7 +69,7 @@ def train_epoch(
 
         # Loss already computed in model
         # logger.info("Size: {}".format(inputs.Size()))
-        output = monet(inputs)
+        output = model(inputs)
         loss = torch.mean(output['loss'])
 
         # check Nan Loss.
@@ -132,10 +132,11 @@ def train_epoch(
 def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
     """
     Evaluate the model on the val set.
+    val_meter is a TrainMeter as we are interested on the loss
     Args:
         val_loader (loader): data loader to provide validation data.
         model (model): model to evaluate the performance.
-        val_meter (ValMeter): meter instance to record and calculate the metrics.
+        val_meter (TrainMeter): meter instance to record and calculate the metrics.
         cur_epoch (int): number of the current epoch of training.
         cfg (CfgNode): configs. Details can be found in
             slowfast/config/defaults.py
@@ -147,105 +148,47 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
     model.eval()
     val_meter.iter_tic()
 
-    for cur_iter, (inputs, labels, _, meta) in enumerate(val_loader):
+    for cur_iter, inputs in enumerate(val_loader):
         if cfg.NUM_GPUS:
-            # Transferthe data to the current GPU device.
+            # Transfer the data to the current GPU device.
             if isinstance(inputs, (list,)):
                 for i in range(len(inputs)):
                     inputs[i] = inputs[i].cuda(non_blocking=True)
             else:
                 inputs = inputs.cuda(non_blocking=True)
-            labels = labels.cuda()
-            for key, val in meta.items():
-                if isinstance(val, (list,)):
-                    for i in range(len(val)):
-                        val[i] = val[i].cuda(non_blocking=True)
-                else:
-                    meta[key] = val.cuda(non_blocking=True)
         val_meter.data_toc()
 
-        if cfg.DETECTION.ENABLE:
-            # Compute the predictions.
-            preds = model(inputs, meta["boxes"])
-            ori_boxes = meta["ori_boxes"]
-            metadata = meta["metadata"]
+        output = model(inputs)
+        loss = torch.mean(output['loss'])
 
-            if cfg.NUM_GPUS:
-                preds = preds.cpu()
-                ori_boxes = ori_boxes.cpu()
-                metadata = metadata.cpu()
+        if cfg.NUM_GPUS > 1:
+            [loss] = du.all_reduce([loss])
+        loss = loss.item()
 
-            if cfg.NUM_GPUS > 1:
-                preds = torch.cat(du.all_gather_unaligned(preds), dim=0)
-                ori_boxes = torch.cat(du.all_gather_unaligned(ori_boxes), dim=0)
-                metadata = torch.cat(du.all_gather_unaligned(metadata), dim=0)
+        val_meter.iter_toc()
 
-            val_meter.iter_toc()
-            # Update and log stats.
-            val_meter.update_stats(preds, ori_boxes, metadata)
-
-        else:
-            preds = model(inputs)
-
-            if cfg.DATA.MULTI_LABEL:
-                if cfg.NUM_GPUS > 1:
-                    preds, labels = du.all_gather([preds, labels])
-            else:
-                # Compute the errors.
-                num_topks_correct = metrics.topks_correct(preds, labels, (1, 5))
-
-                # Combine the errors across the GPUs.
-                top1_err, top5_err = [
-                    (1.0 - x / preds.size(0)) * 100.0 for x in num_topks_correct
-                ]
-                if cfg.NUM_GPUS > 1:
-                    top1_err, top5_err = du.all_reduce([top1_err, top5_err])
-
-                # Copy the errors from GPU to CPU (sync point).
-                top1_err, top5_err = top1_err.item(), top5_err.item()
-
-                val_meter.iter_toc()
-                # Update and log stats.
-                val_meter.update_stats(
-                    top1_err,
-                    top5_err,
-                    inputs[0].size(0)
-                    * max(
-                        cfg.NUM_GPUS, 1
-                    ),  # If running  on CPU (cfg.NUM_GPUS == 1), use 1 to represent 1 CPU.
-                )
-                # write to tensorboard format if available.
-                if writer is not None:
-                    writer.add_scalars(
-                        {"Val/Top1_err": top1_err, "Val/Top5_err": top5_err},
-                        global_step=len(val_loader) * cur_epoch + cur_iter,
-                    )
-
-            val_meter.update_predictions(preds, labels)
-
+        # Update and log stats.
+        val_meter.update_stats(
+            1,
+            1,
+            loss,
+            1,
+            inputs[0].size(0)
+            * max(
+                cfg.NUM_GPUS, 1
+            ),  # If running  on CPU (cfg.NUM_GPUS == 1), use 1 to represent 1 CPU.
+        )
+        # write to tensorboard format if available.
+        if writer is not None:
+            writer.add_scalars(
+                { "Val/loss": loss},
+                global_step=len(val_loader) * cur_epoch + cur_iter,
+            )
         val_meter.log_iter_stats(cur_epoch, cur_iter)
         val_meter.iter_tic()
 
     # Log epoch stats.
     val_meter.log_epoch_stats(cur_epoch)
-    # write to tensorboard format if available.
-    if writer is not None:
-        if cfg.DETECTION.ENABLE:
-            writer.add_scalars(
-                {"Val/mAP": val_meter.full_map}, global_step=cur_epoch
-            )
-        else:
-            all_preds = [pred.clone().detach() for pred in val_meter.all_preds]
-            all_labels = [
-                label.clone().detach() for label in val_meter.all_labels
-            ]
-            if cfg.NUM_GPUS:
-                all_preds = [pred.cpu() for pred in all_preds]
-                all_labels = [label.cpu() for label in all_labels]
-            writer.plot_eval(
-                preds=all_preds, labels=all_labels, global_step=cur_epoch
-            )
-
     val_meter.reset()
 
 
@@ -288,12 +231,12 @@ def build_trainer(cfg):
         precise_bn_loader (DataLoader): training data loader for computing
             precise BN.
         train_meter (TrainMeter): tool for measuring training stats.
-        val_meter (ValMeter): tool for measuring validation stats.
+        val_meter (TrainMeter): tool for measuring validation stats.
     """
     # Build the video model and print model statistics.
     model = build_model(cfg)
-    if du.is_master_proc() and cfg.LOG_MODEL_INFO:
-        misc.log_model_info(model, cfg, use_train_input=True)
+    # if du.is_master_proc() and cfg.LOG_MODEL_INFO:
+    #     misc.log_model_info(model, cfg, use_train_input=True)
 
     # Construct the optimizer.
     optimizer = optim.construct_optimizer(model, cfg)
@@ -306,7 +249,7 @@ def build_trainer(cfg):
     )
     # Create meters.
     train_meter = TrainMeter(len(train_loader), cfg)
-    val_meter = ValMeter(len(val_loader), cfg)
+    val_meter = TrainMeter(len(val_loader), cfg)
 
     return (
         model,
@@ -348,8 +291,8 @@ def train(cfg):
 
     # Build the video model and print model statistics.
     model = build_model(cfg)
-    if du.is_master_proc() and cfg.LOG_MODEL_INFO:
-        misc.log_model_info(model, cfg, use_train_input=True)
+    # if du.is_master_proc() and cfg.LOG_MODEL_INFO:
+    #     misc.log_model_info(model, cfg, use_train_input=True)
 
     # Construct the optimizer.
     optimizer = optim.construct_optimizer(model, cfg)
@@ -372,7 +315,7 @@ def train(cfg):
         val_meter = AVAMeter(len(val_loader), cfg, mode="val")
     else:
         train_meter = TrainMeter(len(train_loader), cfg)
-        val_meter = ValMeter(len(val_loader), cfg)
+        val_meter = TrainMeter(len(val_loader), cfg)
 
     # set up writer for logging to Tensorboard format.
     if cfg.TENSORBOARD.ENABLE and du.is_master_proc(

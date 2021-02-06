@@ -20,7 +20,7 @@ logger = logging.get_logger(__name__)
 
 
 @DATASET_REGISTRY.register()
-class ClevrerFrame(torch.utils.data.Dataset):
+class Clevrerframe(torch.utils.data.Dataset):
     """
     Dataset of frames of the CLEVRER dataset.
     __getitem__ Returns a random frame from a video

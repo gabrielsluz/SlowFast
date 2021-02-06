@@ -174,8 +174,6 @@ class Monet(nn.Module):
         self.gamma = 0.25
 
     def forward(self, x):
-        print("Size = ")
-        print(len(x))
         scope = torch.ones_like(x[:, 0:1])
         masks = []
         for i in range(self.conf.num_slots-1):

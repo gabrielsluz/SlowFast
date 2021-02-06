@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from slowfast.datasets.clevrer import ClevrerFrame
+from slowfast.datasets.clevrer import Clevrerframe
 import matplotlib.pyplot as plt
 import torch
 
@@ -12,7 +12,7 @@ cfg = load_config(args)
 logger = logging.get_logger(__name__)
 logging.setup_logging(cfg.OUTPUT_DIR)
 
-frame_dataset = ClevrerFrame(cfg, 'train')
+frame_dataset = Clevrerframe(cfg, 'train')
 print(len(frame_dataset))
 for i in range(len(frame_dataset)):
     print(frame_dataset[i].size())
