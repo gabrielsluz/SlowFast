@@ -48,6 +48,7 @@ class Clevrerframe(torch.utils.data.Dataset):
         self.cfg = cfg
 
         self._video_meta = {}
+        self.num_retries = 10
 
         logger.info("Constructing Clevrer Frame {}...".format(mode))
         self._construct_loader()
@@ -116,49 +117,77 @@ class Clevrerframe(torch.utils.data.Dataset):
             frames (tensor): the frame sampled from the video. The dimension
                 is `channel` x `height` x `width`.
         """
-        try:
-            video_container = container.get_video_container(
-                self._path_to_videos[index],
-                self.cfg.DATA_LOADER.ENABLE_MULTI_THREAD_DECODE,
-                self.cfg.DATA.DECODING_BACKEND,
-            )
-        except Exception as e:
-            logger.info(
-                "Failed to load video from {} with error {}".format(
-                    self._path_to_videos[index], e
+        # Try to decode and sample a clip from a video. If the video can not be
+        # decoded, repeatly find a random video replacement that can be decoded.
+        for i_try in range(self._num_retries):
+            video_container = None
+            try:
+                video_container = container.get_video_container(
+                    self._path_to_videos[index],
+                    self.cfg.DATA_LOADER.ENABLE_MULTI_THREAD_DECODE,
+                    self.cfg.DATA.DECODING_BACKEND,
                 )
-            )
-            exit()
-        # Decode video. Meta info is used to perform selective decoding.
-        frames = decoder.decode(
-            container=video_container,
-            sampling_rate=1,
-            num_frames=1,
-            clip_idx=-1,
-            num_clips=1,
-            video_meta=None,
-            target_fps=self.cfg.DATA.TARGET_FPS,
-            backend=self.cfg.DATA.DECODING_BACKEND,
-            max_spatial_scale=0
-        )
+            except Exception as e:
+                logger.info(
+                    "Failed to load video from {} with error {}".format(
+                        self._path_to_videos[index], e
+                    )
+                )
+            # Select a random video if the current video was not able to access.
+            if video_container is None:
+                logger.warning(
+                    "Failed to meta load video idx {} from {}; trial {}".format(
+                        index, self._path_to_videos[index], i_try
+                    )
+                )
+                if self.mode not in ["test"] and i_try > self._num_retries // 2:
+                    # let's try another one
+                    index = random.randint(0, len(self._path_to_videos) - 1)
+                continue
 
-        if frames is None:
-            logger.info(
-                "Failed to decode video from {}".format(
-                    self._path_to_videos[index]
+            # Decode video. Meta info is used to perform selective decoding.
+            frames = decoder.decode(
+                container=video_container,
+                sampling_rate=1,
+                num_frames=1,
+                clip_idx=-1,
+                num_clips=1,
+                video_meta=None,
+                target_fps=self.cfg.DATA.TARGET_FPS,
+                backend=self.cfg.DATA.DECODING_BACKEND,
+                max_spatial_scale=0
+            )
+
+            # If decoding failed (wrong format, video is too short, and etc),
+            # select another video.
+            if frames is None:
+                logger.warning(
+                    "Failed to decode video idx {} from {}; trial {}".format(
+                        index, self._path_to_videos[index], i_try
+                    )
+                )
+                if self.mode not in ["test"] and i_try > self._num_retries // 2:
+                    # let's try another one
+                    index = random.randint(0, len(self._path_to_videos) - 1)
+                continue
+
+            # Perform color normalization.
+            frames = utils.tensor_normalize(
+                frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
+            )
+            # T H W C -> C T H W.
+            frames = frames.permute(3, 0, 1, 2)
+            #C T H W -> C H W
+            frames = torch.squeeze(frames, 1)
+            # Perform resize
+            frames = transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W])(frames)
+            return frames
+        else:
+            raise RuntimeError(
+                "Failed to fetch video after {} retries.".format(
+                    self._num_retries
                 )
             )
-        # Perform color normalization.
-        frames = utils.tensor_normalize(
-            frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
-        )
-        # T H W C -> C T H W.
-        frames = frames.permute(3, 0, 1, 2)
-        #C T H W -> C H W
-        frames = torch.squeeze(frames, 1)
-        # Perform resize
-        frames = transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W])(frames)
-        return frames
 
     def __len__(self):
         """
