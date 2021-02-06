@@ -3,6 +3,7 @@
 
 """Add custom configs and default values"""
 
+from fvcore.common.config import CfgNode
 
 def add_custom_config(_C):
     # Add your own customized configs.
