@@ -157,7 +157,7 @@ class ClevrerFrame(torch.utils.data.Dataset):
         #C T H W -> C H W
         frames = torch.squeeze(frames, 1)
         # Perform resize
-        frames = transforms.Resize([64, 64])(frames)
+        frames = transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W])(frames)
         return frames
 
     def __len__(self):

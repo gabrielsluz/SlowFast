@@ -6,4 +6,13 @@
 
 def add_custom_config(_C):
     # Add your own customized configs.
-    pass
+
+    #MONET parameters
+    _C.MONET = CfgNode()
+
+    #Number of object slots
+    _C.MONET.NUM_SLOTS = 11
+
+    #Data params for resizing Height and Width
+    _C.DATA.RESIZE_H = 64
+    _C.DATA.RESIZE_W = 64
