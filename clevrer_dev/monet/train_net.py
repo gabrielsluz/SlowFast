@@ -68,7 +68,8 @@ def train_epoch(
         #     preds = model(inputs)
 
         # Loss already computed in model
-        output = monet(images)
+        # logger.info("Size: {}".format(inputs.Size()))
+        output = monet(inputs)
         loss = torch.mean(output['loss'])
 
         # check Nan Loss.
@@ -93,9 +94,8 @@ def train_epoch(
                     {"Train/loss": loss, "Train/lr": lr},
                     global_step=data_size * cur_epoch + cur_iter,
                 )
-
         else:
-           if cfg.NUM_GPUS > 1:
+            if cfg.NUM_GPUS > 1:
                 [loss] = du.all_reduce([loss])
             loss = loss.item()
             # Update and log stats.

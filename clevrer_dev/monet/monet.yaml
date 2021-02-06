@@ -8,6 +8,8 @@ TRAIN:
 DATA:
   NUM_FRAMES: 1
   INPUT_CHANNEL_NUM: [3]
+  RESIZE_H: 64
+  RESIZE_W: 64
 SOLVER:
   BASE_LR: 0.0001
   LR_POLICY: constant
@@ -18,10 +20,10 @@ SOLVER:
   WARMUP_START_LR: 0.0
   OPTIMIZING_METHOD: rmsprop
 MODEL:
-  ARCH: Monet
-  MODEL_NAME: Monet
-  LOSS_FUNC: cross_entropy
-  DROPOUT_RATE: 0.5
+  ARCH: MonetModel
+  MODEL_NAME: MonetModel
+MONET:
+  NUM_SLOTS: 11
 TEST:
   ENABLE: True
   DATASET: ClevrerFrame
