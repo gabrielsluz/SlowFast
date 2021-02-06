@@ -14,9 +14,13 @@ logging.setup_logging(cfg.OUTPUT_DIR)
 
 frame_dataset = Clevrerframe(cfg, 'train')
 print(len(frame_dataset))
-for i in range(len(frame_dataset)):
+if len(frame_dataset) > 5:
+    max_i = 5
+else:
+    max_i = len(frame_dataset)
+for i in range(max_i):
     print(frame_dataset[i].size())
 
 tensor_image = frame_dataset[0].permute(1,2,0)
 plt.imshow(tensor_image)
-plt.savefig('saved_figure.png')
+plt.savefig('sample_frame.png')
