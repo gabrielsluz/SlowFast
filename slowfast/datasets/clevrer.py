@@ -48,7 +48,7 @@ class Clevrerframe(torch.utils.data.Dataset):
         self.cfg = cfg
 
         self._video_meta = {}
-        self.num_retries = 10
+        self._num_retries = 10
 
         logger.info("Constructing Clevrer Frame {}...".format(mode))
         self._construct_loader()
