@@ -64,10 +64,11 @@ def update_vocab(vocab, token_list):
         else:
             vocab[token] = vocab[' counter ']
             vocab[' counter '] += 1
-'''
+
+
 @DATASET_REGISTRY.register()
 class Clevrer(torch.utils.data.Dataset):
-     """
+    """
     CLEVRER Dataset.
     __getitem__ Returns a list o frames from a video and two questions with the anwers
     One descriptive question and one multiple choice
@@ -159,7 +160,7 @@ class Clevrer(torch.utils.data.Dataset):
                 new_dict['des_q'].append(torch.tensor([self.vocab[token] for token in split_q],dtype=torch.long))
 
                 if self.mode != 'test':
-                    new_dict['des_ans'].append(self.ans_vocab(q['answer']))
+                    new_dict['des_ans'].append(self.ans_vocab[q['answer']])
             else:
                 choices = q['choices']
                 choice_ans = []
@@ -223,7 +224,7 @@ class Clevrer(torch.utils.data.Dataset):
     
     def __getitem__(self, index):
         """
-        Given the video index, return the list of frames, label, and video
+        Given the video index, return the list of frames, question_dict, and video
         index if the video can be fetched and decoded successfully, otherwise
         repeatly find a random video that can be decoded as a replacement.
         Args:
@@ -231,7 +232,7 @@ class Clevrer(torch.utils.data.Dataset):
         Returns:
             frames (tensor): the frames of sampled from the video. The dimension
                 is `num frames` x `channel` x `height` x `width`.
-            output_dict (dict): A dictionary from _dataset
+            question_dict (dict): A dictionary from _dataset corresponding to the video
             index (int): if the video provided by pytorch sampler can be
                 decoded, then return the index of the video. If not, return the
                 index of the video replacement that can be decoded.
@@ -241,58 +242,28 @@ class Clevrer(torch.utils.data.Dataset):
         if isinstance(index, tuple):
             index, short_cycle_idx = index
 
-        if self.mode in ["train", "val"]:
-            # -1 indicates random sampling.
-            temporal_sample_index = -1
-            spatial_sample_index = -1
-            min_scale = self.cfg.DATA.TRAIN_JITTER_SCALES[0]
-            max_scale = self.cfg.DATA.TRAIN_JITTER_SCALES[1]
-            crop_size = self.cfg.DATA.TRAIN_CROP_SIZE
-            if short_cycle_idx in [0, 1]:
-                crop_size = int(
-                    round(
-                        self.cfg.MULTIGRID.SHORT_CYCLE_FACTORS[short_cycle_idx]
-                        * self.cfg.MULTIGRID.DEFAULT_S
-                    )
+        # -1 indicates random sampling.
+        temporal_sample_index = -1
+        spatial_sample_index = -1
+        min_scale = self.cfg.DATA.TRAIN_JITTER_SCALES[0]
+        max_scale = self.cfg.DATA.TRAIN_JITTER_SCALES[1]
+        crop_size = self.cfg.DATA.TRAIN_CROP_SIZE
+        if short_cycle_idx in [0, 1]:
+            crop_size = int(
+                round(
+                    self.cfg.MULTIGRID.SHORT_CYCLE_FACTORS[short_cycle_idx]
+                    * self.cfg.MULTIGRID.DEFAULT_S
                 )
-            if self.cfg.MULTIGRID.DEFAULT_S > 0:
-                # Decreasing the scale is equivalent to using a larger "span"
-                # in a sampling grid.
-                min_scale = int(
-                    round(
-                        float(min_scale)
-                        * crop_size
-                        / self.cfg.MULTIGRID.DEFAULT_S
-                    )
+            )
+        if self.cfg.MULTIGRID.DEFAULT_S > 0:
+            # Decreasing the scale is equivalent to using a larger "span"
+            # in a sampling grid.
+            min_scale = int(
+                round(
+                    float(min_scale)
+                    * crop_size
+                    / self.cfg.MULTIGRID.DEFAULT_S
                 )
-        elif self.mode in ["test"]:
-            temporal_sample_index = (
-                self._spatial_temporal_idx[index]
-                // self.cfg.TEST.NUM_SPATIAL_CROPS
-            )
-            # spatial_sample_index is in [0, 1, 2]. Corresponding to left,
-            # center, or right if width is larger than height, and top, middle,
-            # or bottom if height is larger than width.
-            spatial_sample_index = (
-                (
-                    self._spatial_temporal_idx[index]
-                    % self.cfg.TEST.NUM_SPATIAL_CROPS
-                )
-                if self.cfg.TEST.NUM_SPATIAL_CROPS > 1
-                else 1
-            )
-            min_scale, max_scale, crop_size = (
-                [self.cfg.DATA.TEST_CROP_SIZE] * 3
-                if self.cfg.TEST.NUM_SPATIAL_CROPS > 1
-                else [self.cfg.DATA.TRAIN_JITTER_SCALES[0]] * 2
-                + [self.cfg.DATA.TEST_CROP_SIZE]
-            )
-            # The testing is deterministic and no jitter should be performed.
-            # min_scale, max_scale, and crop_size are expect to be the same.
-            assert len({min_scale, max_scale}) == 1
-        else:
-            raise NotImplementedError(
-                "Does not support {} mode".format(self.mode)
             )
         sampling_rate = utils.get_random_sampling_rate(
             self.cfg.MULTIGRID.LONG_CYCLE_SAMPLING_RATE,
@@ -304,21 +275,21 @@ class Clevrer(torch.utils.data.Dataset):
             video_container = None
             try:
                 video_container = container.get_video_container(
-                    self._path_to_videos[index],
+                    self._dataset[index]['video_path'],
                     self.cfg.DATA_LOADER.ENABLE_MULTI_THREAD_DECODE,
                     self.cfg.DATA.DECODING_BACKEND,
                 )
             except Exception as e:
                 logger.info(
                     "Failed to load video from {} with error {}".format(
-                        self._path_to_videos[index], e
+                        self._dataset[index]['video_path'], e
                     )
                 )
             # Select a random video if the current video was not able to access.
             if video_container is None:
                 logger.warning(
                     "Failed to meta load video idx {} from {}; trial {}".format(
-                        index, self._path_to_videos[index], i_try
+                        index, self._dataset[index]['video_path'], i_try
                     )
                 )
                 if self.mode not in ["test"] and i_try > self._num_retries // 2:
@@ -332,8 +303,8 @@ class Clevrer(torch.utils.data.Dataset):
                 sampling_rate,
                 self.cfg.DATA.NUM_FRAMES,
                 temporal_sample_index,
-                self.cfg.TEST.NUM_ENSEMBLE_VIEWS,
-                video_meta=self._video_meta[index],
+                num_clips=1,
+                video_meta=None,
                 target_fps=self.cfg.DATA.TARGET_FPS,
                 backend=self.cfg.DATA.DECODING_BACKEND,
                 max_spatial_scale=min_scale,
@@ -344,7 +315,7 @@ class Clevrer(torch.utils.data.Dataset):
             if frames is None:
                 logger.warning(
                     "Failed to decode video idx {} from {}; trial {}".format(
-                        index, self._path_to_videos[index], i_try
+                        index, self._dataset[index]['video_path'], i_try
                     )
                 )
                 if self.mode not in ["test"] and i_try > self._num_retries // 2:
@@ -356,22 +327,22 @@ class Clevrer(torch.utils.data.Dataset):
             frames = utils.tensor_normalize(
                 frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
             )
-            # T H W C -> C T H W.
-            frames = frames.permute(3, 0, 1, 2)
-            # Perform data augmentation.
-            frames = utils.spatial_sampling(
-                frames,
-                spatial_idx=spatial_sample_index,
-                min_scale=min_scale,
-                max_scale=max_scale,
-                crop_size=crop_size,
-                random_horizontal_flip=self.cfg.DATA.RANDOM_FLIP,
-                inverse_uniform_sampling=self.cfg.DATA.INV_UNIFORM_SAMPLE,
-            )
+            # T H W C -> T C H W.
+            frames = frames.permute(0, 3, 1, 2)
+            # Perform resize
+            transform_rs = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W]),
+            transforms.ToTensor()
+            ])
+            frames_size = frames.size()
+            resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
+            for i in range(frames_size[0]):
+                resized_frames[i] = transform_rs(frames[i])
 
-            label = self._labels[index]
-            frames = utils.pack_pathway_output(self.cfg, frames)
-            return frames, label, index, {}
+            question_dict = self._dataset[index]
+            #resized_frames = utils.pack_pathway_output(self.cfg, resized_frames)
+            return resized_frames, question_dict, index, {}
         else:
             raise RuntimeError(
                 "Failed to fetch video after {} retries.".format(
@@ -394,8 +365,6 @@ class Clevrer(torch.utils.data.Dataset):
         """
         return len(self._dataset)
 
-
-'''
 
 
 
@@ -428,7 +397,6 @@ class Clevrerframe(torch.utils.data.Dataset):
         self.mode = mode
         self.cfg = cfg
 
-        self._video_meta = {}
         self._num_retries = 10
 
         logger.info("Constructing Clevrer Frame {}...".format(mode))
