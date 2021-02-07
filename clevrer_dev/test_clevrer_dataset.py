@@ -19,7 +19,7 @@ if len(frame_dataset) > 5:
 else:
     max_i = len(frame_dataset)
 for i in range(max_i):
-    print(frame_dataset[i].size())
+    print(frame_dataset[i][1])
 
 tensor_image = frame_dataset[0].permute(1,2,0)
 plt.imshow(tensor_image)

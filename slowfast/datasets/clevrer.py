@@ -232,7 +232,7 @@ class Clevrer(torch.utils.data.Dataset):
         Returns:
             frames (tensor): the frames of sampled from the video. The dimension
                 is `num frames` x `channel` x `height` x `width`.
-            question_dict (dict): A dictionary from _dataset corresponding to the video
+            question_dict (dict): A dictionary with the questions and answers (if not test)
             index (int): if the video provided by pytorch sampler can be
                 decoded, then return the index of the video. If not, return the
                 index of the video replacement that can be decoded.
@@ -339,9 +339,18 @@ class Clevrer(torch.utils.data.Dataset):
             resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
             for i in range(frames_size[0]):
                 resized_frames[i] = transform_rs(frames[i])
-
-            question_dict = self._dataset[index]
             #resized_frames = utils.pack_pathway_output(self.cfg, resized_frames)
+
+            #Get the questions => a random descriptive and a random multiple choice
+            question_dict = {}
+            pick_des = random.randint(0, len(self._dataset[index]['des_q']) - 1)
+            pick_mc = random.randint(0, len(self._dataset[index]['mc_q']) - 1)
+            question_dict['des_q'] = self._dataset[index]['des_q'][pick_des]
+            question_dict['mc_q'] = self._dataset[index]['mc_q'][pick_des]
+            if self.mode != "test":
+                question_dict['des_ans'] = self._dataset[index]['des_ans'][pick_des]
+                question_dict['mc_ans'] = self._dataset[index]['mc_ans'][pick_mc]
+            
             return resized_frames, question_dict, index, {}
         else:
             raise RuntimeError(
