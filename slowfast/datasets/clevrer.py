@@ -64,7 +64,7 @@ def update_vocab(vocab, token_list):
         else:
             vocab[token] = vocab[' counter ']
             vocab[' counter '] += 1
-
+'''
 @DATASET_REGISTRY.register()
 class Clevrer(torch.utils.data.Dataset):
      """
@@ -92,9 +92,9 @@ class Clevrer(torch.utils.data.Dataset):
             "test",
         ], "Split '{}' not supported for Clevrer Frame".format(mode)
         self.mode = mode
-        self.cfg = cfg
+        self.cfg = cfg  
 
-        self._num_retries = 10
+        self._num_retries = 10  
 
         logger.info("Constructing Clevrer Frame {}...".format(mode))
         self._construct_loader()
@@ -395,7 +395,7 @@ class Clevrer(torch.utils.data.Dataset):
         return len(self._dataset)
 
 
-
+'''
 
 
 
