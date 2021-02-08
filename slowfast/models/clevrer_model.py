@@ -12,6 +12,10 @@ class ClevrerMain(nn.Module):
 
     *The original paper of MONet and of this algorithm use a latent represantion
     of 16 dimensions. This number is hardcoded in the MONet model.
+    TODO:
+        - Multiple Choice questions
+        - Self Supervision
+        - LAMB optimizer
     """
     def __init__(self, cfg, vocab_len, ans_vocab_len):
         """
