@@ -324,9 +324,9 @@ class Clevrer(torch.utils.data.Dataset):
                 continue
 
             # Perform color normalization.
-            frames = utils.tensor_normalize(
-                frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
-            )
+            # frames = utils.tensor_normalize(
+            #     frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
+            # )
             # T H W C -> T C H W.
             frames = frames.permute(0, 3, 1, 2)
             # Perform resize
@@ -507,9 +507,9 @@ class Clevrerframe(torch.utils.data.Dataset):
                 continue
 
             # Perform color normalization.
-            frames = utils.tensor_normalize(
-                frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
-            )
+            # frames = utils.tensor_normalize(
+            #     frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
+            # )
             # T H W C -> C T H W.
             frames = frames.permute(3, 0, 1, 2)
             #C T H W -> C H W
