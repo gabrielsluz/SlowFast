@@ -232,6 +232,26 @@ class Monet(nn.Module):
         p_x *= mask
         p_x = torch.sum(p_x, [1, 2, 3])
         return p_x, x_recon, mask_pred
+    
+    # def return_means(self, x):
+    #     """"
+    #     The means are used to represent an object.
+    #     Returns a tensor containing the latent means for 
+    #     self.conf.num_slots slots.
+    #     """
+    #     scope = torch.ones_like(x[:, 0:1])
+    #     masks = []
+    #     for i in range(self.conf.num_slots-1):
+    #         mask, scope = self.attention(x, scope)
+    #         masks.append(mask)
+    #     masks.append(scope)
+    #     means_tensor = torch.zeros(self.conf.num_slots, 16)
+    #     for i, mask in enumerate(masks):
+    #         encoder_input = torch.cat((x, mask), 1)
+    #         q_params = self.encoder(encoder_input)
+    #         means = torch.sigmoid(q_params[:, :16]) * 6 - 3
+    #         means_tensor[i] = means
+    #     return means_tensor
 
 
 def print_image_stats(images, name):
