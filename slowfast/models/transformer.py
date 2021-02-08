@@ -42,7 +42,7 @@ class TransformerEncoderLayerPositional(nn.TransformerEncoderLayer):
         return super(TransformerEncoderLayerPositional, self).forward(src, src_mask, src_key_padding_mask)
 
 
-class TransformerModel(nn.Module):
+class Transformer(nn.Module):
     """"
     Implementation of the Transformer Model used in the Main model.
     As BERT, it only uses the Encoder part of the Transformer.
@@ -51,7 +51,7 @@ class TransformerModel(nn.Module):
     """
 
     def __init__(self, vocab_len, input_dim, nhead, hid_dim, nlayers, dropout=0.5):
-        super(TransformerModel, self).__init__()
+        super(Transformer, self).__init__()
         self.model_type = 'Transformer'
         encoder_layers = TransformerEncoderLayerPositional(input_dim, nhead, hid_dim, dropout)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layers, nlayers)

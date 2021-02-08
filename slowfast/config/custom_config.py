@@ -10,10 +10,24 @@ def add_custom_config(_C):
 
     #MONET parameters
     _C.MONET = CfgNode()
-
     #Number of object slots
-    _C.MONET.NUM_SLOTS = 11
+    _C.MONET.NUM_SLOTS = 8
+    #Save/Load state_dict path
+    _C.MONET.STATE_DICT_PATH = "./checkpoints/monet_state_dict.pt"
 
     #Data params for resizing Height and Width
     _C.DATA.RESIZE_H = 64
     _C.DATA.RESIZE_W = 64
+
+    #CLEVRERMain parameters
+    _C.CLEVRERMAIN = CfgNode()
+    #Transformer parameters:
+    _C.CLEVRERMAIN.T_HEADS = 10
+    _C.CLEVRERMAIN.T_LAYERS = 28
+    _C.CLEVRERMAIN.T_HID_DIM = 1024
+    _C.CLEVRERMAIN.T_DROPOUT = 0.1
+    #Prediction Head hidden layer dimension
+    _C.CLEVRERMAIN.PRED_HEAD_DIM = 128
+
+    
+

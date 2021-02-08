@@ -1,9 +1,56 @@
-"""
-Implemetation of the main Model for the Clevrer Dataset
-It aggregates the Transformer and MONet models
-"""
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-class ClevrerMain()
+from .monet import Monet
+from .transformer import Transformer
+
+class ClevrerMain(nn.Module):
+    """
+    Implemetation of the main Model for the Clevrer Dataset
+    It combines the Transformer and MONet models
+
+    *The original paper of MONet and of this algorithm use a latent represantion
+    of 16 dimensions. This number is hardcoded in the MONet model.
+    """
+    def __init__(self, cfg, vocab_len, ans_vocab_len):
+        """
+        The `__init__` method of any subclass should also contain these
+            arguments.
+
+        Args:
+            cfg (CfgNode): model building configs, details are in the
+                comments of the config file.
+        """
+        #Dataset specific parameters
+        self.vocab_len = vocab_len
+        self.ans_vocab_len = ans_vocab_len
+
+        #MONet setup
+        clevr_conf = MonetConfig(num_slots=cfg.MONET.NUM_SLOTS,
+                           num_blocks=6,
+                           channel_base=64,
+                           bg_sigma=0.09,
+                           fg_sigma=0.11,
+                          )
+        self.Monet = Monet(clevr_conf, cfg.DATA.RESIZE_H, cfg.DATA.RESIZE_W)
+        #MONet should have been pretrained => load it at this step
+        #Uses state_dict
+        self.Monet.load_state_dict(torch.load(cfg.MONET.STATE_DICT_PATH))
+
+        #Transformer setup
+        self.slot_dim = 16
+        self.Transformer = Transformer(vocab_len=self.vocab_len, input_dim=self.slot_dim, 
+                                        nhead=cfg.CLEVRERMAIN.T_HEADS, hid_dim=cfg.CLEVRERMAIN.T_HID_DIM, 
+                                        nlayers=CLEVRERMAIN.T_LAYERS, dropout=cfg.CLEVRERMAIN.T_DROPOUT)
+
+        #Prediction head MLP
+        #TODO: Currently only for descriptive questions
+        self.pred_head = nn.Sequential(
+            nn.Linear(self.slot_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
+            nn.ReLU(),
+            nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, self.ans_vocab_len)
+        )
 
     
     def assemble_input(self):
