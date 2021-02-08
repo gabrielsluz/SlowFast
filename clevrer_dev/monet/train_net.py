@@ -387,6 +387,7 @@ def train(cfg):
         # Save a checkpoint.
         if is_checkp_epoch:
             cu.save_checkpoint(cfg.OUTPUT_DIR, model, optimizer, cur_epoch, cfg)
+            torch.save(model.state_dict(), cfg.STATE_DICT_PATH)
         # Evaluate the model on validation set.
         if is_eval_epoch:
             logger.info("Eval epoch: ")
