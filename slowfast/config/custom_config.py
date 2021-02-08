@@ -12,8 +12,8 @@ def add_custom_config(_C):
     _C.MONET = CfgNode()
     #Number of object slots
     _C.MONET.NUM_SLOTS = 8
-    #Save/Load state_dict path
-    _C.MONET.STATE_DICT_PATH = "./checkpoints/monet_state_dict.pt"
+    #Load monet checkpoint
+    _C.MONET.CHECKPOINT_LOAD = "./checkpoints/monet.pyth"
 
     #Data params for resizing Height and Width
     _C.DATA.RESIZE_H = 64

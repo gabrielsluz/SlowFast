@@ -5,6 +5,8 @@ import torch.nn.functional as F
 from .monet import Monet
 from .transformer import Transformer
 
+import slowfast.utils.checkpoint as cu
+
 from collections import namedtuple
 
 config_options = [
@@ -60,9 +62,8 @@ class ClevrerMain(nn.Module):
                            fg_sigma=0.11,
                           )
         self.Monet = Monet(clevr_conf, cfg.DATA.RESIZE_H, cfg.DATA.RESIZE_W)
-        #MONet should have been pretrained => load it at this step
-        #Uses state_dict
-        self.Monet.load_state_dict(torch.load(cfg.MONET.STATE_DICT_PATH))
+        #MONet should have been pretrained => load it at this step 
+        cu.load_checkpoint(cfg.MONET.CHECKPOINT_LOAD, self.Monet, data_parallel=False)
 
         #Embedding for the words
         self.embed_layer = nn.Embedding(self.vocab_len, self.slot_dim)
