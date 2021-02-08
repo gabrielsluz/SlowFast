@@ -23,7 +23,7 @@ MODEL:
   ARCH: MonetModel
   MODEL_NAME: MonetModel
 MONET:
-  NUM_SLOTS: 11
+  NUM_SLOTS: 8
 TEST:
   ENABLE: True
   DATASET: Clevrerframe
