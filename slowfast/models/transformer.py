@@ -50,13 +50,11 @@ class Transformer(nn.Module):
     It uses Positional Encoding at each layer
     """
 
-    def __init__(self, vocab_len, input_dim, nhead, hid_dim, nlayers, dropout=0.5):
+    def __init__(self, input_dim, nhead, hid_dim, nlayers, dropout=0.5):
         super(Transformer, self).__init__()
         self.model_type = 'Transformer'
         encoder_layers = TransformerEncoderLayerPositional(input_dim, nhead, hid_dim, dropout)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layers, nlayers)
-
-        self.encoder = nn.Embedding(vocab_len, input_dim)
         self.input_dim = input_dim
         self.init_weights()
 
@@ -65,6 +63,5 @@ class Transformer(nn.Module):
         self.encoder.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, src, src_mask):
-        src = self.encoder(src) * math.sqrt(self.input_dim)
         output = self.transformer_encoder(src, src_mask)
         return output

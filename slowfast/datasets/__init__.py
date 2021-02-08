@@ -7,3 +7,4 @@ from .charades import Charades  # noqa
 from .kinetics import Kinetics  # noqa
 from .ssv2 import Ssv2  # noqa
 from .clevrer import Clevrerframe 
+from .clevrer import Clevrer 
