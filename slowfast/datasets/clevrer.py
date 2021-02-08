@@ -346,7 +346,7 @@ class Clevrer(torch.utils.data.Dataset):
             pick_des = random.randint(0, len(self._dataset[index]['des_q']) - 1)
             pick_mc = random.randint(0, len(self._dataset[index]['mc_q']) - 1)
             question_dict['des_q'] = self._dataset[index]['des_q'][pick_des]
-            question_dict['mc_q'] = self._dataset[index]['mc_q'][pick_des]
+            question_dict['mc_q'] = self._dataset[index]['mc_q'][pick_mc]
             if self.mode != "test":
                 question_dict['des_ans'] = self._dataset[index]['des_ans'][pick_des]
                 question_dict['mc_ans'] = self._dataset[index]['mc_ans'][pick_mc]
