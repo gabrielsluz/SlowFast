@@ -9,6 +9,7 @@ import torch
 from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
 
+import numpy as np
 
 args = parse_args()
 cfg = load_config(args)
@@ -47,11 +48,39 @@ clevr_conf = MonetConfig(num_slots=8,
 monet_model = Monet(clevr_conf, 64, 64)
 cu.load_checkpoint("/datasets/checkpoint_epoch_00020.pyth", monet_model,data_parallel=False)
 
-tensor_input = frame_dataset[0][0]
+def visualize_masks(imgs, masks, recons):
+    # print('recons min/max', recons[:, 0].min().item(), recons[:, 0].max().item())
+    # print('recons1 min/max', recons[:, 1].min().item(), recons[:, 1].max().item())
+    # print('recons2 min/max', recons[:, 2].min().item(), recons[:, 2].max().item())
+    recons = np.clip(recons, 0., 1.)
+    colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (0, 255, 255), (255, 0, 255), (255, 255, 0)]
+    colors.extend([(c[0]//2, c[1]//2, c[2]//2) for c in colors])
+    colors.extend([(c[0]//4, c[1]//4, c[2]//4) for c in colors])
+    seg_maps = np.zeros_like(imgs)
+    masks = np.argmax(masks, 1)
+    for i in range(imgs.shape[0]):
+        for y in range(imgs.shape[2]):
+            for x in range(imgs.shape[3]):
+                seg_maps[i, :, y, x] = colors[masks[i, y, x]]
+
+    seg_maps /= 255.0
+    seg_maps = seg_maps[0].transpose((1, 2, 0))
+    plt.imshow(seg_maps)
+    plt.savefig('seg_maps.png')
+
+print(frame_dataset[0][0].size())
+tensor_input = torch.unsqueeze(frame_dataset[0][0][5], 0)
 output = monet_model.forward(tensor_input)
 print(output['reconstructions'].size())
 
 tensor_image = output['reconstructions'][0].permute(1,2,0).detach().numpy()
+# plt.imshow(tensor_image)
+# plt.savefig('sample_frame.png')
+imgs = tensor_input
+masks = output['masks'].detach().numpy()
+recons = output['reconstructions'].detach().numpy()
+visualize_masks(imgs, masks, recons)
+tensor_image = tensor_input[0].permute(1,2,0)
 plt.imshow(tensor_image)
 plt.savefig('sample_frame.png')
 
