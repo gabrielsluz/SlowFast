@@ -5,6 +5,27 @@ import torch.nn.functional as F
 from .monet import Monet
 from .transformer import Transformer
 
+from collections import namedtuple
+
+config_options = [
+    # Training config
+    #'vis_every',  # Visualize progress every X iterations
+    #'batch_size',
+    #'num_epochs',
+    #'load_parameters',  # Load parameters from checkpoint
+    #'checkpoint_file',  # File for loading/storing checkpoints
+    #'data_dir',  # Directory for the training data
+    #'parallel',  # Train using nn.DataParallel
+    # Model config
+    'num_slots',  # Number of slots k,
+    'num_blocks',  # Number of blochs in attention U-Net 
+    'channel_base',  # Number of channels used for the first U-Net conv layer
+    'bg_sigma',  # Sigma of the decoder distributions for the first slot
+    'fg_sigma',  # Sigma of the decoder distributions for all other slots
+]
+
+MonetConfig = namedtuple('MonetConfig', config_options)
+
 class ClevrerMain(nn.Module):
     """
     Implemetation of the main Model for the Clevrer Dataset
