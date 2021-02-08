@@ -63,5 +63,8 @@ class Transformer(nn.Module):
         self.encoder.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, src, src_mask):
+        """
+        src => each line is an element of the sequence
+        """
         output = self.transformer_encoder(src, src_mask)
         return output

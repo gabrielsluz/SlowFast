@@ -71,4 +71,4 @@ class ClevrerMain(nn.Module):
         pass
 
     def forward(self, ):
-        src = self.embed_layer(src) * math.sqrt(self.input_dim)
+        src = self.embed_layer(src) * math.sqrt(self.slot_dim)
