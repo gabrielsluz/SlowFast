@@ -21,6 +21,13 @@ python3 clevrer_dev/visualize_monet.py \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
   MONET.CHECKPOINT_LOAD /datasets/checkpoint_epoch_00020.pyth
+
+Or:
+python3 clevrer_dev/visualize_monet.py \
+  --cfg clevrer_dev/visualize_monet.yaml \
+  DATA.PATH_TO_DATA_DIR /datasets/clevrer \
+  DATA.PATH_PREFIX /datasets/clevrer \
+  MONET.CHECKPOINT_LOAD ./checkpoints/checkpoint_epoch_00100.pyth
 """
 
 def visualize_masks(imgs, masks):

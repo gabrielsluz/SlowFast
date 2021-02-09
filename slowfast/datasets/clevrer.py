@@ -65,6 +65,13 @@ def update_vocab(vocab, token_list):
             vocab[token] = vocab[' counter ']
             vocab[' counter '] += 1
 
+#Returns the token for a given index
+def get_token_for_index(vocab, tgt_index):
+    for token, index in vocab.items():
+        if index == tgt_index:
+            return token
+    logger.info("Token for index {} not found".format(tgt_index))
+    return "TOKEN NOT FOUND"
 
 @DATASET_REGISTRY.register()
 class Clevrer(torch.utils.data.Dataset):
@@ -182,7 +189,7 @@ class Clevrer(torch.utils.data.Dataset):
         """
         Construct the video loader.
         self._dataset:
-            The main data structure: list of dicts => video_file_name 
+            The main data structure: list of dicts: video_path 
                                     + list of descriptive questions (des_q) 
                                     + list of multiple choice questions (mc_q)
                                     + list of descriptive answers (des_ans)
@@ -230,12 +237,13 @@ class Clevrer(torch.utils.data.Dataset):
         Args:
             index (int): the video index provided by the pytorch sampler.
         Returns:
-            frames (tensor): the frames of sampled from the video. The dimension
-                is `num frames` x `channel` x `height` x `width`.
-            question_dict (dict): A dictionary with the questions and answers (if not test)
-            index (int): if the video provided by pytorch sampler can be
-                decoded, then return the index of the video. If not, return the
-                index of the video replacement that can be decoded.
+        A dict containing:
+                frames (tensor): the frames of sampled from the video. The dimension
+                    is `num frames` x `channel` x `height` x `width`.
+                question_dict (dict): A dictionary with the questions and answers (if not test)
+                index (int): if the video provided by pytorch sampler can be
+                    decoded, then return the index of the video. If not, return the
+                    index of the video replacement that can be decoded.
         """
         short_cycle_idx = None
         # When short cycle is used, input index is a tupple.
@@ -351,13 +359,81 @@ class Clevrer(torch.utils.data.Dataset):
                 question_dict['des_ans'] = self._dataset[index]['des_ans'][pick_des]
                 question_dict['mc_ans'] = self._dataset[index]['mc_ans'][pick_mc]
             
-            return resized_frames, question_dict, index, {}
+            output_dict = {}
+            output_dict['frames'] = resized_frames
+            output_dict['question_dict'] = question_dict
+            output_dict['index'] = index
+            return output_dict
         else:
             raise RuntimeError(
                 "Failed to fetch video after {} retries.".format(
                     self._num_retries
                 )
             )
+    
+    def decode_question(self, q_tensor):
+        """
+        Decodes a vector of indexes into a string of words
+        Args:
+            q_tensor (LongTensor): Encoded question
+        Returns:
+            decoded_q (string): Decoded question
+        """
+        decoded_q = ""
+        for index in q_tensor:
+            decoded_q += get_token_for_index(self.vocab, index)
+            decoded_q += " "
+        return decoded_q
+    
+    def decode_answer(self, ans_index):
+        """
+        Decodes an integer into the corresponding answer
+        Args:
+            ans_index (int): Encoded answer
+        Returns:
+            (string): Decoded answer
+        """
+        return get_token_for_index(self.ans_vocab, ans_index)
+    
+    def get_video_info(self, index):
+        """
+        Args:
+            index (int): Returned from __get_item__
+        Returns:
+            video_info (dict): video_path 
+                            + list of descriptive questions (des_q) 
+                            + list of multiple choice questions (mc_q)
+                            + list of descriptive answers (des_ans)
+                            + list of multiple choice answers (mc_ans)
+        """
+        if index < 0 or index >= len(self._dataset):
+            logger.info("Video for index {} not found".format(index))
+            return None
+        video_dict = self._dataset[index]
+        video_info = {}
+        video_info['video_path'] =  video_dict['video_path']
+        #Questions
+        video_info['des_q'] = []
+        for q in video_dict['des_q']:
+            video_info['des_q'].append(self.decode_question(q))
+
+        video_info['mc_q'] = []
+        for q in video_dict['mc_q']:
+            video_info['mc_q'].append(self.decode_question(q))
+        
+        if self.mode == 'test':
+            return video_info
+
+        #Answers
+        video_info['des_ans'] = []
+        for ans in video_dict['des_ans']:
+            video_info['des_ans'].append(self.decode_answer(ans))
+
+        video_info['mc_ans'] = []
+        for ans in video_dict['mc_ans']:
+            video_info['mc_ans'].append(ans)
+        
+        return video_info
 
     def __len__(self):
         """
@@ -375,7 +451,7 @@ class Clevrer(torch.utils.data.Dataset):
         return len(self._dataset)
 
 
-
+# ////////////////////////////////////////////////////////////////////////////
 
 
 @DATASET_REGISTRY.register()
