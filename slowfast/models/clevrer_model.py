@@ -90,7 +90,17 @@ class ClevrerMain(nn.Module):
         The slots and words are concatenated with a one hot that indicates
         if they are slots or words. => Sequence vectors are d + 2 dimensional
         """
+        #CLS is token 0
         pass
 
-    def forward(self, ):
+    def forward(self, x):
+        """
+        Receives a batch, in the format of a dict containing:
+                frames (tensor): the frames of sampled from the video. The dimension
+                    is `batch_size` x `num frames` x `channel` x `height` x `width`.
+                question_dict (dict): A dictionary with the questions and answers (if not test)
+                index (int): if the video provided by pytorch sampler can be
+                    decoded, then return the index of the video. If not, return the
+                    index of the video replacement that can be decoded.
+        """
         src = self.embed_layer(src) * math.sqrt(self.slot_dim)

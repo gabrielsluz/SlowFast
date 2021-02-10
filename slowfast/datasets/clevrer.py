@@ -79,6 +79,7 @@ class Clevrer(torch.utils.data.Dataset):
     CLEVRER Dataset.
     __getitem__ Returns a list o frames from a video and two questions with the anwers
     One descriptive question and one multiple choice
+    Uses padding.
     """
     def __init__(self, cfg, mode):
         """
@@ -124,25 +125,51 @@ class Clevrer(torch.utils.data.Dataset):
         update_vocab(ans_vocab, possible_ans)
 
         vocab = {}
-        vocab['CLS'] = 0
-        vocab['|'] = 1
-        vocab[' counter '] = 2 #Has spaces in key => not a valid token
+        vocab[' CLS '] = 0
+        vocab[' PAD '] = 1
+        vocab['|'] = 2
+        vocab[' counter '] = 3 #Has spaces in key => not a valid token
+
+        des_q_lens = [] #Description question lens
+        mc_q_lens = [] #Multiple choice question lens
 
         with open(path_to_file, "r") as f:
             data = json.load(f)
-
             for i in range(len(data)):
                 questions = data[i]['questions']
                 for q in questions:
                     split_q = string_to_token_list(q['question'])
                     update_vocab(vocab, split_q)
-                    if q['question_type'] != 'descriptive':
+                    if q['question_type'] == 'descriptive':
+                        des_q_lens.append(len(split_q))
+                    else:
                         choices = q['choices']
+                        q_len = len(split_q)
                         for c in choices:
                             split_c = string_to_token_list(c['choice'])
                             update_vocab(vocab, split_c)
+                            q_len += len(split_c) + 1 #Plus 1 because adds |
+                        mc_q_lens.append(q_len)
+                    
         self.vocab = vocab
         self.ans_vocab = ans_vocab
+
+        self.max_des_len = max(des_q_lens)
+        self.max_mc_len = max(mc_q_lens)
+    
+    def _token_list_to_tensor(self, token_list, question_type):
+        """
+        Transforms a token list into a tensor with padding 
+        according to the question type
+        """
+        print(token_list)
+        if question_type == 'descriptive':
+            tensor = torch.ones(self.max_des_len, dtype=torch.long) * self.vocab[' PAD ']
+        else:
+            tensor = torch.ones(self.max_mc_len, dtype=torch.long) * self.vocab[' PAD ']
+        for i in range(len(token_list)):
+            tensor[i] = self.vocab[token_list[i]]
+        return tensor
 
     
     def _constructs_questions_ans(self, data, video_path):
@@ -150,6 +177,8 @@ class Clevrer(torch.utils.data.Dataset):
         Fills new_dict with the information contained in data extracted from the json
         Uses the mode to determine if the answers will be returned
         """
+        num_choices = 4 #Numer of multiple choice answers per question
+
         new_dict = {}
         new_dict['video_path'] = video_path
 
@@ -164,24 +193,23 @@ class Clevrer(torch.utils.data.Dataset):
         for q in questions:
             split_q = string_to_token_list(q['question'])
             if q['question_type'] == 'descriptive':
-                new_dict['des_q'].append(torch.tensor([self.vocab[token] for token in split_q],dtype=torch.long))
+                new_dict['des_q'].append(self._token_list_to_tensor(split_q, 'descriptive'))
 
                 if self.mode != 'test':
                     new_dict['des_ans'].append(self.ans_vocab[q['answer']])
             else:
                 choices = q['choices']
-                choice_ans = []
+                choice_ans = torch.zeros(num_choices)
+                c_index = 0
                 for c in choices:
                     split_c = string_to_token_list(c['choice'])
                     split_q += ['|'] + split_c
 
                     if self.mode != 'test':
-                        answer = 1 if c['answer'] == 'correct' else 0
-                        choice_ans.append(answer)
+                        choice_ans[c_index] = 1 if c['answer'] == 'correct' else 0
+                        c_index += 1
 
-                for _ in range(4 - len(choice_ans)): #Assume that the maximum of choices is 4
-                    choice_ans.append(0)
-                new_dict['mc_q'].append(torch.tensor([self.vocab[token] for token in split_q],dtype=torch.long))
+                new_dict['mc_q'].append(self._token_list_to_tensor(split_q, 'mc'))
                 new_dict['mc_ans'].append(choice_ans)
         return new_dict
 

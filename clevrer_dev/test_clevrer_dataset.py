@@ -18,7 +18,6 @@ python3 clevrer_dev/test_clevrer_dataset.py \
   DATA.PATH_PREFIX /datasets/clevrer_dummy
 """
 
-
 args = parse_args()
 cfg = load_config(args)
 
@@ -45,5 +44,10 @@ dataloader = DataLoader(dataset, batch_size=4,
                         shuffle=True, num_workers=0)
 
 for i_batch, sample_batched in enumerate(dataloader):
-    print(sample_batched)
+    print(sample_batched['frames'].size())
+    print(sample_batched['question_dict']['des_q'].size())
+    print(sample_batched['question_dict']['des_ans'].size())
+    print(sample_batched['question_dict']['mc_q'].size())
+    print(sample_batched['question_dict']['mc_ans'].size())
+    print(sample_batched['index'].size())
     break
