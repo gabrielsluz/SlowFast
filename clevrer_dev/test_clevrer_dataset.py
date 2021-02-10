@@ -2,6 +2,8 @@
 from slowfast.datasets.clevrer import Clevrer
 import matplotlib.pyplot as plt
 import torch
+from torch.utils.data import DataLoader
+
 
 from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
@@ -37,3 +39,11 @@ for i in range(max_i):
 # tensor_image = dataset[0][0][0].permute(1,2,0)
 # plt.imshow(tensor_image)
 # plt.savefig('sample_frame.png')
+
+#Test DataLoader
+dataloader = DataLoader(dataset, batch_size=4,
+                        shuffle=True, num_workers=0)
+
+for i_batch, sample_batched in enumerate(dataloader):
+    print(sample_batched)
+    break
