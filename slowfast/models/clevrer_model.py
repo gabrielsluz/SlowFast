@@ -82,7 +82,7 @@ class ClevrerMain(nn.Module):
         )
 
     
-    def assemble_input(self):
+    def assemble_input(self, slots_b, word_embs_b):
         """
         Assembles the input sequence for the Transformer.
         Receives: slots, word embeddings
@@ -91,16 +91,29 @@ class ClevrerMain(nn.Module):
         if they are slots or words. => Sequence vectors are d + 2 dimensional
         """
         #CLS is token 0
-        pass
+        #Test if tensor is in cuda: next(model.parameters()).is_cuda
+        batch_size = slots_b.size()[0]
+        cls_t = self.embed_layer(torch.zeros((batch_size + 2, 1), dtype=torch.long))
+        o = torch.ones((batch_size,1))
+        z = torch.zeros((batch_size,1))
+        slots_b = torch.cat((slots_b, o, z), dim=1)
+        word_embs_b = torch.cat((word_embs_b z, o), dim=1)
+        return torch.cat(cls_t, slots_b, word_embs_b, dim=0)
 
-    def forward(self, x):
+    def forward(self, clips_b, question_b):
         """
-        Receives a batch, in the format of a dict containing:
-                frames (tensor): the frames of sampled from the video. The dimension
+        Receives a batch of clips and questions:
+                clips_b (tensor): the frames of sampled from the video. The dimension
                     is `batch_size` x `num frames` x `channel` x `height` x `width`.
-                question_dict (dict): A dictionary with the questions and answers (if not test)
-                index (int): if the video provided by pytorch sampler can be
-                    decoded, then return the index of the video. If not, return the
-                    index of the video replacement that can be decoded.
+                question_b (tensor): The dimension is
+                    `batch_size` x 'max sequence length'
         """
-        src = self.embed_layer(src) * math.sqrt(self.slot_dim)
+        word_embs_b = self.embed_layer(question_b) * math.sqrt(self.slot_dim)
+
+        batch_size = clips_b.size()[0]
+        slots_l = []
+        for i in range(batch_size):
+            slots_l.append(self.Monet(clips_b[i]))
+        slots_b = torch.stack(slots_l, dim=0)
+        print(slots_b.size())
+        print(word_embs_b.size())
