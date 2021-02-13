@@ -38,11 +38,13 @@ ans_vocab_len = dataset.get_ans_vocab_len()
 
 model = ClevrerMain(cfg, vocab_len, ans_vocab_len)
 
-for i_batch, sample_batched in enumerate(dataloader):
-    print(sample_batched['frames'].size())
-    print(sample_batched['question_dict']['des_q'].size())
-    print(sample_batched['question_dict']['des_ans'].size())
-    print(sample_batched['question_dict']['mc_q'].size())
-    print(sample_batched['question_dict']['mc_ans'].size())
-    print(sample_batched['index'].size())
+for i_batch, sampled_batch in enumerate(dataloader):
+    print(sampled_batch['frames'].size())
+    print(sampled_batch['question_dict']['des_q'].size())
+    print(sampled_batch['question_dict']['des_ans'].size())
+    print(sampled_batch['question_dict']['mc_q'].size())
+    print(sampled_batch['question_dict']['mc_ans'].size())
+    print(sampled_batch['index'].size())
+    model(sampled_batch['frames'], sampled_batch['question_dict']['des_q'])
+
     break

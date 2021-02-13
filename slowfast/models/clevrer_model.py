@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -70,7 +71,7 @@ class ClevrerMain(nn.Module):
         self.embed_layer = nn.Embedding(self.vocab_len, self.slot_dim)
 
         #Transformer setup
-        self.Transformer = Transformer(input_dim=self.slot_dim, 
+        self.Transformer = Transformer(input_dim=self.slot_dim + 2, 
                                         nhead=cfg.CLEVRERMAIN.T_HEADS, hid_dim=cfg.CLEVRERMAIN.T_HID_DIM, 
                                         nlayers=cfg.CLEVRERMAIN.T_LAYERS, dropout=cfg.CLEVRERMAIN.T_DROPOUT)
 
@@ -87,19 +88,30 @@ class ClevrerMain(nn.Module):
         """
         Assembles the input sequence for the Transformer.
         Receives: slots, word embeddings
-        Sequence: <CLS, slots, words>
+            slots_b(tensor): Batch x T*Num_slots x Slot_dim
+            word_embs_b(tensor): Batch x Question_len x Slot_dim
+        Returns: Sequence: <CLS, slots, words>
+            (tensor): Batch x (1 + T*Num_slots + Question_len) x (Slot_dim + 2)
         The slots and words are concatenated with a one hot that indicates
         if they are slots or words. => Sequence vectors are d + 2 dimensional
         """
         #CLS is token 0
         #Test if tensor is in cuda: next(model.parameters()).is_cuda
         batch_size = slots_b.size()[0]
-        cls_t = self.embed_layer(torch.zeros((batch_size + 2, 1), dtype=torch.long))
-        o = torch.ones((batch_size,1))
-        z = torch.zeros((batch_size,1))
-        slots_b = torch.cat((slots_b, o, z), dim=1)
-        word_embs_b = torch.cat((word_embs_b, z, o), dim=1)
-        return torch.cat(cls_t, slots_b, word_embs_b, dim=0)
+        #CLS
+        cls_t = self.embed_layer(torch.zeros((batch_size, 1), dtype=torch.long))
+        z_cls = torch.zeros((cls_t.size()[0], cls_t.size()[1], 2))
+        cls_t = torch.cat((cls_t, z_cls), dim=2)
+        #Slots
+        o_slots = torch.ones((slots_b.size()[0], slots_b.size()[1], 1))
+        z_slots = torch.zeros((slots_b.size()[0], slots_b.size()[1], 1))
+        slots_b = torch.cat((slots_b, o_slots, z_slots), dim=2)
+        #Words
+        o_words = torch.ones((word_embs_b.size()[0], word_embs_b.size()[1], 1))
+        z_words = torch.zeros((word_embs_b.size()[0], word_embs_b.size()[1], 1))
+        word_embs_b = torch.cat((word_embs_b, z_words, o_words), dim=2)
+        print(cls_t.size(), slots_b.size(), word_embs_b.size())
+        return torch.cat((cls_t, slots_b, word_embs_b), dim=1)
 
     def forward(self, clips_b, question_b):
         """
@@ -110,11 +122,12 @@ class ClevrerMain(nn.Module):
                     `batch_size` x 'max sequence length'
         """
         word_embs_b = self.embed_layer(question_b) * math.sqrt(self.slot_dim)
-
         batch_size = clips_b.size()[0]
         slots_l = []
         for i in range(batch_size):
-            slots_l.append(self.Monet(clips_b[i])) #Use grads or not ?
+            slots_l.append(self.Monet.return_means(clips_b[i])) #Use grads or not ?
         slots_b = torch.stack(slots_l, dim=0)
         print(slots_b.size())
         print(word_embs_b.size())
+        transformer_in = self.assemble_input(slots_b, word_embs_b)
+        print(transformer_in.size())
