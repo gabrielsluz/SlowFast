@@ -463,6 +463,12 @@ class Clevrer(torch.utils.data.Dataset):
         
         return video_info
 
+    def get_vocab_len(self):
+        return len(self.vocab.keys())
+    
+    def get_ans_vocab_len(self):
+        return len(self.ans_vocab.keys())
+
     def __len__(self):
         """
         Returns:
