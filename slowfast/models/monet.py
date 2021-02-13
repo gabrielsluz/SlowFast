@@ -233,25 +233,33 @@ class Monet(nn.Module):
         p_x = torch.sum(p_x, [1, 2, 3])
         return p_x, x_recon, mask_pred
     
-    # def return_means(self, x):
-    #     """"
-    #     The means are used to represent an object.
-    #     Returns a tensor containing the latent means for 
-    #     self.conf.num_slots slots.
-    #     """
-    #     scope = torch.ones_like(x[:, 0:1])
-    #     masks = []
-    #     for i in range(self.conf.num_slots-1):
-    #         mask, scope = self.attention(x, scope)
-    #         masks.append(mask)
-    #     masks.append(scope)
-    #     means_tensor = torch.zeros(self.conf.num_slots, 16)
-    #     for i, mask in enumerate(masks):
-    #         encoder_input = torch.cat((x, mask), 1)
-    #         q_params = self.encoder(encoder_input)
-    #         means = torch.sigmoid(q_params[:, :16]) * 6 - 3
-    #         means_tensor[i] = means
-    #     return means_tensor
+    def return_means(self, x):
+        """"
+        The means are used to represent an object.
+        Args:
+            x(tensor): batch of frames: T x C x H x W
+        Returns a tensor containing the latent means for 
+        self.conf.num_slots slots per frame.
+            batch_means (tensor): (T*num_slots) x slot_dim(16)
+                In order: slots_frame1 ... slots_frameN
+        """
+        batch_size = x.size()[0]#Temporal dimension
+        scope = torch.ones_like(x[:, 0:1])
+        masks = []
+        for i in range(self.conf.num_slots-1):
+            mask, scope = self.attention(x, scope)
+            masks.append(mask)
+        masks.append(scope)
+        means_list = []
+        for i, mask in enumerate(masks):
+            encoder_input = torch.cat((x, mask), 1)
+            q_params = self.encoder(encoder_input)
+            means = torch.sigmoid(q_params[:, :16]) * 6 - 3
+            means_list.append(means)
+        #Order the means by frame and slot
+        first_dim = self.conf.num_slots * batch_size
+        means_tensor = torch.stack(means_list, dim=0).permute((1, 0, 2)).reshape(first_dim, 16)
+        return means_tensor
 
 
 def print_image_stats(images, name):
