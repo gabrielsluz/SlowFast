@@ -77,7 +77,7 @@ cu.load_checkpoint(cfg.MONET.CHECKPOINT_LOAD, monet_model, data_parallel=False)
 
 #Sample input frame from a video and add another dimension
 frame_idx = 15
-tensor_input = torch.unsqueeze(frame_dataset[0][0][frame_idx], 0)
+tensor_input = torch.unsqueeze(frame_dataset[0]['frames'][frame_idx], 0)
 #tensor_input = frame_dataset[0][0] # To return an entire video
 output = monet_model.forward(tensor_input)
 print(output['reconstructions'].size())
