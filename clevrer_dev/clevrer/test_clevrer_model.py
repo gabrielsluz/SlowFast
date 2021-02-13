@@ -30,7 +30,7 @@ dataset = Clevrer(cfg, 'train')
 print("Dataset len = {}".format(len(dataset)))
 
 #Test DataLoader
-dataloader = DataLoader(dataset, batch_size=4,
+dataloader = DataLoader(dataset, batch_size=1,
                         shuffle=True, num_workers=0)
 
 vocab_len = dataset.get_vocab_len()
@@ -39,12 +39,15 @@ ans_vocab_len = dataset.get_ans_vocab_len()
 model = ClevrerMain(cfg, vocab_len, ans_vocab_len)
 
 for i_batch, sampled_batch in enumerate(dataloader):
+    print("Batch info:")
     print(sampled_batch['frames'].size())
     print(sampled_batch['question_dict']['des_q'].size())
     print(sampled_batch['question_dict']['des_ans'].size())
     print(sampled_batch['question_dict']['mc_q'].size())
     print(sampled_batch['question_dict']['mc_ans'].size())
     print(sampled_batch['index'].size())
+
+    print("Passing through model")
     model(sampled_batch['frames'], sampled_batch['question_dict']['des_q'])
 
     break

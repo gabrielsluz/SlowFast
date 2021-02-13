@@ -55,6 +55,7 @@ class ClevrerMain(nn.Module):
         self.vocab_len = vocab_len
         self.ans_vocab_len = ans_vocab_len
         self.slot_dim = 16
+        self.trans_dim = self.slot_dim + 2 #Dimension of the transformer inputs
 
         #MONet setup
         clevr_conf = MonetConfig(num_slots=cfg.MONET.NUM_SLOTS,
@@ -71,14 +72,14 @@ class ClevrerMain(nn.Module):
         self.embed_layer = nn.Embedding(self.vocab_len, self.slot_dim)
 
         #Transformer setup
-        self.Transformer = Transformer(input_dim=self.slot_dim + 2, 
+        self.Transformer = Transformer(input_dim=self.trans_dim, 
                                         nhead=cfg.CLEVRERMAIN.T_HEADS, hid_dim=cfg.CLEVRERMAIN.T_HID_DIM, 
                                         nlayers=cfg.CLEVRERMAIN.T_LAYERS, dropout=cfg.CLEVRERMAIN.T_DROPOUT)
 
         #Prediction head MLP
         #TODO: Currently only for descriptive questions
         self.pred_head = nn.Sequential(
-            nn.Linear(self.slot_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
+            nn.Linear(self.trans_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
             nn.ReLU(),
             nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, self.ans_vocab_len)
         )
@@ -127,7 +128,21 @@ class ClevrerMain(nn.Module):
         for i in range(batch_size):
             slots_l.append(self.Monet.return_means(clips_b[i])) #Use grads or not ?
         slots_b = torch.stack(slots_l, dim=0)
+        print("Slots:")
         print(slots_b.size())
+        print(slots_b)
+        print("Words")
         print(word_embs_b.size())
+        print(word_embs_b)
         transformer_in = self.assemble_input(slots_b, word_embs_b)
+        print("Transformed input")
         print(transformer_in.size())
+        print(transformer_in)
+        transformer_out = self.Transformer(transformer_in)
+        print("Transformed output")
+        print(transformer_out.size())
+        print(transformer_out)
+        print("CLS")
+        print(transformer_out[:, 0])
+        desc_ans = self.pred_head(transformer_out[:, 0])
+        return desc_ans

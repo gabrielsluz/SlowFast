@@ -58,7 +58,7 @@ class Transformer(nn.Module):
         self.input_dim = input_dim
 
 
-    def forward(self, src, src_mask):
+    def forward(self, src, src_mask=None):
         """
         src => each line is an element of the sequence
         """
