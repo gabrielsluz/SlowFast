@@ -35,7 +35,7 @@ class TransformerEncoderLayerPositional(nn.TransformerEncoderLayer):
     """
     def __init__(self, input_dim, nhead, hid_dim=2048, dropout=0.1, activation='relu'):
         super(TransformerEncoderLayerPositional, self).__init__(input_dim, nhead, hid_dim, dropout, activation)
-        self.pos_emb = PositionalEmbedding(input_dim, dropout)
+        self.pos_emb = PositionalEncoding(input_dim, dropout)
     
     def forward(self, src, src_mask = None, src_key_padding_mask = None):
         src = self.pos_emb(src)
@@ -56,11 +56,7 @@ class Transformer(nn.Module):
         encoder_layers = TransformerEncoderLayerPositional(input_dim, nhead, hid_dim, dropout)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layers, nlayers)
         self.input_dim = input_dim
-        self.init_weights()
 
-    def init_weights(self):
-        initrange = 0.1
-        self.encoder.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, src, src_mask):
         """

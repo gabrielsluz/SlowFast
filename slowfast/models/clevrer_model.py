@@ -49,6 +49,7 @@ class ClevrerMain(nn.Module):
             cfg (CfgNode): model building configs, details are in the
                 comments of the config file.
         """
+        super(ClevrerMain, self).__init__()
         #Dataset specific parameters
         self.vocab_len = vocab_len
         self.ans_vocab_len = ans_vocab_len
@@ -71,7 +72,7 @@ class ClevrerMain(nn.Module):
         #Transformer setup
         self.Transformer = Transformer(input_dim=self.slot_dim, 
                                         nhead=cfg.CLEVRERMAIN.T_HEADS, hid_dim=cfg.CLEVRERMAIN.T_HID_DIM, 
-                                        nlayers=CLEVRERMAIN.T_LAYERS, dropout=cfg.CLEVRERMAIN.T_DROPOUT)
+                                        nlayers=cfg.CLEVRERMAIN.T_LAYERS, dropout=cfg.CLEVRERMAIN.T_DROPOUT)
 
         #Prediction head MLP
         #TODO: Currently only for descriptive questions
@@ -97,7 +98,7 @@ class ClevrerMain(nn.Module):
         o = torch.ones((batch_size,1))
         z = torch.zeros((batch_size,1))
         slots_b = torch.cat((slots_b, o, z), dim=1)
-        word_embs_b = torch.cat((word_embs_b z, o), dim=1)
+        word_embs_b = torch.cat((word_embs_b, z, o), dim=1)
         return torch.cat(cls_t, slots_b, word_embs_b, dim=0)
 
     def forward(self, clips_b, question_b):
@@ -113,7 +114,7 @@ class ClevrerMain(nn.Module):
         batch_size = clips_b.size()[0]
         slots_l = []
         for i in range(batch_size):
-            slots_l.append(self.Monet(clips_b[i]))
+            slots_l.append(self.Monet(clips_b[i])) #Use grads or not ?
         slots_b = torch.stack(slots_l, dim=0)
         print(slots_b.size())
         print(word_embs_b.size())
