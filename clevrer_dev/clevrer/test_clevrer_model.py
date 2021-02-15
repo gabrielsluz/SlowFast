@@ -20,6 +20,10 @@ python3 clevrer_dev/clevrer/test_clevrer_model.py \
   MONET.CHECKPOINT_LOAD /datasets/checkpoint_epoch_00020.pyth
 """
 
+#https://discuss.pytorch.org/t/how-do-i-check-the-number-of-parameters-of-a-model/4325
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
 args = parse_args()
 cfg = load_config(args)
 
@@ -37,6 +41,8 @@ vocab_len = dataset.get_vocab_len()
 ans_vocab_len = dataset.get_ans_vocab_len()
 
 model = ClevrerMain(cfg, vocab_len, ans_vocab_len)
+
+print("Number of parameters = {}".format(count_parameters(model)))
 
 for i_batch, sampled_batch in enumerate(dataloader):
     print("Batch info:")
