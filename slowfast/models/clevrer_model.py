@@ -113,7 +113,6 @@ class ClevrerMain(nn.Module):
         o_words = torch.ones((word_embs_b.size()[0], word_embs_b.size()[1], 1))
         z_words = torch.zeros((word_embs_b.size()[0], word_embs_b.size()[1], 1))
         word_embs_b = torch.cat((word_embs_b, z_words, o_words), dim=2)
-        print(cls_t.size(), slots_b.size(), word_embs_b.size())
         return torch.cat((cls_t, slots_b, word_embs_b), dim=1)
 
     def forward(self, clips_b, question_b):
@@ -130,21 +129,7 @@ class ClevrerMain(nn.Module):
         for i in range(batch_size):
             slots_l.append(self.Monet.return_means(clips_b[i])) #Use grads or not ?
         slots_b = torch.stack(slots_l, dim=0)
-        print("Slots:")
-        print(slots_b.size())
-        print(slots_b)
-        print("Words")
-        print(word_embs_b.size())
-        print(word_embs_b)
         transformer_in = self.assemble_input(slots_b, word_embs_b)
-        print("Transformed input")
-        print(transformer_in.size())
-        print(transformer_in)
         transformer_out = self.Transformer(transformer_in)
-        print("Transformed output")
-        print(transformer_out.size())
-        print(transformer_out)
-        print("CLS")
-        print(transformer_out[:, 0])
         desc_ans = self.pred_head(transformer_out[:, 0])
         return desc_ans

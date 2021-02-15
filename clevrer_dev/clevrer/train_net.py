@@ -47,7 +47,6 @@ def train_epoch(
     model.train()
     train_meter.iter_tic()
     data_size = len(train_loader)
-    print("Hello {}".format(data_size))
     for cur_iter, sampled_batch in enumerate(train_loader): 
         frames = sampled_batch['frames']
         des_q = sampled_batch['question_dict']['des_q']
@@ -363,7 +362,6 @@ def train(cfg):
 
     # Create the video train and val loaders.
     train_loader = loader.construct_loader(cfg, "train")
-    print("Len train loader  = {}".format(len(train_loader)))
     val_loader = loader.construct_loader(cfg, "val")
     precise_bn_loader = (
         loader.construct_loader(cfg, "train", is_precise_bn=True)
