@@ -5,6 +5,7 @@ import torch.nn.functional as F
 
 from .monet import Monet
 from .transformer import Transformer
+from .build import MODEL_REGISTRY
 
 import slowfast.utils.checkpoint as cu
 
@@ -29,6 +30,7 @@ config_options = [
 
 MonetConfig = namedtuple('MonetConfig', config_options)
 
+@MODEL_REGISTRY.register()
 class ClevrerMain(nn.Module):
     """
     Implemetation of the main Model for the Clevrer Dataset

@@ -17,9 +17,11 @@ import slowfast.utils.metrics as metrics
 import slowfast.utils.misc as misc
 import slowfast.visualization.tensorboard_vis as tb
 from slowfast.datasets import loader
-from slowfast.models import build_model
 from slowfast.utils.meters import AVAMeter, TrainMeter, ValMeter
 from slowfast.utils.multigrid import MultigridSchedule
+#Clevrer specific
+from slowfast.models.clevrer_model import ClevrerMain
+from slowfast.datasets.clevrer import Clevrer
 
 logger = logging.get_logger(__name__)
 
@@ -45,6 +47,7 @@ def train_epoch(
     model.train()
     train_meter.iter_tic()
     data_size = len(train_loader)
+    print("Hello {}".format(data_size))
     for cur_iter, sampled_batch in enumerate(train_loader): 
         frames = sampled_batch['frames']
         des_q = sampled_batch['question_dict']['des_q']
@@ -83,7 +86,7 @@ def train_epoch(
         # Compute the errors.
         num_topks_correct = metrics.topks_correct(pred_des_ans, des_ans, (1, 5))
         top1_err, top5_err = [
-            (1.0 - x / preds.size(0)) * 100.0 for x in num_topks_correct
+            (1.0 - x / pred_des_ans.size(0)) * 100.0 for x in num_topks_correct
         ]
         # Gather all the predictions across all the devices.
         if cfg.NUM_GPUS > 1:
@@ -103,7 +106,7 @@ def train_epoch(
             top5_err,
             loss,
             lr,
-            frames[0].size(0)
+            frames.size()[0]
             * max(
                 cfg.NUM_GPUS, 1
             ),  # If running  on CPU (cfg.NUM_GPUS == 1), use 1 to represent 1 CPU.
@@ -166,7 +169,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
         num_topks_correct = metrics.topks_correct(pred_des_ans, des_ans, (1, 5))
         # Combine the errors across the GPUs.
         top1_err, top5_err = [
-            (1.0 - x / preds.size(0)) * 100.0 for x in num_topks_correct
+            (1.0 - x / pred_des_ans.size(0)) * 100.0 for x in num_topks_correct
         ]
         if cfg.NUM_GPUS > 1:
             top1_err, top5_err = du.all_reduce([top1_err, top5_err])
@@ -177,7 +180,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
         val_meter.update_stats(
             top1_err,
             top5_err,
-            frames[0].size(0)
+            frames.size()[0]
             * max(
                 cfg.NUM_GPUS, 1
             ),  # If running  on CPU (cfg.NUM_GPUS == 1), use 1 to represent 1 CPU.
@@ -235,6 +238,45 @@ def calculate_and_update_precise_bn(loader, model, num_iters=200, use_gpu=True):
     update_bn_stats(model, _gen_loader(), num_iters)
 
 
+def build_clevrer_model(cfg):
+    """
+    Builds and returns the CLEVRER model
+    It is a separated function because it CLEVRER receives dataset specific parameters
+    """
+    dataset = Clevrer(cfg, 'train')
+    vocab_len = dataset.get_vocab_len()
+    ans_vocab_len = dataset.get_ans_vocab_len()
+
+    if torch.cuda.is_available():
+        assert (
+            cfg.NUM_GPUS <= torch.cuda.device_count()
+        ), "Cannot use more GPU devices than available"
+    else:
+        assert (
+            cfg.NUM_GPUS == 0
+        ), "Cuda is not available. Please set `NUM_GPUS: 0 for running on CPUs."
+
+    # Construct the model
+    model = ClevrerMain(cfg, vocab_len, ans_vocab_len)
+
+    if cfg.NUM_GPUS:
+        if gpu_id is None:
+            # Determine the GPU used by the current process
+            cur_device = torch.cuda.current_device()
+        else:
+            cur_device = gpu_id
+        # Transfer the model to the current GPU device
+        model = model.cuda(device=cur_device)
+    # Use multi-process data parallel model in the multi-gpu setting
+    if cfg.NUM_GPUS > 1:
+        # Make model replica operate on the current device
+        model = torch.nn.parallel.DistributedDataParallel(
+            module=model, device_ids=[cur_device], output_device=cur_device
+        )
+    return model
+
+
+
 def build_trainer(cfg):
     """
     Build training model and its associated tools, including optimizer,
@@ -253,9 +295,9 @@ def build_trainer(cfg):
         val_meter (ValMeter): tool for measuring validation stats.
     """
     # Build the video model and print model statistics.
-    model = build_model(cfg)
-    if du.is_master_proc() and cfg.LOG_MODEL_INFO:
-        misc.log_model_info(model, cfg, use_train_input=True)
+    model = build_clevrer_model(cfg)
+    # if du.is_master_proc() and cfg.LOG_MODEL_INFO:
+    #     misc.log_model_info(model, cfg, use_train_input=True)
 
     # Construct the optimizer.
     optimizer = optim.construct_optimizer(model, cfg)
@@ -309,9 +351,9 @@ def train(cfg):
     logger.info(pprint.pformat(cfg))
 
     # Build the video model and print model statistics.
-    model = build_model(cfg)
-    if du.is_master_proc() and cfg.LOG_MODEL_INFO:
-        misc.log_model_info(model, cfg, use_train_input=True)
+    model = build_clevrer_model(cfg)
+    # if du.is_master_proc() and cfg.LOG_MODEL_INFO:
+    #     misc.log_model_info(model, cfg, use_train_input=True)
 
     # Construct the optimizer.
     optimizer = optim.construct_optimizer(model, cfg)
@@ -321,6 +363,7 @@ def train(cfg):
 
     # Create the video train and val loaders.
     train_loader = loader.construct_loader(cfg, "train")
+    print("Len train loader  = {}".format(len(train_loader)))
     val_loader = loader.construct_loader(cfg, "val")
     precise_bn_loader = (
         loader.construct_loader(cfg, "train", is_precise_bn=True)
@@ -329,12 +372,8 @@ def train(cfg):
     )
 
     # Create meters.
-    if cfg.DETECTION.ENABLE:
-        train_meter = AVAMeter(len(train_loader), cfg, mode="train")
-        val_meter = AVAMeter(len(val_loader), cfg, mode="val")
-    else:
-        train_meter = TrainMeter(len(train_loader), cfg)
-        val_meter = ValMeter(len(val_loader), cfg)
+    train_meter = TrainMeter(len(train_loader), cfg)
+    val_meter = ValMeter(len(val_loader), cfg)
 
     # set up writer for logging to Tensorboard format.
     if cfg.TENSORBOARD.ENABLE and du.is_master_proc(

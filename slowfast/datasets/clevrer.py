@@ -83,7 +83,7 @@ class Clevrer(torch.utils.data.Dataset):
     """
     def __init__(self, cfg, mode):
         """
-        Constructs the Clevrer frame loader with a given json file. The format of
+        Constructs the Clevrer  loader with a given json file. The format of
         the csv file is the one used in Clevrer
         Args:
             cfg (CfgNode): configs.
@@ -99,13 +99,13 @@ class Clevrer(torch.utils.data.Dataset):
             "train",
             "val",
             "test",
-        ], "Split '{}' not supported for Clevrer Frame".format(mode)
+        ], "Split '{}' not supported for Clevrer".format(mode)
         self.mode = mode
         self.cfg = cfg  
 
         self._num_retries = 10  
 
-        logger.info("Constructing Clevrer Frame {}...".format(mode))
+        logger.info("Constructing Clevrer {}...".format(mode))
         self._construct_loader()
 
 
@@ -162,7 +162,6 @@ class Clevrer(torch.utils.data.Dataset):
         Transforms a token list into a tensor with padding 
         according to the question type
         """
-        print(token_list)
         if question_type == 'descriptive':
             tensor = torch.ones(self.max_des_len, dtype=torch.long) * self.vocab[' PAD ']
         else:
@@ -248,11 +247,11 @@ class Clevrer(torch.utils.data.Dataset):
 
         assert (
             len(self._dataset) > 0
-        ), "Failed to load Clevrer Frame from {}".format(
+        ), "Failed to load Clevrer from {}".format(
             path_to_file
         )
         logger.info(
-            "Constructing Clevrer Frame dataloader (size: {}) from {}".format(
+            "Constructing Clevrer dataloader (size: {}) from {}".format(
                 len(self._dataset), path_to_file
             )
         )
