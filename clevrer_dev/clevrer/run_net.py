@@ -14,6 +14,18 @@ python3 clevrer_dev/clevrer/run_net.py \
   TRAIN.EVAL_PERIOD 1 \
   TRAIN.CHECKPOINT_PERIOD 1 \
   SOLVER.MAX_EPOCH 1
+
+  python3 clevrer_dev/clevrer/run_net.py \
+  --cfg clevrer_dev/clevrer/clevrer.yaml \
+  DATA.PATH_TO_DATA_DIR /datasets/clevrer \
+  DATA.PATH_PREFIX /datasets/clevrer \
+  MONET.CHECKPOINT_LOAD ./checkpoints/checkpoint_epoch_00140.pyth \
+  NUM_GPUS 1 \
+  LOG_PERIOD 1 \
+  TRAIN.BATCH_SIZE 4 \
+  TRAIN.EVAL_PERIOD 1 \
+  TRAIN.CHECKPOINT_PERIOD 1 \
+  SOLVER.MAX_EPOCH 1
   """
 from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args

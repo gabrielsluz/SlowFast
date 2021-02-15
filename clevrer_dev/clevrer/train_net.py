@@ -237,7 +237,7 @@ def calculate_and_update_precise_bn(loader, model, num_iters=200, use_gpu=True):
     update_bn_stats(model, _gen_loader(), num_iters)
 
 
-def build_clevrer_model(cfg):
+def build_clevrer_model(cfg, gpu_id=None):
     """
     Builds and returns the CLEVRER model
     It is a separated function because it CLEVRER receives dataset specific parameters
