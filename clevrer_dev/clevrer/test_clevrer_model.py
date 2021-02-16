@@ -66,7 +66,7 @@ for i_batch, sampled_batch in enumerate(dataloader):
     print(sampled_batch['index'].size())
 
     frames = sampled_batch['frames']
-    des_q = sampled_batch['question_dict']['des_q']
+    des_q = sampled_batch['question_dict']['mc_q']
 
     print("Passing through model")
     if cfg.NUM_GPUS:
