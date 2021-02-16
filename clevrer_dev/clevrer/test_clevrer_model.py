@@ -17,6 +17,7 @@ python3 clevrer_dev/clevrer/test_clevrer_model.py \
   --cfg clevrer_dev/clevrer/clevrer.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
+  DATA.NUM_FRAMES 1 \
   NUM_GPUS 0 \
   MONET.CHECKPOINT_LOAD /datasets/checkpoint_epoch_00020.pyth
 
@@ -50,6 +51,7 @@ ans_vocab_len = dataset.get_ans_vocab_len()
 model = ClevrerMain(cfg, vocab_len, ans_vocab_len)
 
 print("Number of parameters = {}".format(count_parameters(model)))
+
 
 for i_batch, sampled_batch in enumerate(dataloader):
     print("Batch info:")

@@ -20,9 +20,10 @@ python3 clevrer_dev/clevrer/run_net.py \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
   MONET.CHECKPOINT_LOAD ./monet_checkpoints/checkpoint_epoch_00140.pyth \
+  DATA.NUM_FRAMES 15 \
   NUM_GPUS 1 \
   LOG_PERIOD 100 \
-  TRAIN.BATCH_SIZE 8 \
+  TRAIN.BATCH_SIZE 2 \
   TRAIN.EVAL_PERIOD 5 \
   TRAIN.CHECKPOINT_PERIOD 20 \
   SOLVER.MAX_EPOCH 100

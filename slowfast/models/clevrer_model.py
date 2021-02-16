@@ -72,6 +72,10 @@ class ClevrerMain(nn.Module):
         self.Monet = Monet(clevr_conf, cfg.DATA.RESIZE_H, cfg.DATA.RESIZE_W)
         #MONet should have been pretrained => load it at this step 
         cu.load_checkpoint(cfg.MONET.CHECKPOINT_LOAD, self.Monet, data_parallel=False)
+        #Is MONet not trainable ? => Look forward function
+        # if not cfg.CLEVRERMAIN.MONET_TRAINABLE:
+        #     for param in self.Monet.parameters():
+        #         param.requires_grad = False
 
         #Embedding for the words
         self.embed_layer = nn.Embedding(self.vocab_len, self.slot_dim)
@@ -138,13 +142,16 @@ class ClevrerMain(nn.Module):
                 question_b (tensor): The dimension is
                     `batch_size` x 'max sequence length'
         """
-        word_embs_b = self.embed_layer(question_b) * math.sqrt(self.slot_dim)
-        batch_size = clips_b.size()[0]
-        slots_l = []
-        for i in range(batch_size):
-            slots_l.append(self.Monet.return_means(clips_b[i])) #Use grads or not ?
-        slots_b = torch.stack(slots_l, dim=0)
-        transformer_in = self.assemble_input(slots_b, word_embs_b)
+        with torch.no_grad():
+            word_embs_b = self.embed_layer(question_b) * math.sqrt(self.slot_dim)
+            batch_size = clips_b.size()[0]
+            slots_l = []
+            for i in range(batch_size):
+                slots_l.append(self.Monet.return_means(clips_b[i]))
+            slots_b = torch.stack(slots_l, dim=0)
+            transformer_in = self.assemble_input(slots_b, word_embs_b)
         transformer_out = self.Transformer(transformer_in)
         desc_ans = self.pred_head(transformer_out[:, 0])
         return desc_ans
+
+        
