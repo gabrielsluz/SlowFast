@@ -142,40 +142,15 @@ class ClevrerMain(nn.Module):
                 question_b (tensor): The dimension is
                     `batch_size` x 'max sequence length'
         """
-        start = torch.cuda.Event(enable_timing=True)
-        end = torch.cuda.Event(enable_timing=True)
-
-        start.record()
         word_embs_b = self.embed_layer(question_b) * math.sqrt(self.slot_dim)
-        end.record()
-        torch.cuda.synchronize()
-        print("Embedding layer time = {}".format(start.elapsed_time(end)))
         batch_size = clips_b.size()[0]
         slots_l = []
-
-        start.record()
         for i in range(batch_size):
             slots_l.append(self.Monet.return_means(clips_b[i]))
-        end.record()
-        torch.cuda.synchronize()
-        print("MONet time = {}".format(start.elapsed_time(end)))
         slots_b = torch.stack(slots_l, dim=0)
-
-        start.record()
         transformer_in = self.assemble_input(slots_b, word_embs_b)
-        end.record()
-        torch.cuda.synchronize()
-        print("Assemble input time = {}".format(start.elapsed_time(end)))
-        start.record()
         transformer_out = self.Transformer(transformer_in)
-        end.record()
-        torch.cuda.synchronize()
-        print("Transformer time = {}".format(start.elapsed_time(end)))
-        start.record()
         desc_ans = self.pred_head(transformer_out[:, 0])
-        end.record()
-        torch.cuda.synchronize()
-        print("Pred head time = {}".format(start.elapsed_time(end)))
         return desc_ans
 
         
