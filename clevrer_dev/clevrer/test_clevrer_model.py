@@ -49,6 +49,9 @@ vocab_len = dataset.get_vocab_len()
 ans_vocab_len = dataset.get_ans_vocab_len()
 
 model = ClevrerMain(cfg, vocab_len, ans_vocab_len)
+if cfg.NUM_GPUS:
+    cur_device = torch.cuda.current_device()
+    model = model.cuda(device=cur_device)
 
 print("Number of parameters = {}".format(count_parameters(model)))
 
@@ -62,10 +65,20 @@ for i_batch, sampled_batch in enumerate(dataloader):
     print(sampled_batch['question_dict']['mc_ans'].size())
     print(sampled_batch['index'].size())
 
+    frames = sampled_batch['frames']
+    des_q = sampled_batch['question_dict']['des_q']
+
     print("Passing through model")
-    with torch.autograd.profiler.profile(use_cuda=True) as prof:
-        model(sampled_batch['frames'], sampled_batch['question_dict']['des_q'])
-    print(prof)
-    
+    if cfg.NUM_GPUS:
+        cur_device = torch.cuda.current_device()
+        frames = frames.cuda(device=cur_device)
+        des_q = des_q.cuda(device=cur_device)
+        with torch.autograd.profiler.profile(use_cuda=True) as prof:
+            model(frames, des_q)
+        print(prof)
+    else:
+        with torch.autograd.profiler.profile(use_cuda=False) as prof:
+            model(frames, des_q)
+        print(prof)
 
     break
