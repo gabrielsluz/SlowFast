@@ -21,11 +21,11 @@ python3 clevrer_dev/clevrer/run_net.py \
   DATA.PATH_PREFIX /datasets/clevrer \
   MONET.CHECKPOINT_LOAD ./monet_checkpoints/checkpoint_epoch_00140.pyth \
   NUM_GPUS 1 \
-  LOG_PERIOD 1 \
-  TRAIN.BATCH_SIZE 4 \
-  TRAIN.EVAL_PERIOD 1 \
-  TRAIN.CHECKPOINT_PERIOD 1 \
-  SOLVER.MAX_EPOCH 1
+  LOG_PERIOD 100 \
+  TRAIN.BATCH_SIZE 8 \
+  TRAIN.EVAL_PERIOD 5 \
+  TRAIN.CHECKPOINT_PERIOD 20 \
+  SOLVER.MAX_EPOCH 100
   """
 from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args
