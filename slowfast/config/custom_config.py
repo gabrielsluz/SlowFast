@@ -29,7 +29,7 @@ def add_custom_config(_C):
     #Prediction Head hidden layer dimension
     _C.CLEVRERMAIN.PRED_HEAD_DIM = 128
     #MONet trainable:
-    # _C.CLEVRERMAIN.MONET_TRAINABLE = False
+    _C.CLEVRERMAIN.MONET_TRAINABLE = False
 
     
 
