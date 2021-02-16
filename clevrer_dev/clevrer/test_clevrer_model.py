@@ -42,7 +42,7 @@ dataset = Clevrer(cfg, 'train')
 print("Dataset len = {}".format(len(dataset)))
 
 #Test DataLoader
-dataloader = DataLoader(dataset, batch_size=1,
+dataloader = DataLoader(dataset, batch_size=cfg.TRAIN.BATCH_SIZE,
                         shuffle=True, num_workers=0)
 
 vocab_len = dataset.get_vocab_len()
