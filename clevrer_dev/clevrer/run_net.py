@@ -21,6 +21,7 @@ python3 clevrer_dev/clevrer/run_net.py \
   DATA.PATH_PREFIX /datasets/clevrer \
   MONET.CHECKPOINT_LOAD ./monet_checkpoints/checkpoint_epoch_00140.pyth \
   DATA.NUM_FRAMES 15 \
+  CLEVRERMAIN.T_HID_DIM 1024 \
   NUM_GPUS 1 \
   LOG_PERIOD 100 \
   TRAIN.BATCH_SIZE 2 \

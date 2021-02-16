@@ -63,6 +63,9 @@ for i_batch, sampled_batch in enumerate(dataloader):
     print(sampled_batch['index'].size())
 
     print("Passing through model")
-    model(sampled_batch['frames'], sampled_batch['question_dict']['des_q'])
+    with torch.autograd.profiler.profile(use_cuda=True) as prof:
+        model(sampled_batch['frames'], sampled_batch['question_dict']['des_q'])
+    print(prof)
+    
 
     break
