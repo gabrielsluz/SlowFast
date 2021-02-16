@@ -53,6 +53,9 @@ class ClevrerMain(nn.Module):
                 comments of the config file.
         """
         super(ClevrerMain, self).__init__()
+        #CUDA
+        self.num_gpus = cfg.NUM_GPUS
+        
         #Dataset specific parameters
         self.vocab_len = vocab_len
         self.ans_vocab_len = ans_vocab_len
@@ -100,18 +103,30 @@ class ClevrerMain(nn.Module):
         """
         #CLS is token 0
         #Test if tensor is in cuda: next(model.parameters()).is_cuda
+        #Tensor setups:
         batch_size = slots_b.size()[0]
+
+        cls_indexes = torch.zeros((batch_size, 1), dtype=torch.long)
+        z_cls = torch.zeros((batch_size, 1, 2))
+        o_slots = torch.ones((batch_size, slots_b.size()[1], 1))
+        z_slots = torch.zeros((batch_size, slots_b.size()[1], 1))
+        o_words = torch.ones((batch_size, word_embs_b.size()[1], 1))
+        z_words = torch.zeros((batch_size, word_embs_b.size()[1], 1))
+        if self.num_gpus:
+            cur_device = torch.cuda.current_device()
+            cls_indexes = cls_indexes.cuda(device=cur_device)
+            z_cls = z_cls.cuda(device=cur_device)
+            o_slots = o_slots.cuda(device=cur_device)
+            z_slots = z_slots.cuda(device=cur_device)
+            o_words = o_words.cuda(device=cur_device)
+            z_words = z_words.cuda(device=cur_device)
+
         #CLS
-        cls_t = self.embed_layer(torch.zeros((batch_size, 1), dtype=torch.long))
-        z_cls = torch.zeros((cls_t.size()[0], cls_t.size()[1], 2))
+        cls_t = self.embed_layer(cls_indexes)
         cls_t = torch.cat((cls_t, z_cls), dim=2)
         #Slots
-        o_slots = torch.ones((slots_b.size()[0], slots_b.size()[1], 1))
-        z_slots = torch.zeros((slots_b.size()[0], slots_b.size()[1], 1))
         slots_b = torch.cat((slots_b, o_slots, z_slots), dim=2)
         #Words
-        o_words = torch.ones((word_embs_b.size()[0], word_embs_b.size()[1], 1))
-        z_words = torch.zeros((word_embs_b.size()[0], word_embs_b.size()[1], 1))
         word_embs_b = torch.cat((word_embs_b, z_words, o_words), dim=2)
         return torch.cat((cls_t, slots_b, word_embs_b), dim=1)
 

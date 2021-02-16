@@ -17,13 +17,14 @@ python3 clevrer_dev/clevrer/test_clevrer_model.py \
   --cfg clevrer_dev/clevrer/clevrer.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
+  NUM_GPUS 0 \
   MONET.CHECKPOINT_LOAD /datasets/checkpoint_epoch_00020.pyth
 
 python3 clevrer_dev/clevrer/test_clevrer_model.py \
   --cfg clevrer_dev/clevrer/clevrer.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
-  MONET.CHECKPOINT_LOAD ./checkpoints/checkpoint_epoch_00140.pyth
+  MONET.CHECKPOINT_LOAD ./monet_checkpoints/checkpoint_epoch_00140.pyth
 """
 
 #https://discuss.pytorch.org/t/how-do-i-check-the-number-of-parameters-of-a-model/4325

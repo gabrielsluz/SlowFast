@@ -19,7 +19,7 @@ python3 clevrer_dev/clevrer/run_net.py \
   --cfg clevrer_dev/clevrer/clevrer.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
-  MONET.CHECKPOINT_LOAD ./checkpoints/checkpoint_epoch_00140.pyth \
+  MONET.CHECKPOINT_LOAD ./monet_checkpoints/checkpoint_epoch_00140.pyth \
   NUM_GPUS 1 \
   LOG_PERIOD 1 \
   TRAIN.BATCH_SIZE 4 \
