@@ -51,30 +51,32 @@ def train_epoch(
         frames = sampled_batch['frames']
         des_q = sampled_batch['question_dict']['des_q']
         des_ans = sampled_batch['question_dict']['des_ans']
+        mc_q = sampled_batch['question_dict']['mc_q']
+        mc_ans = sampled_batch['question_dict']['mc_ans']
         # Transfer the data to the current GPU device.
         if cfg.NUM_GPUS:
             frames = frames.cuda(non_blocking=True)
             des_q = des_q.cuda(non_blocking=True)
             des_ans = des_ans.cuda()
+            mc_q = mc_q.cuda(non_blocking=True)
+            mc_ans = mc_ans.cuda()
 
         # Update the learning rate.
         lr = optim.get_epoch_lr(cur_epoch + float(cur_iter) / data_size, cfg)
         optim.set_lr(optimizer, lr)
 
         train_meter.data_toc()
-        #Alterar => nao teremos boxes
         
-        pred_des_ans = model(frames, des_q)
+        pred_des_ans = model(frames, des_q, True)
+        pred_mc_ans = model(frames, mc_q, False)
         # Explicitly declare reduction to mean.
-        #Alterar
         des_loss_fun = losses.get_loss_func('cross_entropy')(reduction="mean")
-
+        mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
         # Compute the loss.
         loss = des_loss_fun(pred_des_ans, des_ans)
-
+        loss += mc_loss_fun(pred_mc_ans, mc_ans)
         # check Nan Loss.
         misc.check_nan_losses(loss)
-
         # Perform the backward pass.
         optimizer.zero_grad()
         loss.backward()
