@@ -3,22 +3,26 @@ Generates a dataset by passing MONet through video clips.
 Uses cfg to determine the parameters
 Dataset format: 
 A Python dictionary with video_path as key and a torch tensor as value
-Tensor: Num_frames x Num_slots x Slot_dim
+Tensor: (Num_frames * Num_slots) x Slot_dim
 It should be used with clevrer json file
 
 Example:
-python3 clevrer_dev/visualize_monet.py \
-  --cfg clevrer_dev/visualize_monet.yaml \
+python3 clevrer_dev/generate_slot_dataset.py \
+  --cfg clevrer_dev/clevrer/clevrer.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
+  CLEVRERMAIN.SLOT_DATASET_PATH /datasets/slot_dataset/slot_dataset.pyth \
+  NUM_GPUS 0 \
   MONET.CHECKPOINT_LOAD /datasets/checkpoint_epoch_00020.pyth
 
 Or:
-python3 clevrer_dev/visualize_monet.py \
-  --cfg clevrer_dev/visualize_monet.yaml \
+python3 clevrer_dev/generate_slot_dataset.py \
+  --cfg clevrer_dev/clevrer/clevrer.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
-  MONET.CHECKPOINT_LOAD ./checkpoints/checkpoint_epoch_00100.pyth
+  CLEVRERMAIN.SLOT_DATASET_PATH /datasets/slot_dataset/slot_dataset.pyth \
+  NUM_GPUS 1 \
+  MONET.CHECKPOINT_LOAD ./monet_checkpoints/checkpoint_epoch_00140.pyth
 """
 
 from slowfast.models.monet import Monet
@@ -76,6 +80,8 @@ for i in range(len(dataset)):
     video_slots = model.return_means(frames)
     video_path = dataset.get_video_path(index)
     slot_dataset[video_path] = video_slots
+    print(video_slots.size())
+    break
 
 torch.save(slot_dataset, cfg.CLEVRERMAIN.SLOT_DATASET_PATH)
     
