@@ -79,7 +79,7 @@ for i in range(len(dataset)):
         frames = frames.cuda(device=cur_device)
     video_slots = model.return_means(frames)
     video_path = dataset.get_video_path(index)
-    slot_dataset[video_path] = video_slots
+    slot_dataset[video_path] = video_slots.cpu()
 
 torch.save(slot_dataset, cfg.CLEVRERMAIN.SLOT_DATASET_PATH)
     
