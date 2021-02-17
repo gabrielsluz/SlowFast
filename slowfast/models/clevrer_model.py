@@ -89,12 +89,12 @@ class ClevrerMain(nn.Module):
             nn.ReLU(),
             nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, self.ans_vocab_len)
         )
-        #Multiple choice answer => outputs a vector of size 8, 
+        #Multiple choice answer => outputs a vector of size 4, 
         # which is interpreted as 4 logits, one for each binary classification of each choice
         self.mc_pred_head = nn.Sequential(
             nn.Linear(self.trans_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
             nn.ReLU(),
-            nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, 8)
+            nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, 4)
         )
 
     
