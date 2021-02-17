@@ -30,6 +30,8 @@ def add_custom_config(_C):
     _C.CLEVRERMAIN.PRED_HEAD_DIM = 128
     #MONet trainable:
     _C.CLEVRERMAIN.MONET_TRAINABLE = False
+    #Slot dataset path
+    _C.CLEVRERMAIN.SLOT_DATASET_PATH = '/datasets/slot_dataset/slot_dataset.pyth'
 
     
 
