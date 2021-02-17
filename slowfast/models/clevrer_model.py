@@ -39,9 +39,7 @@ class ClevrerMain(nn.Module):
     *The original paper of MONet and of this algorithm use a latent represantion
     of 16 dimensions. This number is hardcoded in the MONet model.
     TODO:
-        - Multiple Choice questions
         - Self Supervision
-        - LAMB optimizer
     """
     def __init__(self, cfg, vocab_len, ans_vocab_len):
         """
@@ -86,11 +84,17 @@ class ClevrerMain(nn.Module):
                                         nlayers=cfg.CLEVRERMAIN.T_LAYERS, dropout=cfg.CLEVRERMAIN.T_DROPOUT)
 
         #Prediction head MLP
-        #TODO: Currently only for descriptive questions
-        self.pred_head = nn.Sequential(
+        self.des_pred_head = nn.Sequential(
             nn.Linear(self.trans_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
             nn.ReLU(),
             nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, self.ans_vocab_len)
+        )
+        #Multiple choice answer => outputs a vector of size 8, 
+        # which is interpreted as 4 logits, one for each binary classification of each choice
+        self.mc_pred_head = nn.Sequential(
+            nn.Linear(self.trans_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
+            nn.ReLU(),
+            nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, 8)
         )
 
     
@@ -134,7 +138,7 @@ class ClevrerMain(nn.Module):
         word_embs_b = torch.cat((word_embs_b, z_words, o_words), dim=2)
         return torch.cat((cls_t, slots_b, word_embs_b), dim=1)
 
-    def forward(self, clips_b, question_b):
+    def forward(self, clips_b, question_b, is_des_q):
         """
         Receives a batch of clips and questions:
                 clips_b (tensor): the frames of sampled from the video. The dimension
@@ -150,7 +154,10 @@ class ClevrerMain(nn.Module):
         slots_b = torch.stack(slots_l, dim=0)
         transformer_in = self.assemble_input(slots_b, word_embs_b)
         transformer_out = self.Transformer(transformer_in)
-        desc_ans = self.pred_head(transformer_out[:, 0])
-        return desc_ans
+        if is_des_q:
+            ans = self.des_pred_head(transformer_out[:, 0])
+        else:
+            ans = self.mc_pred_head(transformer_out[:, 0])
+        return ans
 
         
