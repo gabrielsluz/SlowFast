@@ -156,15 +156,19 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
         frames = sampled_batch['frames']
         des_q = sampled_batch['question_dict']['des_q']
         des_ans = sampled_batch['question_dict']['des_ans']
+        # mc_q = sampled_batch['question_dict']['mc_q']
+        # mc_ans = sampled_batch['question_dict']['mc_ans']
         # Transfer the data to the current GPU device.
         if cfg.NUM_GPUS:
             frames = frames.cuda(non_blocking=True)
             des_q = des_q.cuda(non_blocking=True)
             des_ans = des_ans.cuda()
+            # mc_q = mc_q.cuda(non_blocking=True)
+            # mc_ans = mc_ans.cuda()
 
         val_meter.data_toc()
 
-        pred_des_ans = model(frames, des_q)
+        pred_des_ans = model(frames, des_q, True)
 
         # Compute the errors.
         num_topks_correct = metrics.topks_correct(pred_des_ans, des_ans, (1, 5))
