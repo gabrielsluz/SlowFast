@@ -80,7 +80,6 @@ for i in range(len(dataset)):
     video_slots = model.return_means(frames)
     video_path = dataset.get_video_path(index)
     slot_dataset[video_path] = video_slots
-    print(video_slots.size())
 
 torch.save(slot_dataset, cfg.CLEVRERMAIN.SLOT_DATASET_PATH)
     
