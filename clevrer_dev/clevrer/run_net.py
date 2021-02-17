@@ -24,10 +24,10 @@ python3 clevrer_dev/clevrer/run_net.py \
   DATA.SAMPLING_RATE 5 \
   CLEVRERMAIN.T_HID_DIM 1024 \
   NUM_GPUS 1 \
-  LOG_PERIOD 1000 \
-  TRAIN.BATCH_SIZE 1 \
-  TRAIN.EVAL_PERIOD 6 \
-  TRAIN.CHECKPOINT_PERIOD 6 \
+  LOG_PERIOD 25 \
+  TRAIN.BATCH_SIZE 4 \
+  TRAIN.EVAL_PERIOD 1 \
+  TRAIN.CHECKPOINT_PERIOD 1 \
   SOLVER.MAX_EPOCH 24
   """
 from slowfast.utils.misc import launch_job
