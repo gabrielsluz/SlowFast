@@ -6,6 +6,7 @@
 import torch
 
 import slowfast.utils.lr_policy as lr_policy
+from .lamb import Lamb
 
 
 def construct_optimizer(model, cfg):
@@ -73,6 +74,16 @@ def construct_optimizer(model, cfg):
             lr=cfg.SOLVER.BASE_LR,
             momentum=cfg.SOLVER.MOMENTUM,
             weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+        )
+    #Added later     
+    elif cfg.SOLVER.OPTIMIZING_METHOD == "lamb":
+        return Lamb(
+            optim_params,
+            lr=cfg.SOLVER.BASE_LR,
+            betas=(0.9, 0.999),
+            eps=1e-6,
+            weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+            adam=False
         )
     else:
         raise NotImplementedError(
