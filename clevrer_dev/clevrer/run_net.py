@@ -10,12 +10,12 @@ python3 clevrer_dev/clevrer/run_net.py \
   MONET.CHECKPOINT_LOAD /datasets/checkpoint_epoch_00020.pyth \
   NUM_GPUS 0 \
   LOG_PERIOD 1 \
-  TRAIN.BATCH_SIZE 4 \
+  TRAIN.BATCH_SIZE 1 \
   TRAIN.EVAL_PERIOD 1 \
   TRAIN.CHECKPOINT_PERIOD 1 \
   SOLVER.MAX_EPOCH 1
 
-  python3 clevrer_dev/clevrer/run_net.py \
+python3 clevrer_dev/clevrer/run_net.py \
   --cfg clevrer_dev/clevrer/clevrer.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
@@ -24,11 +24,11 @@ python3 clevrer_dev/clevrer/run_net.py \
   DATA.SAMPLING_RATE 5 \
   CLEVRERMAIN.T_HID_DIM 1024 \
   NUM_GPUS 1 \
-  LOG_PERIOD 100 \
+  LOG_PERIOD 1000 \
   TRAIN.BATCH_SIZE 1 \
-  TRAIN.EVAL_PERIOD 1 \
-  TRAIN.CHECKPOINT_PERIOD 5 \
-  SOLVER.MAX_EPOCH 20
+  TRAIN.EVAL_PERIOD 6 \
+  TRAIN.CHECKPOINT_PERIOD 6 \
+  SOLVER.MAX_EPOCH 24
   """
 from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args
