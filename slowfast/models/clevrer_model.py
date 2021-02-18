@@ -60,20 +60,20 @@ class ClevrerMain(nn.Module):
         self.slot_dim = 16
         self.trans_dim = self.slot_dim + 2 #Dimension of the transformer inputs
 
-        #MONet setup
-        clevr_conf = MonetConfig(num_slots=cfg.MONET.NUM_SLOTS,
-                           num_blocks=6,
-                           channel_base=64,
-                           bg_sigma=0.09,
-                           fg_sigma=0.11,
-                          )
-        self.Monet = Monet(clevr_conf, cfg.DATA.RESIZE_H, cfg.DATA.RESIZE_W)
-        #MONet should have been pretrained => load it at this step 
-        cu.load_checkpoint(cfg.MONET.CHECKPOINT_LOAD, self.Monet, data_parallel=False)
-        #Is MONet not trainable ?
-        if not cfg.CLEVRERMAIN.MONET_TRAINABLE:
-            for param in self.Monet.parameters():
-                param.requires_grad = False
+        # #MONet setup
+        # clevr_conf = MonetConfig(num_slots=cfg.MONET.NUM_SLOTS,
+        #                    num_blocks=6,
+        #                    channel_base=64,
+        #                    bg_sigma=0.09,
+        #                    fg_sigma=0.11,
+        #                   )
+        # self.Monet = Monet(clevr_conf, cfg.DATA.RESIZE_H, cfg.DATA.RESIZE_W)
+        # #MONet should have been pretrained => load it at this step 
+        # cu.load_checkpoint(cfg.MONET.CHECKPOINT_LOAD, self.Monet, data_parallel=False)
+        # #Is MONet not trainable ?
+        # if not cfg.CLEVRERMAIN.MONET_TRAINABLE:
+        #     for param in self.Monet.parameters():
+        #         param.requires_grad = False
 
         #Embedding for the words
         self.embed_layer = nn.Embedding(self.vocab_len, self.slot_dim)
@@ -113,7 +113,7 @@ class ClevrerMain(nn.Module):
         #Test if tensor is in cuda: next(model.parameters()).is_cuda
         #Tensor setups:
         batch_size = slots_b.size()[0]
-
+        
         cls_indexes = torch.zeros((batch_size, 1), dtype=torch.long)
         z_cls = torch.zeros((batch_size, 1, 2))
         o_slots = torch.ones((batch_size, slots_b.size()[1], 1))
@@ -147,12 +147,13 @@ class ClevrerMain(nn.Module):
                     `batch_size` x 'max sequence length'
         """
         word_embs_b = self.embed_layer(question_b) * math.sqrt(self.slot_dim)
-        batch_size = clips_b.size()[0]
-        slots_l = []
-        for i in range(batch_size):
-            slots_l.append(self.Monet.return_means(clips_b[i]))
-        slots_b = torch.stack(slots_l, dim=0)
-        transformer_in = self.assemble_input(slots_b, word_embs_b)
+        # batch_size = clips_b.size()[0]
+        # slots_l = []
+        # for i in range(batch_size):
+        #     slots_l.append(self.Monet.return_means(clips_b[i]))
+        # slots_b = torch.stack(slots_l, dim=0)
+        # transformer_in = self.assemble_input(slots_b, word_embs_b)
+        transformer_in = self.assemble_input(clips_b, word_embs_b) #Receives slots directly
         transformer_out = self.Transformer(transformer_in)
         if is_des_q:
             ans = self.des_pred_head(transformer_out[:, 0])
