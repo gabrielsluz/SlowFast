@@ -28,6 +28,23 @@ python3 clevrer_dev/clevrer/run_net.py \
   SOLVER.MAX_EPOCH 1
 
 python3 clevrer_dev/clevrer/run_net.py \
+  --cfg clevrer_dev/clevrer/slot_clevrer.yaml \
+  DATA.PATH_TO_DATA_DIR /datasets/slot_dataset \
+  DATA.PATH_PREFIX /datasets/slot_dataset \
+  MONET.CHECKPOINT_LOAD ./monet_checkpoints/checkpoint_epoch_00180.pyth \
+  DATA.NUM_FRAMES 25 \
+  DATA.SAMPLING_RATE 5 \
+  CLEVRERMAIN.T_HID_DIM 2048 \
+  NUM_GPUS 1 \
+  LOG_PERIOD 100 \
+  TRAIN.BATCH_SIZE 32 \
+  TRAIN.EVAL_PERIOD 5 \
+  TRAIN.CHECKPOINT_PERIOD 10 \
+  SOLVER.LR_POLICY constant \
+  SOLVER.BASE_LR 0.0005\
+  SOLVER.MAX_EPOCH 100
+
+python3 clevrer_dev/clevrer/run_net.py \
   --cfg clevrer_dev/clevrer/clevrer.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
