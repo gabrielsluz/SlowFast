@@ -27,9 +27,11 @@ class CNN_MLP(nn.Module):
         self.vocab_len = vocab_len
         self.ans_vocab_len = ans_vocab_len
         #ResNet
-        self.frame_enc_dim = 512
-        self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, num_classes= self.frame_enc_dim)
-
+        frame_enc_dim = 512
+        self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, num_classes= frame_enc_dim)
+        #Question Embedding
+        question_enc_dim = 128
+        self.embed_layer = nn.Embedding(self.vocab_len, question_enc_dim)
         # #Prediction head MLP
         # self.des_pred_head = nn.Sequential(
         #     nn.Linear(self.trans_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
@@ -54,7 +56,9 @@ class CNN_MLP(nn.Module):
                 is_des_q (bool): Indicates if is descriptive question or multiple choice
         """
         x = clips_b[0]
-        x = self.cnn(x)
+        x = self.cnn(x) #Checar se consigo aplicar resnet em um batch de videos. Nao diretamente.
+        #Agregar embeddings
+        #Concatenar e passar pela mlp
         return x
 
         
