@@ -113,7 +113,7 @@ class ClevrerMain(nn.Module):
         #Test if tensor is in cuda: next(model.parameters()).is_cuda
         #Tensor setups:
         batch_size = slots_b.size()[0]
-        
+
         cls_indexes = torch.zeros((batch_size, 1), dtype=torch.long)
         z_cls = torch.zeros((batch_size, 1, 2))
         o_slots = torch.ones((batch_size, slots_b.size()[1], 1))
@@ -149,7 +149,7 @@ class ClevrerMain(nn.Module):
         word_embs_b = self.embed_layer(question_b) * math.sqrt(self.slot_dim)
         # batch_size = clips_b.size()[0]
         # slots_l = []
-        # for i in range(batch_size):
+        # for i in range(batch_size): #Alterar para imitar cnn_models
         #     slots_l.append(self.Monet.return_means(clips_b[i]))
         # slots_b = torch.stack(slots_l, dim=0)
         # transformer_in = self.assemble_input(slots_b, word_embs_b)

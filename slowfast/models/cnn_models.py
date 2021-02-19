@@ -27,24 +27,24 @@ class CNN_MLP(nn.Module):
         self.vocab_len = vocab_len
         self.ans_vocab_len = ans_vocab_len
         #ResNet
-        frame_enc_dim = 512
-        self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, num_classes= frame_enc_dim)
+        self.frame_enc_dim = 512
+        self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, num_classes= self.frame_enc_dim)
         #Question Embedding
-        question_enc_dim = 128
-        self.embed_layer = nn.Embedding(self.vocab_len, question_enc_dim)
-        # #Prediction head MLP
-        # self.des_pred_head = nn.Sequential(
-        #     nn.Linear(self.trans_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
-        #     nn.ReLU(),
-        #     nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, self.ans_vocab_len)
-        # )
-        # #Multiple choice answer => outputs a vector of size 4, 
-        # # which is interpreted as 4 logits, one for each binary classification of each choice
-        # self.mc_pred_head = nn.Sequential(
-        #     nn.Linear(self.trans_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
-        #     nn.ReLU(),
-        #     nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, 4)
-        # )
+        self.question_enc_dim = 128
+        self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim)
+        #Prediction head MLP
+        self.des_pred_head = nn.Sequential(
+            nn.Linear(self.question_enc_dim + self.frame_enc_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
+            nn.ReLU(),
+            nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, self.ans_vocab_len)
+        )
+        #Multiple choice answer => outputs a vector of size 4, 
+        # which is interpreted as 4 logits, one for each binary classification of each choice
+        self.mc_pred_head = nn.Sequential(
+            nn.Linear(self.question_enc_dim + self.frame_enc_dim, cfg.CLEVRERMAIN.PRED_HEAD_DIM),
+            nn.ReLU(),
+            nn.Linear(cfg.CLEVRERMAIN.PRED_HEAD_DIM, 4)
+        )
 
     def forward(self, clips_b, question_b, is_des_q):
         """
@@ -55,10 +55,21 @@ class CNN_MLP(nn.Module):
                     `batch_size` x 'max sequence length'
                 is_des_q (bool): Indicates if is descriptive question or multiple choice
         """
-        x = clips_b[0]
-        x = self.cnn(x) #Checar se consigo aplicar resnet em um batch de videos. Nao diretamente.
-        #Agregar embeddings
-        #Concatenar e passar pela mlp
-        return x
+        #Receives a batch of frames. To apply a CNN we can join the batch and time dimensions
+        cb_sz = clips_b.size()
+        frame_encs = self.cnn(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+        frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.frame_enc_dim) #Returns to batch format
+        frame_encs = torch.sum(frame_encs, dim=1) / cb_sz[1] #Average frame encodings in a clip
+        #Question embbeding and aggregation
+        #May need to deal with padding
+        word_encs = self.embed_layer(question_b)
+        q_len = word_encs.size()[1]
+        word_encs = torch.sum(word_encs, dim=1) / q_len #Average word encodings in a question
+        #Concatenate question and video encodings
+        input_encs = torch.cat((frame_encs, word_encs), dim=1)
+        if is_des_q:
+            return self.des_pred_head(input_encs)
+        else:
+            return self.mc_pred_head(input_encs)
 
         

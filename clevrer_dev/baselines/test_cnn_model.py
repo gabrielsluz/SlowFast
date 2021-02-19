@@ -18,7 +18,7 @@ python3 clevrer_dev/baselines/test_cnn_model.py \
   --cfg clevrer_dev/baselines/cnn_mlp.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
-  DATA.NUM_FRAMES 1 \
+  DATA.NUM_FRAMES 5 \
   NUM_GPUS 0
 
 python3 clevrer_dev/baselines/test_cnn_model.py \
