@@ -3,6 +3,8 @@
 
 """Wrapper to train and test the CLEVRER model.
 Example:
+
+----Clevrer dataset-----
 python3 clevrer_dev/clevrer/run_net.py \
   --cfg clevrer_dev/clevrer/clevrer.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
@@ -15,6 +17,22 @@ python3 clevrer_dev/clevrer/run_net.py \
   TRAIN.CHECKPOINT_PERIOD 1 \
   SOLVER.MAX_EPOCH 1
 
+python3 clevrer_dev/clevrer/run_net.py \
+  --cfg clevrer_dev/clevrer/clevrer.yaml \
+  DATA.PATH_TO_DATA_DIR /datasets/clevrer \
+  DATA.PATH_PREFIX /datasets/clevrer \
+  MONET.CHECKPOINT_LOAD ./monet_checkpoints/checkpoint_epoch_00140.pyth \
+  DATA.NUM_FRAMES 25 \
+  DATA.SAMPLING_RATE 5 \
+  CLEVRERMAIN.T_HID_DIM 1024 \
+  NUM_GPUS 1 \
+  LOG_PERIOD 25 \
+  TRAIN.BATCH_SIZE 4 \
+  TRAIN.EVAL_PERIOD 1 \
+  TRAIN.CHECKPOINT_PERIOD 1 \
+  SOLVER.MAX_EPOCH 24
+
+----Slot Clevrer-----
 python3 clevrer_dev/clevrer/run_net.py \
   --cfg clevrer_dev/clevrer/slot_clevrer.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/slot_dataset \
@@ -34,30 +52,12 @@ python3 clevrer_dev/clevrer/run_net.py \
   MONET.CHECKPOINT_LOAD ./monet_checkpoints/checkpoint_epoch_00180.pyth \
   DATA.NUM_FRAMES 25 \
   DATA.SAMPLING_RATE 5 \
-  CLEVRERMAIN.T_HID_DIM 2048 \
   NUM_GPUS 1 \
   LOG_PERIOD 100 \
   TRAIN.BATCH_SIZE 32 \
   TRAIN.EVAL_PERIOD 5 \
   TRAIN.CHECKPOINT_PERIOD 10 \
-  SOLVER.LR_POLICY constant \
-  SOLVER.BASE_LR 0.0005\
   SOLVER.MAX_EPOCH 100
-
-python3 clevrer_dev/clevrer/run_net.py \
-  --cfg clevrer_dev/clevrer/clevrer.yaml \
-  DATA.PATH_TO_DATA_DIR /datasets/clevrer \
-  DATA.PATH_PREFIX /datasets/clevrer \
-  MONET.CHECKPOINT_LOAD ./monet_checkpoints/checkpoint_epoch_00140.pyth \
-  DATA.NUM_FRAMES 25 \
-  DATA.SAMPLING_RATE 5 \
-  CLEVRERMAIN.T_HID_DIM 1024 \
-  NUM_GPUS 1 \
-  LOG_PERIOD 25 \
-  TRAIN.BATCH_SIZE 4 \
-  TRAIN.EVAL_PERIOD 1 \
-  TRAIN.CHECKPOINT_PERIOD 1 \
-  SOLVER.MAX_EPOCH 24
   """
 from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args

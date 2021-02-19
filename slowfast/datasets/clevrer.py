@@ -366,9 +366,9 @@ class Clevrer(torch.utils.data.Dataset):
             frames = frames.permute(0, 3, 1, 2)
             # Perform resize
             transform_rs = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W]),
-            transforms.ToTensor()
+                transforms.ToPILImage(),
+                transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W]),
+                transforms.ToTensor()
             ])
             frames_size = frames.size()
             resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
