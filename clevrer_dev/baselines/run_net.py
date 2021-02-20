@@ -20,10 +20,10 @@ python3 clevrer_dev/baselines/run_net.py \
   --cfg clevrer_dev/baselines/cnn_mlp.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
-  DATA.NUM_FRAMES 25 \
-  DATA.SAMPLING_RATE 5 \
+  DATA.NUM_FRAMES 10 \
+  DATA.SAMPLING_RATE 12 \
   NUM_GPUS 1 \
-  LOG_PERIOD 25 \
+  LOG_PERIOD 1 \
   TRAIN.BATCH_SIZE 4 \
   TRAIN.EVAL_PERIOD 1 \
   TRAIN.CHECKPOINT_PERIOD 1 \
