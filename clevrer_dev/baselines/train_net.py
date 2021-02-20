@@ -47,9 +47,7 @@ def train_epoch(
     model.train()
     train_meter.iter_tic()
     data_size = len(train_loader)
-    #plateau_cnt = 0.0 #Counts the number of plateaus of the loss at epoch level
-    #plateau_cnt = float(cur_epoch // 15) #Only decay lr in multiple of 15s
-    plateau_cnt = float(cur_epoch+1)
+    
     for cur_iter, sampled_batch in enumerate(train_loader): 
         frames = sampled_batch['frames']
         des_q = sampled_batch['question_dict']['des_q']
@@ -65,7 +63,7 @@ def train_epoch(
             mc_ans = mc_ans.cuda()
 
         # Update the learning rate.
-        lr = optim.get_epoch_lr(plateau_cnt, cfg)
+        lr = optim.get_epoch_lr(cur_epoch + float(cur_iter) / data_size, cfg)
         optim.set_lr(optimizer, lr)
 
         train_meter.data_toc()

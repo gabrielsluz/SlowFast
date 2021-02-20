@@ -11,7 +11,7 @@ python3 clevrer_dev/baselines/run_net.py \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
   NUM_GPUS 0 \
   LOG_PERIOD 1 \
-  TRAIN.BATCH_SIZE 1 \
+  TRAIN.BATCH_SIZE 2 \
   TRAIN.EVAL_PERIOD 1 \
   TRAIN.CHECKPOINT_PERIOD 1 \
   SOLVER.MAX_EPOCH 1
@@ -27,7 +27,6 @@ python3 clevrer_dev/baselines/run_net.py \
   TRAIN.BATCH_SIZE 20 \
   TRAIN.EVAL_PERIOD 5 \
   TRAIN.CHECKPOINT_PERIOD 10 \
-  SOLVER.BASE_LR 0.001 \
   SOLVER.MAX_EPOCH 80
   """
 from slowfast.utils.misc import launch_job
