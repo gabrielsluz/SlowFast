@@ -770,6 +770,13 @@ def get_map(preds, labels):
 
 
 #Additions
+def write_to_file(file_name, strin):
+    with open(file_name, "a") as f:
+        f.write(strin + "\n")
+
+def clear_file(file_name):
+    with open(file_name, "w") as f:
+        f.write("")
 
 class ClevrerTrainMeter(object):
     """
@@ -803,6 +810,9 @@ class ClevrerTrainMeter(object):
         self.num_mc_q_mis = 0
         self.num_samples = 0
         self.output_dir = cfg.OUTPUT_DIR
+
+        self.print_file = cfg.TRAIN.TRAIN_STATS_FILE
+        clear_file(self.print_file)
 
     def reset(self):
         """
@@ -898,6 +908,8 @@ class ClevrerTrainMeter(object):
         stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
         logging.log_json_stats(stats)
 
+        write_to_file(self.print_file, str(stats))
+
     def log_epoch_stats(self, cur_epoch):
         """
         Log the stats of the current epoch.
@@ -931,6 +943,7 @@ class ClevrerTrainMeter(object):
         stats["mc_opt_err"] = mc_opt_err
         stats["mc_q_err"] = mc_q_err
         logging.log_json_stats(stats)
+        write_to_file(self.print_file, str(stats))
 
 
 class ClevrerValMeter(object):
@@ -965,6 +978,9 @@ class ClevrerValMeter(object):
         self.num_mc_q_mis = 0
         self.num_samples = 0
         self.output_dir = cfg.OUTPUT_DIR
+
+        self.print_file = cfg.TRAIN.TRAIN_STATS_FILE
+        clear_file(self.print_file)
 
     def reset(self):
         """
@@ -1042,6 +1058,7 @@ class ClevrerValMeter(object):
         stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_median()
         stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
         logging.log_json_stats(stats)
+        write_to_file(self.print_file, str(stats))
 
     def log_epoch_stats(self, cur_epoch):
         """
@@ -1075,3 +1092,4 @@ class ClevrerValMeter(object):
         stats["min_mc_q_err"] = self.min_mc_q_err
 
         logging.log_json_stats(stats)
+        write_to_file(self.print_file, str(stats))

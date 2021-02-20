@@ -8,6 +8,9 @@ from fvcore.common.config import CfgNode
 def add_custom_config(_C):
     # Add your own customized configs.
 
+    #Train and Val stats printing
+    _C.TRAIN.TRAIN_STATS_FILE = "./train_stats.txt"
+
     #MONET parameters
     _C.MONET = CfgNode()
     #Number of object slots
