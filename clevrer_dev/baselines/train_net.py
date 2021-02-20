@@ -17,7 +17,7 @@ import slowfast.utils.metrics as metrics
 import slowfast.utils.misc as misc
 import slowfast.visualization.tensorboard_vis as tb
 from slowfast.datasets import loader
-from slowfast.utils.meters import AVAMeter, TrainMeter, ValMeter
+from slowfast.utils.meters import ClevrerTrainMeter, ClevrerValMeter
 from slowfast.utils.multigrid import MultigridSchedule
 #Clevrer specific
 from slowfast.datasets.clevrer import Clevrer
@@ -36,7 +36,7 @@ def train_epoch(
         model (model): the video model to train.
         optimizer (optim): the optimizer to perform optimization on the model's
             parameters.
-        train_meter (TrainMeter): training meters to log the training performance.
+        train_meter (ClevrerTrainMeter): training meters to log the training performance.
         cur_epoch (int): current epoch of training.
         cfg (CfgNode): configs. Details can be found in
             slowfast/config/defaults.py
@@ -89,22 +89,29 @@ def train_epoch(
         top1_err, top5_err = [
             (1.0 - x / pred_des_ans.size(0)) * 100.0 for x in num_topks_correct
         ]
+        diff_mc_ans = torch.abs(mc_ans - (torch.sigmoid(pred_mc_ans) >= 0.5).float())
+        mc_opt_err = 100 * (1.0 - diff_mc_ans.sum() / (4*frames.size()[0]))
+        mc_q_err = 100 * (1.0 - (diff_mc_ans.sum(dim=1, keepdim=True) == 4).int().sum() / frames.size()[0])
         # Gather all the predictions across all the devices.
         if cfg.NUM_GPUS > 1:
-            loss, top1_err, top5_err = du.all_reduce(
-                [loss, top1_err, top5_err]
+            loss, top1_err, top5_err, mc_opt_err, mc_q_err  = du.all_reduce(
+                [loss, top1_err, top5_err, mc_opt_err, mc_q_err]
             )
         # Copy the stats from GPU to CPU (sync point).
-        loss, top1_err, top5_err = (
+        loss, top1_err, top5_err, mc_opt_err, mc_q_err  = (
             loss.item(),
             top1_err.item(),
             top5_err.item(),
+            mc_opt_err.item(),
+            mc_q_err.item()
         )
 
         # Update and log stats.
         train_meter.update_stats(
             top1_err,
             top5_err,
+            mc_opt_err,
+            mc_q_err,
             loss,
             lr,
             frames.size()[0]
@@ -120,6 +127,8 @@ def train_epoch(
                     "Train/lr": lr,
                     "Train/Top1_err": top1_err,
                     "Train/Top5_err": top5_err,
+                    "Train/mc_opt_err": mc_opt_err,
+                    "Train/mc_q_err": mc_q_err,
                 },
                 global_step=data_size * cur_epoch + cur_iter,
             )
@@ -140,7 +149,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
     Args:
         val_loader (loader): data loader to provide validation data.
         model (model): model to evaluate the performance.
-        val_meter (ValMeter): meter instance to record and calculate the metrics.
+        val_meter (ClevrerValMeter): meter instance to record and calculate the metrics.
         cur_epoch (int): number of the current epoch of training.
         cfg (CfgNode): configs. Details can be found in
             slowfast/config/defaults.py
@@ -156,19 +165,20 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
         frames = sampled_batch['frames']
         des_q = sampled_batch['question_dict']['des_q']
         des_ans = sampled_batch['question_dict']['des_ans']
-        # mc_q = sampled_batch['question_dict']['mc_q']
-        # mc_ans = sampled_batch['question_dict']['mc_ans']
+        mc_q = sampled_batch['question_dict']['mc_q']
+        mc_ans = sampled_batch['question_dict']['mc_ans']
         # Transfer the data to the current GPU device.
         if cfg.NUM_GPUS:
             frames = frames.cuda(non_blocking=True)
             des_q = des_q.cuda(non_blocking=True)
             des_ans = des_ans.cuda()
-            # mc_q = mc_q.cuda(non_blocking=True)
-            # mc_ans = mc_ans.cuda()
+            mc_q = mc_q.cuda(non_blocking=True)
+            mc_ans = mc_ans.cuda()
 
         val_meter.data_toc()
 
         pred_des_ans = model(frames, des_q, True)
+        pred_mc_ans = model(frames, mc_q, False)
 
         # Compute the errors.
         num_topks_correct = metrics.topks_correct(pred_des_ans, des_ans, (1, 5))
@@ -176,15 +186,30 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
         top1_err, top5_err = [
             (1.0 - x / pred_des_ans.size(0)) * 100.0 for x in num_topks_correct
         ]
+        diff_mc_ans = torch.abs(mc_ans - (torch.sigmoid(pred_mc_ans) >= 0.5).float())
+        mc_opt_err = 100 * (1.0 - diff_mc_ans.sum() / (4*frames.size()[0]))
+        mc_q_err = 100 * (1.0 - (diff_mc_ans.sum(dim=1, keepdim=True) == 4).int().sum() / frames.size()[0])
+
         if cfg.NUM_GPUS > 1:
-            top1_err, top5_err = du.all_reduce([top1_err, top5_err])
+            top1_err, top5_err, mc_opt_err, mc_q_err  = du.all_reduce(
+                [top1_err, top5_err, mc_opt_err, mc_q_err]
+            )
         # Copy the errors from GPU to CPU (sync point).
-        top1_err, top5_err = top1_err.item(), top5_err.item()
+        top1_err, top5_err, mc_opt_err, mc_q_err  = (
+            top1_err.item(),
+            top5_err.item(),
+            mc_opt_err.item(),
+            mc_q_err.item()
+        )
+
         val_meter.iter_toc()
+        
         # Update and log stats.
         val_meter.update_stats(
             top1_err,
             top5_err,
+            mc_opt_err,
+            mc_q_err,
             frames.size()[0]
             * max(
                 cfg.NUM_GPUS, 1
@@ -196,7 +221,6 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, writer=None):
                 {"Val/Top1_err": top1_err, "Val/Top5_err": top5_err},
                 global_step=len(val_loader) * cur_epoch + cur_iter,
             )
-        val_meter.update_predictions(pred_des_ans, des_ans)
 
         val_meter.log_iter_stats(cur_epoch, cur_iter)
         val_meter.iter_tic()
@@ -297,8 +321,8 @@ def build_trainer(cfg):
         val_loader (DataLoader): validatoin data loader.
         precise_bn_loader (DataLoader): training data loader for computing
             precise BN.
-        train_meter (TrainMeter): tool for measuring training stats.
-        val_meter (ValMeter): tool for measuring validation stats.
+        train_meter (ClevrerTrainMeter): tool for measuring training stats.
+        val_meter (ClevrerValMeter): tool for measuring validation stats.
     """
     # Build the video model and print model statistics.
     model = build_clevrer_model(cfg)
@@ -315,8 +339,8 @@ def build_trainer(cfg):
         cfg, "train", is_precise_bn=True
     )
     # Create meters.
-    train_meter = TrainMeter(len(train_loader), cfg)
-    val_meter = ValMeter(len(val_loader), cfg)
+    train_meter = ClevrerTrainMeter(len(train_loader), cfg)
+    val_meter = ClevrerValMeter(len(val_loader), cfg)
 
     return (
         model,
@@ -377,8 +401,8 @@ def train(cfg):
     )
 
     # Create meters.
-    train_meter = TrainMeter(len(train_loader), cfg)
-    val_meter = ValMeter(len(val_loader), cfg)
+    train_meter = ClevrerTrainMeter(len(train_loader), cfg)
+    val_meter = ClevrerValMeter(len(val_loader), cfg)
 
     # set up writer for logging to Tensorboard format.
     if cfg.TENSORBOARD.ENABLE and du.is_master_proc(
