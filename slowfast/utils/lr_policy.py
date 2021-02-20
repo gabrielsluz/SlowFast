@@ -45,7 +45,8 @@ def lr_func_resnet(cfg, decay_cnt):
             slowfast/config/defaults.py
         decay_cnt (float): the number of times the loss was decayed
     """
-    return cfg.SOLVER.BASE_LR / (10 ** decay_cnt)
+    #return cfg.SOLVER.BASE_LR / (10 ** decay_cnt)
+    return cfg.SOLVER.BASE_LR / (10*decay_cnt)
 
 def lr_func_cosine(cfg, cur_epoch):
     """

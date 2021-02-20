@@ -23,11 +23,12 @@ python3 clevrer_dev/baselines/run_net.py \
   DATA.NUM_FRAMES 10 \
   DATA.SAMPLING_RATE 12 \
   NUM_GPUS 1 \
-  LOG_PERIOD 1 \
-  TRAIN.BATCH_SIZE 4 \
-  TRAIN.EVAL_PERIOD 1 \
-  TRAIN.CHECKPOINT_PERIOD 1 \
-  SOLVER.MAX_EPOCH 24
+  LOG_PERIOD 20 \
+  TRAIN.BATCH_SIZE 20 \
+  TRAIN.EVAL_PERIOD 5 \
+  TRAIN.CHECKPOINT_PERIOD 10 \
+  SOLVER.BASE_LR 0.001 \
+  SOLVER.MAX_EPOCH 80
   """
 from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args
