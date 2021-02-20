@@ -47,6 +47,8 @@ def train_epoch(
     model.train()
     train_meter.iter_tic()
     data_size = len(train_loader)
+    #plateau_cnt = 0.0 #Counts the number of plateaus of the loss at epoch level
+    plateau_cnt = float(cur_epoch // 15) #Only decay lr in multiple of 15s
     for cur_iter, sampled_batch in enumerate(train_loader): 
         frames = sampled_batch['frames']
         des_q = sampled_batch['question_dict']['des_q']
@@ -62,7 +64,7 @@ def train_epoch(
             mc_ans = mc_ans.cuda()
 
         # Update the learning rate.
-        lr = optim.get_epoch_lr(cur_epoch + float(cur_iter) / data_size, cfg)
+        lr = optim.get_epoch_lr(plateau_cnt, cfg)
         optim.set_lr(optimizer, lr)
 
         train_meter.data_toc()
@@ -77,6 +79,8 @@ def train_epoch(
         loss += mc_loss_fun(pred_mc_ans, mc_ans)
         # check Nan Loss.
         misc.check_nan_losses(loss)
+        #Check if plateau
+
         # Perform the backward pass.
         optimizer.zero_grad()
         loss.backward()

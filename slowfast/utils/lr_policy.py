@@ -36,6 +36,17 @@ def lr_func_constant(cfg, cur_epoch):
     """
     return cfg.SOLVER.BASE_LR
 
+def lr_func_resnet(cfg, decay_cnt):
+    """
+    Learning rate policy from ResNet:
+    The learning rate starts from 0.1 and is divided by 10 when the error plateaus
+    Args:
+        cfg (CfgNode): configs. Details can be found in
+            slowfast/config/defaults.py
+        decay_cnt (float): the number of times the loss was decayed
+    """
+    return cfg.SOLVER.BASE_LR / (10 ** decay_cnt)
+
 def lr_func_cosine(cfg, cur_epoch):
     """
     Retrieve the learning rate to specified values at specified epoch with the
