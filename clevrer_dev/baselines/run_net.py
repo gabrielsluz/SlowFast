@@ -30,8 +30,9 @@ python3 clevrer_dev/baselines/run_net.py \
   SOLVER.EPOCH_CYCLE 5 \
   SOLVER.BASE_LR 0.1 \
   SOLVER.LR_POLICY cosine \
-  SOLVER.COSINE_END_LR 0.05 \
+  SOLVER.COSINE_END_LR 0.01 \
   SOLVER.WEIGHT_DECAY 0.01 \
+  SOLVER.OPTIMIZING_METHOD adam \
   SOLVER.MAX_EPOCH 5
   """
 from slowfast.utils.misc import launch_job
