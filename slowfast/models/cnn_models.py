@@ -28,7 +28,7 @@ class CNN_MLP(nn.Module):
         self.ans_vocab_len = ans_vocab_len
         #ResNet
         self.frame_enc_dim = 512
-        self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, num_classes=self.frame_enc_dim)
+        self.cnn = torchvision.models.resnet34(pretrained=False, progress=True, num_classes=self.frame_enc_dim)
         #Question Embedding
         self.question_enc_dim = 128
         self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim)
