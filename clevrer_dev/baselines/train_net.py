@@ -47,7 +47,7 @@ def train_epoch(
     model.train()
     train_meter.iter_tic()
     data_size = len(train_loader)
-
+    
     for cur_iter, sampled_batch in enumerate(train_loader): 
         frames = sampled_batch['frames']
         des_q = sampled_batch['question_dict']['des_q']
@@ -418,8 +418,7 @@ def train(cfg):
     # Perform the training loop.
     logger.info("Start epoch: {}".format(start_epoch + 1))
 
-    #for cur_epoch in range(start_epoch, cfg.SOLVER.MAX_EPOCH):
-    for cur_epoch in range(start_epoch, cfg.TRAIN.REAL_MAX_EPOCH):
+    for cur_epoch in range(start_epoch, cfg.SOLVER.MAX_EPOCH):
         if cfg.MULTIGRID.LONG_CYCLE:
             cfg, changed = multigrid.update_long_cycle(cfg, cur_epoch)
             if changed:

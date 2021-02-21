@@ -10,8 +10,9 @@ def add_custom_config(_C):
 
     #Train and Val stats printing
     _C.TRAIN.TRAIN_STATS_FILE = "./train_stats.txt"
-    #Actual MAX_EPOCH, the other is used for cycling the learning rate
-    _C.TRAIN.REAL_MAX_EPOCH = 200
+
+    #Cycle cosine loss function
+    _C.SOLVER.EPOCH_CYCLE = 20
 
     #MONET parameters
     _C.MONET = CfgNode()
