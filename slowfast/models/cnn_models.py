@@ -31,7 +31,7 @@ class CNN_MLP(nn.Module):
         self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, num_classes=self.frame_enc_dim)
         #Question Embedding
         self.question_enc_dim = 128
-        self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim)
+        self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim, padding_idx=1) #Index 1 is for pad token
         #Prediction head MLP
         hid_dim = 1024
         self.des_pred_head = nn.Sequential(
@@ -62,7 +62,6 @@ class CNN_MLP(nn.Module):
         frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.frame_enc_dim) #Returns to batch format
         frame_encs = torch.sum(frame_encs, dim=1) / cb_sz[1] #Average frame encodings in a clip
         #Question embbeding and aggregation
-        #May need to deal with padding
         word_encs = self.embed_layer(question_b)
         q_len = word_encs.size()[1]
         word_encs = torch.sum(word_encs, dim=1) / q_len #Average word encodings in a question
