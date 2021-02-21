@@ -25,9 +25,9 @@ python3 clevrer_dev/baselines/run_net.py \
   NUM_GPUS 1 \
   LOG_PERIOD 20 \
   TRAIN.BATCH_SIZE 20 \
-  TRAIN.EVAL_PERIOD 5 \
+  TRAIN.EVAL_PERIOD 3 \
   TRAIN.CHECKPOINT_PERIOD 10 \
-  SOLVER.MAX_EPOCH 80
+  TRAIN.REAL_MAX_EPOCH 20
   """
 from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args
