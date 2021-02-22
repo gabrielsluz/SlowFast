@@ -12,7 +12,7 @@ def add_custom_config(_C):
     _C.TRAIN.TRAIN_STATS_FILE = "./train_stats.txt"
 
     #Cycle cosine loss function
-    _C.SOLVER.EPOCH_CYCLE = 20
+    _C.SOLVER.EPOCH_CYCLE = 20.0
 
     #MONET parameters
     _C.MONET = CfgNode()
