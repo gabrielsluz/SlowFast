@@ -27,10 +27,12 @@ class CNN_MLP(nn.Module):
         self.vocab_len = vocab_len
         self.ans_vocab_len = ans_vocab_len
         #ResNet
-        self.frame_enc_dim = 512
+        #self.frame_enc_dim = 512
+        self.frame_enc_dim = 64
         self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, num_classes=self.frame_enc_dim)
         #Question Embedding
-        self.question_enc_dim = 128
+        #self.question_enc_dim = 128
+        self.question_enc_dim = 32
         self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim, padding_idx=1) #Index 1 is for pad token
         #Prediction head MLP
         hid_dim = 1024
