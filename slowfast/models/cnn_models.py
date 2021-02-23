@@ -13,7 +13,7 @@ class CNN_MLP(nn.Module):
 
     def init_params(self, layer):
         if type(layer) == nn.Linear or type(layer) == nn.Conv2d:
-            nn.init.normal_(tensor, mean=0.0, std=0.01)
+            nn.init.normal_(layer, mean=0.0, std=0.01)
 
     def __init__(self, cfg, vocab_len, ans_vocab_len):
         """
