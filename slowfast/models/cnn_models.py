@@ -35,7 +35,7 @@ class CNN_MLP(nn.Module):
         self.question_enc_dim = 16
         self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim, padding_idx=1) #Index 1 is for pad token
         #Prediction head MLP
-        hid_dim = 1024
+        hid_dim = 2048
         self.des_pred_head = nn.Sequential(
             nn.Linear(self.question_enc_dim + self.frame_enc_dim, hid_dim),
             nn.ReLU(),
