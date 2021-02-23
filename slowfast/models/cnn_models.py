@@ -34,19 +34,32 @@ class CNN_MLP(nn.Module):
         #self.question_enc_dim = 128
         self.question_enc_dim = 16
         self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim, padding_idx=1) #Index 1 is for pad token
+        
         #Prediction head MLP
         hid_dim = 2048
-        self.des_pred_head = nn.Sequential(
+        hid_dim_2 = 1024
+        hid_dim_3 = 512
+        self.pre_pred_head = nn.Sequential(
             nn.Linear(self.question_enc_dim + self.frame_enc_dim, hid_dim),
             nn.ReLU(),
-            nn.Linear(hid_dim, self.ans_vocab_len)
+            nn.Dropout(p=0.25),
+            nn.Linear(hid_dim, hid_dim_2),
+            nn.ReLU(),
+            nn.Dropout(p=0.4)
+        )
+
+        #Question especific
+        self.des_pred_head = nn.Sequential(
+            nn.Linear(hid_dim_2, hid_dim_3),
+            nn.ReLU(),
+            nn.Linear(hid_dim_3, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
         # which is interpreted as 4 logits, one for each binary classification of each choice
         self.mc_pred_head = nn.Sequential(
-            nn.Linear(self.question_enc_dim + self.frame_enc_dim, hid_dim),
+            nn.Linear(hid_dim_2, hid_dim_3),
             nn.ReLU(),
-            nn.Linear(hid_dim, 4)
+            nn.Linear(hid_dim_3, 4)
         )
 
     def forward(self, clips_b, question_b, is_des_q):
@@ -69,6 +82,8 @@ class CNN_MLP(nn.Module):
         word_encs = torch.sum(word_encs, dim=1) / q_len #Average word encodings in a question
         #Concatenate question and video encodings
         input_encs = torch.cat((frame_encs, word_encs), dim=1)
+        #MLP
+        input_encs = self.pre_pred_head(input_encs)
         if is_des_q:
             return self.des_pred_head(input_encs)
         else:
