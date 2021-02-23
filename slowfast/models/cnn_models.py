@@ -38,7 +38,7 @@ class CNN_MLP(nn.Module):
         #Prediction head MLP
         hid_dim = 2048
         hid_dim_2 = 2048
-        hid_dim_3 = 1024
+        hid_dim_3 = 2048
         self.pre_pred_head = nn.Sequential(
             nn.Linear(self.question_enc_dim + self.frame_enc_dim, hid_dim),
             nn.ReLU(),
