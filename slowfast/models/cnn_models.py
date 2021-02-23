@@ -9,8 +9,12 @@ from .build import MODEL_REGISTRY
 class CNN_MLP(nn.Module):
     """
     Implemetation of a baseline CNN+MLP model for Clevrer
-    Uses pretrained word embeddings
     """
+
+    def init_params(self, layer):
+        if type(layer) == nn.Linear or type(layer) == nn.Conv2d:
+            nn.init.normal_(tensor, mean=0.0, std=0.01)
+
     def __init__(self, cfg, vocab_len, ans_vocab_len):
         """
         The `__init__` method of any subclass should also contain these
@@ -61,6 +65,12 @@ class CNN_MLP(nn.Module):
             nn.ReLU(),
             nn.Linear(hid_dim_3, 4)
         )
+
+        #Init parameters
+        self.cnn.apply(self.init_params)
+        self.pre_pred_head.apply(self.init_params)
+        self.des_pred_head.apply(self.init_params)
+        self.mc_pred_head.apply(self.init_params)
 
     def forward(self, clips_b, question_b, is_des_q):
         """
