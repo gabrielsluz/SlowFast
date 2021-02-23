@@ -13,7 +13,10 @@ class CNN_MLP(nn.Module):
 
     def init_params(self, layer):
         if type(layer) == nn.Linear:
-            nn.init.normal_(layer, mean=0.0, std=0.01)
+            nn.init.normal_(layer.weight, mean=0.0, std=0.01)
+            layer.bias.data.fill_(0.0)
+        elif type(layer) == nn.Conv2d:
+            nn.init.normal_(layer.weight, mean=0.0, std=0.01)
 
     def __init__(self, cfg, vocab_len, ans_vocab_len):
         """
@@ -41,8 +44,8 @@ class CNN_MLP(nn.Module):
         
         #Prediction head MLP
         hid_dim = 2048
-        hid_dim_2 = 2048
-        hid_dim_3 = 2048
+        hid_dim_2 = 1024
+        hid_dim_3 = 1024
         self.pre_pred_head = nn.Sequential(
             nn.Linear(self.question_enc_dim + self.frame_enc_dim, hid_dim),
             nn.ReLU(),
@@ -67,7 +70,7 @@ class CNN_MLP(nn.Module):
         )
 
         #Init parameters
-        #self.cnn.apply(self.init_params)
+        self.cnn.apply(self.init_params)
         self.pre_pred_head.apply(self.init_params)
         self.des_pred_head.apply(self.init_params)
         self.mc_pred_head.apply(self.init_params)
