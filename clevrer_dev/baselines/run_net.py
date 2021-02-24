@@ -6,7 +6,7 @@ Example:
 
 ----Clevrer dataset-----
 python3 clevrer_dev/baselines/run_net.py \
-  --cfg clevrer_dev/baselines/cnn_mlp.yaml \
+  --cfg clevrer_dev/baselines/cnn_lstm.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
   NUM_GPUS 0 \
@@ -17,7 +17,7 @@ python3 clevrer_dev/baselines/run_net.py \
   SOLVER.MAX_EPOCH 1
 
 python3 clevrer_dev/baselines/run_net.py \
-  --cfg clevrer_dev/baselines/cnn_mlp.yaml \
+  --cfg clevrer_dev/baselines/cnn_lstm.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
   DATA.NUM_FRAMES 10 \

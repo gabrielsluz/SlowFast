@@ -131,6 +131,7 @@ class CNN_LSTM(nn.Module):
             cfg (CfgNode): model building configs, details are in the
                 comments of the config file.
         """
+        print("LSTM model")
         super(CNN_LSTM, self).__init__()
         #CUDA
         self.num_gpus = cfg.NUM_GPUS
