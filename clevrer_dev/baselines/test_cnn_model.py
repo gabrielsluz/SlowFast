@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
 
-from slowfast.models.cnn_models import CNN_MLP
+from slowfast.models.cnn_models import CNN_MLP, CNN_LSTM
 
 from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
@@ -19,6 +19,7 @@ python3 clevrer_dev/baselines/test_cnn_model.py \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
   DATA.NUM_FRAMES 5 \
+  TRAIN.BATCH_SIZE 2 \
   NUM_GPUS 0
 
 python3 clevrer_dev/baselines/test_cnn_model.py \
@@ -47,7 +48,8 @@ dataloader = DataLoader(dataset, batch_size=cfg.TRAIN.BATCH_SIZE,
 vocab_len = dataset.get_vocab_len()
 ans_vocab_len = dataset.get_ans_vocab_len()
 
-model = CNN_MLP(cfg, vocab_len, ans_vocab_len)
+#model = CNN_MLP(cfg, vocab_len, ans_vocab_len)
+model = CNN_LSTM(cfg, vocab_len, ans_vocab_len)
 if cfg.NUM_GPUS:
     cur_device = torch.cuda.current_device()
     model = model.cuda(device=cur_device)

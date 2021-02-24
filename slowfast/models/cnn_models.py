@@ -106,7 +106,7 @@ class CNN_MLP(nn.Module):
 
 
 #__--____--____---___-LSTM__--____--____---___-
-'''
+
 @MODEL_REGISTRY.register()
 class CNN_LSTM(nn.Module):
     """
@@ -131,51 +131,47 @@ class CNN_LSTM(nn.Module):
             cfg (CfgNode): model building configs, details are in the
                 comments of the config file.
         """
-        super(CNN_MLP, self).__init__()
+        super(CNN_LSTM, self).__init__()
         #CUDA
         self.num_gpus = cfg.NUM_GPUS
         #Dataset specific parameters
         self.vocab_len = vocab_len
         self.ans_vocab_len = ans_vocab_len
+        #Input dimension for LSTM
+        self.enc_dim = 512
         #ResNet
-        #self.frame_enc_dim = 512
-        self.frame_enc_dim = 32
+        self.frame_enc_dim = self.enc_dim
         self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, num_classes=self.frame_enc_dim)
         #Question Embedding
-        #self.question_enc_dim = 128
-        self.question_enc_dim = 16
+        self.question_enc_dim = self.enc_dim
         self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim, padding_idx=1) #Index 1 is for pad token
-        
+        #LSTM
+        self.hid_st_dim = 512
+        self.num_layers = 2
+        self.num_directions = 2
+        self.LSTM = torch.nn.LSTM(
+            input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
+            bias=True, batch_first=True, dropout=0.2, bidirectional=True
+        )
         #Prediction head MLP
         hid_dim = 2048
-        hid_dim_2 = 2048
-        hid_dim_3 = 1024
-        self.pre_pred_head = nn.Sequential(
-            nn.Linear(self.question_enc_dim + self.frame_enc_dim, hid_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.25),
-            nn.Linear(hid_dim, hid_dim_2),
-            nn.ReLU(),
-            nn.Dropout(p=0.4)
-        )
-
         #Question especific
         self.des_pred_head = nn.Sequential(
-            nn.Linear(hid_dim_2, hid_dim_3),
+            nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
-            nn.Linear(hid_dim_3, self.ans_vocab_len)
+            nn.Linear(hid_dim, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
         # which is interpreted as 4 logits, one for each binary classification of each choice
         self.mc_pred_head = nn.Sequential(
-            nn.Linear(hid_dim_2, hid_dim_3),
+            nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
-            nn.Linear(hid_dim_3, 4)
+            nn.Linear(hid_dim, 4)
         )
 
         #Init parameters
         self.cnn.apply(self.init_params)
-        self.pre_pred_head.apply(self.init_params)
+        self.LSTM.apply(self.init_params)
         self.des_pred_head.apply(self.init_params)
         self.mc_pred_head.apply(self.init_params)
 
@@ -192,19 +188,17 @@ class CNN_LSTM(nn.Module):
         cb_sz = clips_b.size()
         frame_encs = self.cnn(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
         frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.frame_enc_dim) #Returns to batch format
-        frame_encs = torch.sum(frame_encs, dim=1) / cb_sz[1] #Average frame encodings in a clip
         #Question embbeding and aggregation
         word_encs = self.embed_layer(question_b)
-        q_len = word_encs.size()[1]
-        word_encs = torch.sum(word_encs, dim=1) / q_len #Average word encodings in a question
         #Concatenate question and video encodings
-        input_encs = torch.cat((frame_encs, word_encs), dim=1)
-        #MLP
-        input_encs = self.pre_pred_head(input_encs)
+        x = torch.cat((word_encs, frame_encs), dim=1)
+        #LSTM
+        _, x = self.LSTM(x)
+        x = x[0]
+        x = x[self.num_directions*self.num_layers - 1]
         if is_des_q:
-            return self.des_pred_head(input_encs)
+            return self.des_pred_head(x)
         else:
-            return self.mc_pred_head(input_encs)
+            return self.mc_pred_head(x)
 
 
-'''
