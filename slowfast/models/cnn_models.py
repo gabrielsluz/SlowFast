@@ -156,18 +156,23 @@ class CNN_LSTM(nn.Module):
         )
         #Prediction head MLP
         hid_dim = 2048
+        hid_dim_2 = 2048
         #Question especific
         self.des_pred_head = nn.Sequential(
             nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
-            nn.Linear(hid_dim, self.ans_vocab_len)
+            nn.Linear(hid_dim, hid_dim_2),
+            nn.ReLU(),
+            nn.Linear(hid_dim_2, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
         # which is interpreted as 4 logits, one for each binary classification of each choice
         self.mc_pred_head = nn.Sequential(
             nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
-            nn.Linear(hid_dim, 4)
+            nn.Linear(hid_dim, hid_dim_2),
+            nn.ReLU(),
+            nn.Linear(hid_dim_2, 4)
         )
 
         #Init parameters
