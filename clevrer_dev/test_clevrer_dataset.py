@@ -13,7 +13,7 @@ Prints information about the dataset for testing and debugging
 
 Example:
 python3 clevrer_dev/test_clevrer_dataset.py \
-  --cfg clevrer_dev/visualize_monet.yaml \
+  --cfg clevrer_dev/baselines/cnn_lstm.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy
 """
@@ -50,4 +50,8 @@ for i_batch, sample_batched in enumerate(dataloader):
     print(sample_batched['question_dict']['mc_q'].size())
     print(sample_batched['question_dict']['mc_ans'].size())
     print(sample_batched['index'].size())
+
+    for i_frame in range(sample_batched['frames'].size()[1]):
+        plt.imshow(sample_batched['frames'][0][i_frame].permute(1,2,0))
+        plt.savefig('sample_frame{}.png'.format(i_frame))
     break
