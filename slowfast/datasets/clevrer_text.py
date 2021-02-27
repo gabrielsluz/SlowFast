@@ -5,6 +5,7 @@ import torch
 import torch.utils.data
 from iopath.common.file_io import g_pathmgr
 import json
+import copy
 
 import slowfast.utils.logging as logging
 
@@ -348,7 +349,8 @@ class Clevrertext(torch.utils.data.Dataset):
         return self._dataset[index]['video_path']
     
     def get_vocab(self):
-        return self.vocab
+        vocab_copy = copy.deepcopy(self.vocab)
+        return vocab_copy
 
     def __len__(self):
         """

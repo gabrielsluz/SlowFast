@@ -39,5 +39,12 @@ def add_custom_config(_C):
     #Slot dataset path
     _C.CLEVRERMAIN.SLOT_DATASET_PATH = '/datasets/slot_dataset/slot_dataset.pyth'
 
+    #For word embeddings
+    _C.WORD_EMB = CfgNode()
+    _C.WORD_EMB.USE_PRETRAINED_EMB = False
+    _C.WORD_EMB.TRAINABLE = True
+    _C.WORD_EMB.GLOVE_PATH = '/datasets/word_embs/glove.6B.50d.txt'
+    _C.WORD_EMB.EMB_DIM = 50
+
     
 
