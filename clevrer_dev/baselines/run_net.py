@@ -25,15 +25,15 @@ python3 clevrer_dev/baselines/run_net.py \
   NUM_GPUS 1 \
   LOG_PERIOD 20 \
   TRAIN.BATCH_SIZE 20 \
-  TRAIN.EVAL_PERIOD 2 \
-  TRAIN.CHECKPOINT_PERIOD 20 \
+  TRAIN.EVAL_PERIOD 10 \
+  TRAIN.CHECKPOINT_PERIOD 25 \
   SOLVER.EPOCH_CYCLE 5.0 \
   SOLVER.BASE_LR 0.001 \
   SOLVER.LR_POLICY cosine \
-  SOLVER.COSINE_END_LR 0.0005 \
+  SOLVER.COSINE_END_LR 0.00001 \
   SOLVER.WEIGHT_DECAY 0.01 \
   SOLVER.OPTIMIZING_METHOD adam \
-  SOLVER.MAX_EPOCH 5
+  SOLVER.MAX_EPOCH 100
   """
 from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args

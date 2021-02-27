@@ -15,7 +15,7 @@ Prints information about the dataset for testing and debugging
 
 Example:
 python3 clevrer_dev/baselines/test_cnn_model.py \
-  --cfg clevrer_dev/baselines/cnn_mlp.yaml \
+  --cfg clevrer_dev/baselines/cnn_lstm.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
   DATA.NUM_FRAMES 5 \
@@ -62,12 +62,15 @@ for i_batch, sampled_batch in enumerate(dataloader):
     print(sampled_batch['frames'].size())
     print(sampled_batch['question_dict']['des_q'].size())
     print(sampled_batch['question_dict']['des_ans'].size())
+    print(sampled_batch['question_dict']['des_ans'])
     print(sampled_batch['question_dict']['mc_q'].size())
     print(sampled_batch['question_dict']['mc_ans'].size())
+    print(sampled_batch['question_dict']['mc_ans'])
     print(sampled_batch['index'].size())
 
     frames = sampled_batch['frames']
     des_q = sampled_batch['question_dict']['des_q']
+    mc_q = sampled_batch['question_dict']['mc_q']
 
     print("Passing through model")
     if cfg.NUM_GPUS:
@@ -75,5 +78,7 @@ for i_batch, sampled_batch in enumerate(dataloader):
         frames = frames.cuda(device=cur_device)
         des_q = des_q.cuda(device=cur_device)
     output = model(frames, des_q, True)
+    print(output.size())
+    output = model(frames, mc_q, False)
     print(output.size())
     break
