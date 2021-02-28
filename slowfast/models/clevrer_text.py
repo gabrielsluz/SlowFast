@@ -80,22 +80,33 @@ class TEXT_LSTM(nn.Module):
             input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
             bias=True, batch_first=True, dropout=0, bidirectional=(self.num_directions == 2)
         )
+        # #Prediction head MLP
+        # hid_dim = 2048
+        # #Question especific
+        # self.des_pred_head = nn.Sequential(
+        #     nn.Linear(self.hid_st_dim, hid_dim),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=0.5),
+        #     nn.Linear(hid_dim, self.ans_vocab_len)
+        # )
+        # #Multiple choice answer => outputs a vector of size 4, 
+        # # which is interpreted as 4 logits, one for each binary classification of each choice
+        # self.mc_pred_head = nn.Sequential(
+        #     nn.Linear(self.hid_st_dim, hid_dim),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=0.5),
+        #     nn.Linear(hid_dim, 4)
+        # )
+
         #Prediction head MLP
-        hid_dim = 2048
         #Question especific
         self.des_pred_head = nn.Sequential(
-            nn.Linear(self.hid_st_dim, hid_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(hid_dim, self.ans_vocab_len)
+            nn.Linear(self.hid_st_dim, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
         # which is interpreted as 4 logits, one for each binary classification of each choice
         self.mc_pred_head = nn.Sequential(
-            nn.Linear(self.hid_st_dim, hid_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(hid_dim, 4)
+            nn.Linear(self.hid_st_dim, 4)
         )
 
         #Init parameters
