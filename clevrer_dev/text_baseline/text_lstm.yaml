@@ -7,7 +7,7 @@ TRAIN:
   AUTO_RESUME: True
 WORD_EMB:
   USE_PRETRAINED_EMB: True
-  TRAINABLE: False
+  TRAINABLE: True
   GLOVE_PATH: '/datasets/word_embs/glove.6B/glove.6B.50d.txt'
   EMB_DIM: 50
 SOLVER:
