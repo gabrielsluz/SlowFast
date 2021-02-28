@@ -14,6 +14,10 @@ python3 clevrer_dev/text_baseline/run_net.py \
   TRAIN.BATCH_SIZE 2 \
   TRAIN.EVAL_PERIOD 1 \
   TRAIN.CHECKPOINT_PERIOD 1 \
+  WORD_EMB.USE_PRETRAINED_EMB True \
+  WORD_EMB.TRAINABLE True \
+  WORD_EMB.GLOVE_PATH '/datasets/word_embs/glove.6B/glove.6B.50d.txt' \
+  WORD_EMB.EMB_DIM 50 \
   SOLVER.MAX_EPOCH 1
 
 python3 clevrer_dev/text_baseline/run_net.py \

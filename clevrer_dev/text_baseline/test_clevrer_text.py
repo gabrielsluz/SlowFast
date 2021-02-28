@@ -41,7 +41,7 @@ for i in range(max_i):
 # plt.savefig('sample_frame.png')
 
 #Test DataLoader
-dataloader = DataLoader(dataset, batch_size=4,
+dataloader = DataLoader(dataset, batch_size=1,
                         shuffle=True, num_workers=0)
 print("Dataloader:")
 for i_batch, sample_batched in enumerate(dataloader):
@@ -52,7 +52,7 @@ for i_batch, sample_batched in enumerate(dataloader):
     print(sample_batched['index'].size())
 
     print(dataset.get_video_info(sample_batched['index'][0]))
-    
+    example_batch = sample_batched
     break
 
 print("Model")

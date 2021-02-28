@@ -74,24 +74,20 @@ class TEXT_LSTM(nn.Module):
             
         #LSTM
         self.hid_st_dim = 512
-        self.num_layers = 2
-        self.num_directions = 2
+        self.num_layers = 1
+        self.num_directions = 1
         self.LSTM = torch.nn.LSTM(
             input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
-            bias=True, batch_first=True, dropout=0.2, bidirectional=True
+            bias=True, batch_first=True, dropout=0.2, bidirectional=(self.num_directions == 2)
         )
         #Prediction head MLP
         hid_dim = 2048
-        hid_dim_2 = 2048
         #Question especific
         self.des_pred_head = nn.Sequential(
             nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
             nn.Dropout(p=0.5),
-            nn.Linear(hid_dim, hid_dim_2),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(hid_dim_2, self.ans_vocab_len)
+            nn.Linear(hid_dim, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
         # which is interpreted as 4 logits, one for each binary classification of each choice
@@ -99,10 +95,7 @@ class TEXT_LSTM(nn.Module):
             nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
             nn.Dropout(p=0.5),
-            nn.Linear(hid_dim, hid_dim_2),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(hid_dim_2, 4)
+            nn.Linear(hid_dim_, 4)
         )
 
         #Init parameters
