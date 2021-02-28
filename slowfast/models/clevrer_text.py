@@ -80,7 +80,9 @@ class TEXT_LSTM(nn.Module):
             input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
             bias=True, batch_first=True, dropout=0, bidirectional=(self.num_directions == 2)
         )
-        print(self.LSTM.weight)
+        for name, param in self.LSTM.named_parameters():
+            if param.requires_grad:
+                print name, param.data
         # #Prediction head MLP
         # hid_dim = 2048
         # #Question especific
