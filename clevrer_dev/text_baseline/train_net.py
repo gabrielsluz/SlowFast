@@ -267,7 +267,7 @@ def train(cfg):
     logger.info("Start epoch: {}".format(start_epoch + 1))
     for cur_epoch in range(start_epoch, cfg.SOLVER.MAX_EPOCH):
         print("Embedding layer:")
-        print(model.embed_layer)
+        print(model.embed_layer.weight)
         # Shuffle the dataset.
         loader.shuffle_dataset(train_loader, cur_epoch)
         # Train for one epoch.
