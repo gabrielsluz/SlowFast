@@ -69,8 +69,8 @@ class TEXT_LSTM(nn.Module):
         if cfg.WORD_EMB.USE_PRETRAINED_EMB:
             weights_matrix = self.parse_glove_file(cfg.WORD_EMB.GLOVE_PATH, self.enc_dim, self.vocab)
             self.embed_layer.load_state_dict({'weight': weights_matrix})
-            if not cfg.WORD_EMB.TRAINABLE:
-                self.embed_layer.weight.requires_grad = False
+        if not cfg.WORD_EMB.TRAINABLE:
+            self.embed_layer.weight.requires_grad = False
             
         #LSTM
         self.hid_st_dim = 512
