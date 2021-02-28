@@ -72,7 +72,7 @@ def train_epoch(
         mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
         # Compute the loss.
         loss = des_loss_fun(pred_des_ans, des_ans)
-        # loss += mc_loss_fun(pred_mc_ans, mc_ans)
+        loss += mc_loss_fun(pred_mc_ans, mc_ans)
         # check Nan Loss.
         misc.check_nan_losses(loss)
         #Check if plateau
