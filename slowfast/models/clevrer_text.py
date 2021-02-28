@@ -95,7 +95,7 @@ class TEXT_LSTM(nn.Module):
             nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
             nn.Dropout(p=0.5),
-            nn.Linear(hid_dim_, 4)
+            nn.Linear(hid_dim, 4)
         )
 
         #Init parameters
