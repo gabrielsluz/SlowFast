@@ -198,8 +198,8 @@ class TEXT_GRU(nn.Module):
         if not cfg.WORD_EMB.TRAINABLE:
             self.embed_layer.weight.requires_grad = False
             
-        #LSTM
-        self.hid_st_dim = 1024
+        #GRU
+        self.hid_st_dim = 512
         self.num_layers = 2
         self.num_directions = 2
         self.GRU = torch.nn.GRU(
