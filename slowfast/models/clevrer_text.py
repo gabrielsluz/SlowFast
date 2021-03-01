@@ -73,15 +73,15 @@ class TEXT_LSTM(nn.Module):
             self.embed_layer.weight.requires_grad = False
             
         #LSTM
-        self.hid_st_dim = 2048
-        self.num_layers = 1
-        self.num_directions = 1
+        self.hid_st_dim = 1024
+        self.num_layers = 2
+        self.num_directions = 2
         self.LSTM = torch.nn.LSTM(
             input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
             bias=True, batch_first=True, dropout=0, bidirectional=(self.num_directions == 2)
         )
         #Prediction head MLP
-        hid_dim = 2048
+        hid_dim = 4096
         #Question especific
         self.des_pred_head = nn.Sequential(
             nn.Linear(self.hid_st_dim, hid_dim),
