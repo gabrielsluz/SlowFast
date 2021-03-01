@@ -73,7 +73,7 @@ class TEXT_LSTM(nn.Module):
             self.embed_layer.weight.requires_grad = False
             
         #LSTM
-        self.hid_st_dim = 512
+        self.hid_st_dim = 2048
         self.num_layers = 1
         self.num_directions = 1
         self.LSTM = torch.nn.LSTM(
