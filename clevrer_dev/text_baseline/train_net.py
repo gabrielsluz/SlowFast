@@ -58,22 +58,51 @@ def train_epoch(
         optim.set_lr(optimizer, lr)
 
         train_meter.data_toc()
-        
+        #Try separating the batches
+        #Des
         pred_des_ans = model(des_q, True)
-        pred_mc_ans = model(mc_q, False)
-        # Explicitly declare reduction to mean.
         des_loss_fun = losses.get_loss_func('cross_entropy')(reduction="mean")
-        mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
-        # Compute the loss.
-        loss = des_loss_fun(pred_des_ans, des_ans) + mc_loss_fun(pred_mc_ans, mc_ans)
+        loss = des_loss_fun(pred_des_ans, des_ans)
         # check Nan Loss.
         misc.check_nan_losses(loss)
-
-        # Perform the backward pass.
+        #Backward pass
         optimizer.zero_grad()
         loss.backward()
-        # Update the parameters.
         optimizer.step()
+        #Save for stats
+        loss_des_val = loss
+
+        #MC
+        pred_mc_ans = model(mc_q, False)
+        mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
+        loss = mc_loss_fun(pred_mc_ans, mc_ans)
+        # check Nan Loss.
+        misc.check_nan_losses(loss)
+        #Backward pass
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        #Save for stats
+        loss_mc_val = loss
+
+        loss = loss_mc_val + loss_des_val
+
+        # #Non separated:
+        # pred_des_ans = model(des_q, True)
+        # pred_mc_ans = model(mc_q, False)
+        # # Explicitly declare reduction to mean.
+        # des_loss_fun = losses.get_loss_func('cross_entropy')(reduction="mean")
+        # mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
+        # # Compute the loss.
+        # loss = des_loss_fun(pred_des_ans, des_ans) + mc_loss_fun(pred_mc_ans, mc_ans)
+        # # check Nan Loss.
+        # misc.check_nan_losses(loss)
+
+        # # Perform the backward pass.
+        # optimizer.zero_grad()
+        # loss.backward()
+        # # Update the parameters.
+        # optimizer.step()
 
         top1_err, top5_err = None, None
         # Compute the errors.
@@ -155,8 +184,6 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
         mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
         # Compute the loss.
         loss = des_loss_fun(pred_des_ans, des_ans) + mc_loss_fun(pred_mc_ans, mc_ans)
-        print("Des loss = {}".format(des_loss_fun(pred_des_ans, des_ans)))
-        print("Mc loss = {}".format(mc_loss_fun(pred_mc_ans, mc_ans)))
 
         # Compute the errors.
         num_topks_correct = metrics.topks_correct(pred_des_ans, des_ans, (1, 5))
