@@ -150,6 +150,12 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
         pred_des_ans = model(des_q, True)
         pred_mc_ans = model(mc_q, False)
 
+        # Explicitly declare reduction to mean.
+        des_loss_fun = losses.get_loss_func('cross_entropy')(reduction="mean")
+        mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
+        # Compute the loss.
+        loss = des_loss_fun(pred_des_ans, des_ans) + mc_loss_fun(pred_mc_ans, mc_ans)
+
         # Compute the errors.
         num_topks_correct = metrics.topks_correct(pred_des_ans, des_ans, (1, 5))
         # Combine the errors across the GPUs.
@@ -161,7 +167,8 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
         mc_q_err = 100 * (1.0 - torch.true_divide((diff_mc_ans.sum(dim=1, keepdim=True) == 4).int().sum(), des_q.size()[0]))
 
         # Copy the errors from GPU to CPU (sync point).
-        top1_err, top5_err, mc_opt_err, mc_q_err  = (
+        loss, top1_err, top5_err, mc_opt_err, mc_q_err  = (
+            loss.item(),
             top1_err.item(),
             top5_err.item(),
             mc_opt_err.item(),
@@ -180,6 +187,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
             * max(
                 cfg.NUM_GPUS, 1
             ),  # If running  on CPU (cfg.NUM_GPUS == 1), use 1 to represent 1 CPU.
+            loss,
         )
         val_meter.log_iter_stats(cur_epoch, cur_iter)
         val_meter.iter_tic()

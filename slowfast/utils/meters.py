@@ -966,6 +966,8 @@ class ClevrerValMeter(object):
         self.mb_top5_err = ScalarMeter(cfg.LOG_PERIOD)
         self.mb_mc_opt_err = ScalarMeter(cfg.LOG_PERIOD)
         self.mb_mc_q_err = ScalarMeter(cfg.LOG_PERIOD)
+        self.loss = ScalarMeter(cfg.LOG_PERIOD)
+        self.loss_total = 0.0
         # Min errors (over the full val set).
         self.min_top1_err = 100.0
         self.min_top5_err = 100.0
@@ -986,6 +988,9 @@ class ClevrerValMeter(object):
         """
         Reset the Meter.
         """
+        self.loss.reset()
+        self.loss_total = 0.0
+
         self.iter_timer.reset()
         self.mb_top1_err.reset()
         self.mb_top5_err.reset()
@@ -1015,7 +1020,7 @@ class ClevrerValMeter(object):
         self.data_timer.pause()
         self.net_timer.reset()
 
-    def update_stats(self, top1_err, top5_err, mc_opt_err, mc_q_err, mb_size):
+    def update_stats(self, top1_err, top5_err, mc_opt_err, mc_q_err, mb_size, loss):
         """
         Update the current stats.
         Args:
@@ -1023,6 +1028,9 @@ class ClevrerValMeter(object):
             top5_err (float): top5 error rate.
             mb_size (int): mini batch size.
         """
+        self.loss.add_value(loss)
+        self.loss_total += loss * mb_size
+
         self.mb_top1_err.add_value(top1_err)
         self.mb_top5_err.add_value(top5_err)
         self.num_top1_mis += top1_err * mb_size
@@ -1057,6 +1065,7 @@ class ClevrerValMeter(object):
         stats["top5_err"] = self.mb_top5_err.get_win_median()
         stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_median()
         stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
+        stats["loss"] = self.loss.get_win_median()
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
 
@@ -1082,6 +1091,7 @@ class ClevrerValMeter(object):
         self.min_mc_opt_err = min(self.min_mc_opt_err, mc_opt_err)
         self.min_mc_q_err = min(self.min_mc_q_err, mc_q_err)
 
+        avg_loss = self.loss_total / self.num_samples
         stats["mc_opt_err"] = mc_opt_err
         stats["mc_q_err"] = mc_q_err
         stats["top1_err"] = top1_err
@@ -1090,6 +1100,7 @@ class ClevrerValMeter(object):
         stats["min_top5_err"] = self.min_top5_err
         stats["min_mc_opt_err"] = self.min_mc_opt_err
         stats["min_mc_q_err"] = self.min_mc_q_err
+        stats["loss"] = avg_loss
 
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
