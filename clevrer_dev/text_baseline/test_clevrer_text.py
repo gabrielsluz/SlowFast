@@ -16,9 +16,9 @@ Prints information about the dataset for testing and debugging
 
 Example:
 python3 clevrer_dev/text_baseline/test_clevrer_text.py \
-  --cfg clevrer_dev/text_baseline/text_lstm.yaml \
+  --cfg clevrer_dev/text_baseline/text_gru.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
-  WORD_EMB.USE_PRETRAINED_EMB False \
+  WORD_EMB.USE_PRETRAINED_EMB True \
   WORD_EMB.TRAINABLE True \
   DATA.PATH_PREFIX /datasets/clevrer_dummy
 """
