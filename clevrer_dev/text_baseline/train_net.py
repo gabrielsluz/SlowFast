@@ -155,6 +155,8 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
         mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
         # Compute the loss.
         loss = des_loss_fun(pred_des_ans, des_ans) + mc_loss_fun(pred_mc_ans, mc_ans)
+        print("Des loss = {}".format(des_loss_fun(pred_des_ans, des_ans)))
+        print("Mc loss = {}".format(mc_loss_fun(pred_mc_ans, mc_ans)))
 
         # Compute the errors.
         num_topks_correct = metrics.topks_correct(pred_des_ans, des_ans, (1, 5))
