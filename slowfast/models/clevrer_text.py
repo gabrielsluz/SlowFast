@@ -73,44 +73,43 @@ class TEXT_LSTM(nn.Module):
             self.embed_layer.weight.requires_grad = False
             
         #LSTM
-        self.hid_st_dim = 100
+        self.hid_st_dim = 512
         self.num_layers = 1
         self.num_directions = 1
         self.LSTM = torch.nn.LSTM(
             input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
             bias=True, batch_first=True, dropout=0, bidirectional=(self.num_directions == 2)
         )
-        # #Prediction head MLP
-        # hid_dim = 2048
-        # #Question especific
-        # self.des_pred_head = nn.Sequential(
-        #     nn.Linear(self.hid_st_dim, hid_dim),
-        #     nn.ReLU(),
-        #     nn.Dropout(p=0.5),
-        #     nn.Linear(hid_dim, self.ans_vocab_len)
-        # )
-        # #Multiple choice answer => outputs a vector of size 4, 
-        # # which is interpreted as 4 logits, one for each binary classification of each choice
-        # self.mc_pred_head = nn.Sequential(
-        #     nn.Linear(self.hid_st_dim, hid_dim),
-        #     nn.ReLU(),
-        #     nn.Dropout(p=0.5),
-        #     nn.Linear(hid_dim, 4)
-        # )
-
         #Prediction head MLP
+        hid_dim = 2048
         #Question especific
         self.des_pred_head = nn.Sequential(
-            nn.Linear(self.hid_st_dim, self.ans_vocab_len)
+            nn.Linear(self.hid_st_dim, hid_dim),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(hid_dim, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
         # which is interpreted as 4 logits, one for each binary classification of each choice
         self.mc_pred_head = nn.Sequential(
-            nn.Linear(self.hid_st_dim, 4)
+            nn.Linear(self.hid_st_dim, hid_dim),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(hid_dim, 4)
         )
 
+        # #Prediction head MLP
+        # #Question especific
+        # self.des_pred_head = nn.Sequential(
+        #     nn.Linear(self.hid_st_dim, self.ans_vocab_len)
+        # )
+        # #Multiple choice answer => outputs a vector of size 4, 
+        # # which is interpreted as 4 logits, one for each binary classification of each choice
+        # self.mc_pred_head = nn.Sequential(
+        #     nn.Linear(self.hid_st_dim, 4)
+        # )
+
         #Init parameters
-        #self.LSTM.apply(self.init_params)
         self.des_pred_head.apply(self.init_params)
         self.mc_pred_head.apply(self.init_params)
 
