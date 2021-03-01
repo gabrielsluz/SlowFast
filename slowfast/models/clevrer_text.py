@@ -204,7 +204,7 @@ class TEXT_GRU(nn.Module):
         self.num_directions = 2
         self.GRU = torch.nn.GRU(
             input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
-            bias=True, batch_first=True, dropout=0.5, bidirectional=(self.num_directions == 2)
+            bias=True, batch_first=True, dropout=0.0, bidirectional=(self.num_directions == 2)
         )
         # #Prediction head MLP
         # hid_dim = 4096
@@ -231,10 +231,10 @@ class TEXT_GRU(nn.Module):
         self.des_pred_head = nn.Sequential(
             nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=0.7),
             nn.Linear(hid_dim, hid_dim_2),
             nn.ReLU(),
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=0.7),
             nn.Linear(hid_dim_2, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
@@ -242,10 +242,10 @@ class TEXT_GRU(nn.Module):
         self.mc_pred_head = nn.Sequential(
             nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=0.7),
             nn.Linear(hid_dim, hid_dim_2),
             nn.ReLU(),
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=0.7),
             nn.Linear(hid_dim_2, 4)
         )
 
