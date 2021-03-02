@@ -232,13 +232,13 @@ class TEXT_GRU(nn.Module):
         self.des_pred_head = nn.Sequential(
             nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
-            nn.Dropout(p=0.7),
+            nn.Dropout(p=0.5),
             nn.Linear(hid_dim, hid_dim_2),
             nn.ReLU(),
-            nn.Dropout(p=0.7),
+            nn.Dropout(p=0.5),
             nn.Linear(hid_dim_2, hid_dim_3),
             nn.ReLU(),
-            nn.Dropout(p=0.7),
+            nn.Dropout(p=0.5),
             nn.Linear(hid_dim_3, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
@@ -246,13 +246,13 @@ class TEXT_GRU(nn.Module):
         self.mc_pred_head = nn.Sequential(
             nn.Linear(self.hid_st_dim, hid_dim),
             nn.ReLU(),
-            nn.Dropout(p=0.7),
+            nn.Dropout(p=0.5),
             nn.Linear(hid_dim, hid_dim_2),
             nn.ReLU(),
-            nn.Dropout(p=0.7),
+            nn.Dropout(p=0.5),
             nn.Linear(hid_dim_2, hid_dim_3),
             nn.ReLU(),
-            nn.Dropout(p=0.7),
+            nn.Dropout(p=0.5),
             nn.Linear(hid_dim_3, 4)
         )
 
