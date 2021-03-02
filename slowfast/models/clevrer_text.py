@@ -236,7 +236,7 @@ class TEXT_GRU(nn.Module):
             nn.Linear(hid_dim, hid_dim_2),
             nn.ReLU(),
             nn.Dropout(p=0.7),
-            nn.Linear(hid_dim_2, hid_dim_3)
+            nn.Linear(hid_dim_2, hid_dim_3),
             nn.ReLU(),
             nn.Dropout(p=0.7),
             nn.Linear(hid_dim_3, self.ans_vocab_len)
@@ -250,7 +250,7 @@ class TEXT_GRU(nn.Module):
             nn.Linear(hid_dim, hid_dim_2),
             nn.ReLU(),
             nn.Dropout(p=0.7),
-            nn.Linear(hid_dim_2, hid_dim_3)
+            nn.Linear(hid_dim_2, hid_dim_3),
             nn.ReLU(),
             nn.Dropout(p=0.7),
             nn.Linear(hid_dim_3, 4)
