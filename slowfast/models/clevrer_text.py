@@ -199,12 +199,12 @@ class TEXT_GRU(nn.Module):
             self.embed_layer.weight.requires_grad = False
             
         #GRU
-        self.hid_st_dim = 512
+        self.hid_st_dim = 256
         self.num_layers = 2
-        self.num_directions = 2
+        self.num_directions = 2 #Check bellow: parameter bidirectional
         self.GRU = torch.nn.GRU(
             input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
-            bias=True, batch_first=True, dropout=0.0, bidirectional=(self.num_directions == 2)
+            bias=True, batch_first=True, dropout=0.0, bidirectional=True
         )
         # #Prediction head MLP
         # hid_dim = 4096
@@ -226,34 +226,28 @@ class TEXT_GRU(nn.Module):
 
         #Prediction head MLP
         hid_dim = 2048
-        hid_dim_2 = 2048
-        hid_dim_3 = 2048
+        hid_dim_2 = 1024
+        input_dim = self.hid_st_dim*2
         #Question especific
         self.des_pred_head = nn.Sequential(
-            nn.Linear(self.hid_st_dim, hid_dim),
+            nn.Linear(input_dim, hid_dim),
             nn.ReLU(),
             nn.Dropout(p=0.5),
             nn.Linear(hid_dim, hid_dim_2),
             nn.ReLU(),
             nn.Dropout(p=0.5),
-            nn.Linear(hid_dim_2, hid_dim_3),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(hid_dim_3, self.ans_vocab_len)
+            nn.Linear(hid_dim_2, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
         # which is interpreted as 4 logits, one for each binary classification of each choice
         self.mc_pred_head = nn.Sequential(
-            nn.Linear(self.hid_st_dim, hid_dim),
+            nn.Linear(input_dim, hid_dim),
             nn.ReLU(),
             nn.Dropout(p=0.5),
             nn.Linear(hid_dim, hid_dim_2),
             nn.ReLU(),
             nn.Dropout(p=0.5),
-            nn.Linear(hid_dim_2, hid_dim_3),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(hid_dim_3, 4)
+            nn.Linear(hid_dim_2, 4)
         )
 
         #Init parameters
@@ -268,10 +262,10 @@ class TEXT_GRU(nn.Module):
                 is_des_q (bool): Indicates if is descriptive question or multiple choice
         """
         #Question embbeding and aggregation
-        x = self.embed_layer(question_b)
+        embs = self.embed_layer(question_b)
         #GRU
-        _, x = self.GRU(x)
-        x = x[self.num_directions*self.num_layers - 1]
+        _, h_n = self.GRU(embs)
+        x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
         if is_des_q:
             return self.des_pred_head(x)
         else:
