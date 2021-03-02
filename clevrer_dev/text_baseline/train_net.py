@@ -110,10 +110,9 @@ def train_epoch(
         top1_err, top5_err = [
             (1.0 - x / pred_des_ans.size(0)) * 100.0 for x in num_topks_correct
         ]
-        diff_mc_ans = torch.abs(mc_ans - (torch.sigmoid(pred_mc_ans) >= 0.5).float())
-        mc_opt_err = 100 * (1.0 - torch.true_divide(diff_mc_ans.sum(), (4*des_q.size()[0])))
-        mc_q_err = 100 * (1.0 - torch.true_divide((diff_mc_ans.sum(dim=1, keepdim=True) == 4).int().sum(), des_q.size()[0]))
-
+        diff_mc_ans = torch.abs(mc_ans - (torch.sigmoid(pred_mc_ans) >= 0.5).float()) #Errors
+        mc_opt_err = 100 * torch.true_divide(diff_mc_ans.sum(), (4*des_q.size()[0]))
+        mc_q_err = 100 * torch.true_divide((diff_mc_ans.sum(dim=1, keepdim=True) != 0).float().sum(), des_q.size()[0])
         # Copy the stats from GPU to CPU (sync point).
         loss, top1_err, top5_err, mc_opt_err, mc_q_err  = (
             loss.item(),
@@ -178,7 +177,6 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
 
         pred_des_ans = model(des_q, True)
         pred_mc_ans = model(mc_q, False)
-
         # Explicitly declare reduction to mean.
         des_loss_fun = losses.get_loss_func('cross_entropy')(reduction="mean")
         mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
@@ -190,9 +188,9 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
         top1_err, top5_err = [
             (1.0 - x / pred_des_ans.size(0)) * 100.0 for x in num_topks_correct
         ]
-        diff_mc_ans = torch.abs(mc_ans - (torch.sigmoid(pred_mc_ans) >= 0.5).float())
-        mc_opt_err = 100 * (1.0 - torch.true_divide(diff_mc_ans.sum(), (4*des_q.size()[0])))
-        mc_q_err = 100 * (1.0 - torch.true_divide((diff_mc_ans.sum(dim=1, keepdim=True) == 4).int().sum(), des_q.size()[0]))
+        diff_mc_ans = torch.abs(mc_ans - (torch.sigmoid(pred_mc_ans) >= 0.5).float()) #Errors
+        mc_opt_err = 100 * torch.true_divide(diff_mc_ans.sum(), (4*des_q.size()[0]))
+        mc_q_err = 100 * torch.true_divide((diff_mc_ans.sum(dim=1, keepdim=True) != 0).float().sum(), des_q.size()[0])
 
         # Copy the errors from GPU to CPU (sync point).
         loss, top1_err, top5_err, mc_opt_err, mc_q_err  = (
