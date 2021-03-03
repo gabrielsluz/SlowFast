@@ -207,34 +207,34 @@ class TEXT_GRU(nn.Module):
             bias=True, batch_first=True, dropout=0.5, bidirectional=True
         )
         
-        # self.des_pred_head = nn.Linear(self.hid_st_dim*2, self.ans_vocab_len)
-        # self.mc_pred_head = nn.Linear(self.hid_st_dim*2, 4)
+        self.des_pred_head = nn.Linear(self.hid_st_dim*2, self.ans_vocab_len)
+        self.mc_pred_head = nn.Linear(self.hid_st_dim*2, 4)
 
-        #Prediction head MLP
-        hid_dim = 2048
-        hid_dim_2 = 1024
-        input_dim = self.hid_st_dim*2
-        #Question especific
-        self.des_pred_head = nn.Sequential(
-            nn.Linear(input_dim, hid_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(hid_dim, hid_dim_2),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(hid_dim_2, self.ans_vocab_len)
-        )
-        #Multiple choice answer => outputs a vector of size 4, 
-        # which is interpreted as 4 logits, one for each binary classification of each choice
-        self.mc_pred_head = nn.Sequential(
-            nn.Linear(input_dim, hid_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(hid_dim, hid_dim_2),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(hid_dim_2, 4)
-        )
+        # #Prediction head MLP
+        # hid_dim = 2048
+        # hid_dim_2 = 1024
+        # input_dim = self.hid_st_dim*2
+        # #Question especific
+        # self.des_pred_head = nn.Sequential(
+        #     nn.Linear(input_dim, hid_dim),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=0.5),
+        #     nn.Linear(hid_dim, hid_dim_2),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=0.5),
+        #     nn.Linear(hid_dim_2, self.ans_vocab_len)
+        # )
+        # #Multiple choice answer => outputs a vector of size 4, 
+        # # which is interpreted as 4 logits, one for each binary classification of each choice
+        # self.mc_pred_head = nn.Sequential(
+        #     nn.Linear(input_dim, hid_dim),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=0.5),
+        #     nn.Linear(hid_dim, hid_dim_2),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=0.5),
+        #     nn.Linear(hid_dim_2, 4)
+        # )
 
         #Init parameters
         self.des_pred_head.apply(self.init_params)
