@@ -164,30 +164,27 @@ class Clevrertext(torch.utils.data.Dataset):
     
     def _constructs_questions_ans(self, data, video_path):
         """
-        Fills new_dict with the information contained in data extracted from the json
+        Creates a list of dicts with the information contained in data extracted from the json
         Uses the mode to determine if the answers will be returned
         """
         num_choices = 4 #Numer of multiple choice answers per question
-
-        new_dict = {}
-        new_dict['video_path'] = video_path
-
-        new_dict['des_q'] = []
-        new_dict['mc_q'] = []
-
-        if self.mode != "test":
-            new_dict['des_ans'] = []
-            new_dict['mc_ans'] = []
+        data_list = []
+        l_index = -1
 
         questions = data['questions']
         for q in questions:
+            l_index += 1
+            data_list.append({})
+            data_list[l_index]['video_path'] = video_path
+
             split_q = string_to_token_list(q['question'])
             if q['question_type'] == 'descriptive':
-                new_dict['des_q'].append(self._token_list_to_tensor(split_q, 'descriptive'))
-
+                data_list[l_index]['is_des'] = True
+                data_list[l_index]['question'] = self._token_list_to_tensor(split_q, 'descriptive')
                 if self.mode != 'test':
-                    new_dict['des_ans'].append(self.ans_vocab[q['answer']])
+                    data_list[l_index]['ans'] = self.ans_vocab[q['answer']]
             else:
+                data_list[l_index]['is_des'] = False
                 choices = q['choices']
                 choice_ans = torch.zeros(num_choices)
                 c_index = 0
@@ -199,19 +196,18 @@ class Clevrertext(torch.utils.data.Dataset):
                         choice_ans[c_index] = 1 if c['answer'] == 'correct' else 0
                         c_index += 1
 
-                new_dict['mc_q'].append(self._token_list_to_tensor(split_q, 'mc'))
-                new_dict['mc_ans'].append(choice_ans)
-        return new_dict
+                data_list[l_index]['question'].append(self._token_list_to_tensor(split_q, 'mc'))
+                data_list[l_index]['ans'].append(choice_ans)
+        return data_list
 
     def _construct_loader(self):
         """
         Construct the video loader.
         self._dataset:
             The main data structure: list of dicts: video_path 
-                                    + list of descriptive questions (des_q) 
-                                    + list of multiple choice questions (mc_q)
-                                    + list of descriptive answers (des_ans)
-                                    + list of multiple choice answers (mc_ans)
+                                    + is_des: bool flag indicating questiontype
+                                    + question
+                                    + ans
         The questions are already in LongTensor for the Embedding layer
         The answers for descriptive answers are a single integer indicating the
         index of the ans_vocab.
@@ -234,7 +230,7 @@ class Clevrertext(torch.utils.data.Dataset):
             for i in range(len(data)):
                 path = get_filepath(self.mode, int(data[i]['scene_index']))
                 full_path = os.path.join(self.cfg.DATA.PATH_PREFIX, path)
-                self._dataset.append(self._constructs_questions_ans(data[i], full_path))
+                self._dataset += self._constructs_questions_ans(data[i], full_path)
 
         assert (
             len(self._dataset) > 0
@@ -249,10 +245,10 @@ class Clevrertext(torch.utils.data.Dataset):
     
     def __getitem__(self, index):
         """
-        Given the video index, return question_dict, and video
+        Given the dataset index, return question_dict, and video
         index
         Args:
-            index (int): the video index provided by the pytorch sampler.
+            index (int): the dataset index provided by the pytorch sampler.
         Returns:
         A dict containing:
                 question_dict (dict): A dictionary with the questions and answers (if not test)
@@ -260,16 +256,7 @@ class Clevrertext(torch.utils.data.Dataset):
                     decoded, then return the index of the video. If not, return the
                     index of the video replacement that can be decoded.
         """
-        #Get the questions => a random descriptive and a random multiple choice
-        question_dict = {}
-        pick_des = random.randint(0, len(self._dataset[index]['des_q']) - 1)
-        pick_mc = random.randint(0, len(self._dataset[index]['mc_q']) - 1)
-        question_dict['des_q'] = self._dataset[index]['des_q'][pick_des]
-        question_dict['mc_q'] = self._dataset[index]['mc_q'][pick_mc]
-        if self.mode != "test":
-            question_dict['des_ans'] = self._dataset[index]['des_ans'][pick_des]
-            question_dict['mc_ans'] = self._dataset[index]['mc_ans'][pick_mc]
-        
+        question_dict = copy.deepcopy(self._dataset[index])
         output_dict = {}
         output_dict['question_dict'] = question_dict
         output_dict['index'] = index
@@ -305,10 +292,9 @@ class Clevrertext(torch.utils.data.Dataset):
             index (int): Returned from __get_item__
         Returns:
             video_info (dict): video_path 
-                            + list of descriptive questions (des_q) 
-                            + list of multiple choice questions (mc_q)
-                            + list of descriptive answers (des_ans)
-                            + list of multiple choice answers (mc_ans)
+                            + is_des
+                            + Decoded question
+                            + Decoded answer
         """
         if index < 0 or index >= len(self._dataset):
             logger.info("Video for index {} not found".format(index))
@@ -317,26 +303,14 @@ class Clevrertext(torch.utils.data.Dataset):
         video_info = {}
         video_info['video_path'] =  video_dict['video_path']
         #Questions
-        video_info['des_q'] = []
-        for q in video_dict['des_q']:
-            video_info['des_q'].append(self.decode_question(q))
-
-        video_info['mc_q'] = []
-        for q in video_dict['mc_q']:
-            video_info['mc_q'].append(self.decode_question(q))
-        
+        video_info['is_des'] = video_dict['is_des']
+        video_info['question'] = self.decode_question(video_dict['question'])    
         if self.mode == 'test':
             return video_info
-
-        #Answers
-        video_info['des_ans'] = []
-        for ans in video_dict['des_ans']:
-            video_info['des_ans'].append(self.decode_answer(ans))
-
-        video_info['mc_ans'] = []
-        for ans in video_dict['mc_ans']:
-            video_info['mc_ans'].append(ans)
-        
+        if video_info['is_des']:
+            video_info['ans'] = self.decode_answer(video_dict['ans'])
+        else:
+            video_info['ans'] = video_dict['ans']
         return video_info
 
     def get_vocab_len(self):
