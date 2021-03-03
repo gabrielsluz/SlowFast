@@ -272,6 +272,8 @@ class Clevrer(torch.utils.data.Dataset):
                     decoded, then return the index of the video. If not, return the
                     index of the video replacement that can be decoded.
         """
+        print("MUST UPDATE TO CLEVRERTEXT FORMAT")
+        return
         short_cycle_idx = None
         # When short cycle is used, input index is a tupple.
         if isinstance(index, tuple):

@@ -9,4 +9,4 @@ from .ssv2 import Ssv2  # noqa
 from .clevrer import Clevrerframe 
 from .clevrer import Clevrer 
 from .slot_clevrer import Clevrerslot
-from .clevrer_text import Clevrertext
+from .clevrer_text import Clevrertext, Clevrertext_des, Clevrertext_mc 

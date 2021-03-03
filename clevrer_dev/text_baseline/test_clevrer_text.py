@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from slowfast.datasets.clevrer_text import Clevrertext
+from slowfast.datasets.clevrer_text import Clevrertext, Clevrertext_des, Clevrertext_mc
 import matplotlib.pyplot as plt
 import torch
 import numpy as np
@@ -33,15 +33,20 @@ np.random.seed(cfg.RNG_SEED)
 torch.manual_seed(cfg.RNG_SEED)
 
 dataset = Clevrertext(cfg, 'train')
+dataset_des = Clevrertext_des(cfg, 'train')
+dataset_mc = Clevrertext_mc(cfg, 'train')
 print("Dataset len = {}".format(len(dataset)))
+print("Dataset Des len = {}".format(len(dataset_des)))
+print("Dataset Mc len = {}".format(len(dataset_mc)))
 
-if len(dataset) > 5:
-    max_i = 5
+if len(dataset) > 3:
+    max_i = 3
 else:
     max_i = len(dataset)
 print("First {} items".format(max_i))
 for i in range(max_i):
-    print(dataset.get_video_info(i))
+    print(dataset_des.get_video_info(i))
+    print(dataset_mc.get_video_info(i))
 
 #Test DataLoader
 dataloader = DataLoader(dataset, batch_size=1,
@@ -51,6 +56,7 @@ for i_batch, sample_batched in enumerate(dataloader):
     print("is_des = {}".format(sample_batched['question_dict']['is_des']))
     print("Question = {}".format(sample_batched['question_dict']['question']))
     print("Ans = {}".format(sample_batched['question_dict']['ans']))
+    print("Len = {}".format(sample_batched['question_dict']['len']))
     print("Index = {}".format(sample_batched['index'].size()))
 
     print(dataset.get_video_info(sample_batched['index'][0]))

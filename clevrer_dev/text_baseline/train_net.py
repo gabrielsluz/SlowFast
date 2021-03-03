@@ -44,16 +44,14 @@ def train_epoch(
     data_size = len(train_loader)
     
     for cur_iter, sampled_batch in enumerate(train_loader): 
-        des_q = sampled_batch['question_dict']['des_q']
-        des_ans = sampled_batch['question_dict']['des_ans']
-        mc_q = sampled_batch['question_dict']['mc_q']
-        mc_ans = sampled_batch['question_dict']['mc_ans']
+        is_des = sampled_batch['question_dict']['is_des']
+        question = sampled_batch['question_dict']['question']
+        ans = sampled_batch['question_dict']['ans']
         # Transfer the data to the current GPU device.
         if cfg.NUM_GPUS:
-            des_q = des_q.cuda(non_blocking=True)
-            des_ans = des_ans.cuda()
-            mc_q = mc_q.cuda(non_blocking=True)
-            mc_ans = mc_ans.cuda()
+            is_des = is_des.cuda(non_blocking=True)
+            question = question.cuda(non_blocking=True)
+            ans = ans.cuda()
 
         # Update the learning rate.
         lr = optim.get_epoch_lr(cur_epoch + float(cur_iter) / data_size, cfg)
