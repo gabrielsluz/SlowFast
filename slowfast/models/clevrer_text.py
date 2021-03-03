@@ -204,7 +204,7 @@ class TEXT_GRU(nn.Module):
         self.num_directions = 2 #Check bellow: parameter bidirectional
         self.GRU = torch.nn.GRU(
             input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
-            bias=True, batch_first=True, dropout=0.5, bidirectional=True
+            bias=True, batch_first=True, dropout=0.0, bidirectional=True
         )
         
         # self.des_pred_head = nn.Linear(self.hid_st_dim*2, self.ans_vocab_len)
@@ -214,14 +214,15 @@ class TEXT_GRU(nn.Module):
         hid_dim = 2048
         hid_dim_2 = 1024
         input_dim = self.hid_st_dim*2
+        dropout_p = 0.0
         #Question especific
         self.des_pred_head = nn.Sequential(
             nn.Linear(input_dim, hid_dim),
             nn.ReLU(),
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=dropout_p),
             nn.Linear(hid_dim, hid_dim_2),
             nn.ReLU(),
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=dropout_p),
             nn.Linear(hid_dim_2, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
@@ -229,10 +230,10 @@ class TEXT_GRU(nn.Module):
         self.mc_pred_head = nn.Sequential(
             nn.Linear(input_dim, hid_dim),
             nn.ReLU(),
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=dropout_p),
             nn.Linear(hid_dim, hid_dim_2),
             nn.ReLU(),
-            nn.Dropout(p=0.5),
+            nn.Dropout(p=dropout_p),
             nn.Linear(hid_dim_2, 4)
         )
 
