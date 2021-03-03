@@ -43,26 +43,20 @@ print("First {} items".format(max_i))
 for i in range(max_i):
     print(dataset.get_video_info(i))
 
-# tensor_image = dataset[0][0][0].permute(1,2,0)
-# plt.imshow(tensor_image)
-# plt.savefig('sample_frame.png')
-
 #Test DataLoader
 dataloader = DataLoader(dataset, batch_size=1,
                         shuffle=False, num_workers=0)
 print("Dataloader:")
 for i_batch, sample_batched in enumerate(dataloader):
-    print(sample_batched['question_dict']['des_q'].size())
-    print(sample_batched['question_dict']['des_ans'].size())
-    print(sample_batched['question_dict']['mc_q'].size())
-    print(sample_batched['question_dict']['mc_ans'].size())
-    print(sample_batched['index'].size())
+    print("is_des = {}".format(sample_batched['question_dict']['is_des']))
+    print("Question = {}".format(sample_batched['question_dict']['question']))
+    print("Ans = {}".format(sample_batched['question_dict']['ans']))
+    print("Index = {}".format(sample_batched['index'].size()))
 
     print(dataset.get_video_info(sample_batched['index'][0]))
-    des_q = sample_batched['question_dict']['des_q']
-    mc_q = sample_batched['question_dict']['mc_q']
-    des_ans = sample_batched['question_dict']['des_ans']
-    mc_ans = sample_batched['question_dict']['mc_ans']
+    is_des = sample_batched['question_dict']['is_des']
+    question = sample_batched['question_dict']['question']
+    ans = sample_batched['question_dict']['ans']
     break
 
 print("Model")
@@ -76,15 +70,19 @@ print("Embedding layer: ")
 print(model.embed_layer.weight)
 
 print("Pass through model")
-pred_des_ans = model(des_q, True)
-pred_mc_ans = model(mc_q, False)
-print(pred_des_ans)
-print(pred_mc_ans)
-des_loss_fun = losses.get_loss_func('cross_entropy')(reduction="mean")
-mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
-# Compute the loss.
-loss = des_loss_fun(pred_des_ans, des_ans) + mc_loss_fun(pred_mc_ans, mc_ans)
+print("Question = {}".format(question))
+if is_des:
+    pred_des_ans = model(question, True)
+    print("Model output = {}".format(pred_des_ans))
+    des_loss_fun = losses.get_loss_func('cross_entropy')(reduction="mean")
+    loss = des_loss_fun(pred_des_ans, ans)
+else:
+    pred_mc_ans = model(question, False)
+    print("Model output = {}".format(pred_mc_ans))
+    mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
+    loss = mc_loss_fun(pred_mc_ans, ans)
+
 print("Loss = {}".format(loss))
 loss.backward()
-print("Embed Grad:")
-print(model.embed_layer.weight.grad)
+print("Embed Grad 0:5:")
+print(model.embed_layer.weight.grad[0:5])

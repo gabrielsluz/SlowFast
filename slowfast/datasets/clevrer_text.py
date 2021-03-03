@@ -144,19 +144,13 @@ class Clevrertext(torch.utils.data.Dataset):
                     
         self.vocab = vocab
         self.ans_vocab = ans_vocab
-
-        self.max_des_len = max(des_q_lens)
-        self.max_mc_len = max(mc_q_lens)
+        self.max_seq_len = max(max(des_q_lens), max(mc_q_lens))
     
     def _token_list_to_tensor(self, token_list, question_type):
         """
-        Transforms a token list into a tensor with padding 
-        according to the question type
+        Transforms a token list into a tensor with padding.
         """
-        if question_type == 'descriptive':
-            tensor = torch.ones(self.max_des_len, dtype=torch.long) * self.vocab[' PAD ']
-        else:
-            tensor = torch.ones(self.max_mc_len, dtype=torch.long) * self.vocab[' PAD ']
+        tensor = torch.ones(self.max_seq_len, dtype=torch.long) * self.vocab[' PAD ']
         for i in range(len(token_list)):
             tensor[i] = self.vocab[token_list[i]]
         return tensor
@@ -196,8 +190,8 @@ class Clevrertext(torch.utils.data.Dataset):
                         choice_ans[c_index] = 1 if c['answer'] == 'correct' else 0
                         c_index += 1
 
-                data_list[l_index]['question'].append(self._token_list_to_tensor(split_q, 'mc'))
-                data_list[l_index]['ans'].append(choice_ans)
+                data_list[l_index]['question'] = self._token_list_to_tensor(split_q, 'mc')
+                data_list[l_index]['ans'] = choice_ans
         return data_list
 
     def _construct_loader(self):
