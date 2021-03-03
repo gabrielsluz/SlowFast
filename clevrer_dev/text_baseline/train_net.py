@@ -5,6 +5,7 @@
 import numpy as np
 import pprint
 import torch
+import copy
 
 import slowfast.models.losses as losses
 import slowfast.models.optimizer as optim
@@ -22,7 +23,7 @@ logger = logging.get_logger(__name__)
 
 
 def train_epoch(
-    train_loader, model, optimizer, train_meter, cur_epoch, cfg
+    train_loader, model, optimizer, train_meter, cur_epoch, cfg, test_imp=False
 ):
     """
     Perform the video training for one epoch.
@@ -36,6 +37,7 @@ def train_epoch(
         cfg (CfgNode): configs. Details can be found in
             slowfast/config/defaults.py
     """
+    test_counter = 0
     # Enable train mode.
     model.train()
     train_meter.iter_tic()
@@ -139,13 +141,44 @@ def train_epoch(
         train_meter.log_iter_stats(cur_epoch, cur_iter)
         train_meter.iter_tic()
 
+
+        #For testing implementation
+        if test_imp:
+            print(" --- Descriptive questions results --- ")
+            print("Des_q")
+            print(des_q)
+            print("Des_ans")
+            print(des_ans)
+            print("Des_ans_pred")
+            print(pred_des_ans)
+            print("Argmax => prediction")
+            print(torch.argmax(pred_des_ans, dim=1, keepdim=False))
+            print("Top1_err and Top5err")
+            print(top1_err, top5_err)
+            print("Loss_des_val = {}".format(loss_des_val))
+
+            print(" --- Multiple Choice questions results --- ")
+            print("Mc_q")
+            print(mc_q)
+            print("Mc_ans")
+            print(mc_ans)
+            print("Pred_mc_ans")
+            print(pred_mc_ans)
+            print("Sigmoid(pred_mc_ans)")
+            print(torch.sigmoid(pred_mc_ans))
+            print("mc_opt_err = {} \nmc_q_err = {}".format(mc_opt_err, mc_q_err))
+            print("Loss_mc_val = {}".format(loss_mc_val))
+            test_counter += 1
+            if test_counter == 4: 
+                break
+
     # Log epoch stats.
     train_meter.log_epoch_stats(cur_epoch)
     train_meter.reset()
 
 
 @torch.no_grad()
-def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
+def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=False):
     """
     Evaluate the model on the val set.
     Args:
@@ -156,7 +189,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
         cfg (CfgNode): configs. Details can be found in
             slowfast/config/defaults.py
     """
-
+    test_counter = 0
     # Evaluation mode enabled. The running stats would not be updated.
     model.eval()
     val_meter.iter_tic()
@@ -181,7 +214,9 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
         des_loss_fun = losses.get_loss_func('cross_entropy')(reduction="mean")
         mc_loss_fun = losses.get_loss_func('bce_logit')(reduction="mean")
         # Compute the loss.
-        loss = des_loss_fun(pred_des_ans, des_ans) + mc_loss_fun(pred_mc_ans, mc_ans) 
+        loss_des_val = des_loss_fun(pred_des_ans, des_ans)
+        loss_mc_val = mc_loss_fun(pred_mc_ans, mc_ans) 
+        loss = loss_des_val + loss_mc_val
         # Compute the errors.
         num_topks_correct = metrics.topks_correct(pred_des_ans, des_ans, (1, 5))
         # Combine the errors across the GPUs.
@@ -217,6 +252,36 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg):
         )
         val_meter.log_iter_stats(cur_epoch, cur_iter)
         val_meter.iter_tic()
+
+        #For testing implementation
+        if test_imp:
+            print(" --- Descriptive questions results --- ")
+            print("Des_q")
+            print(des_q)
+            print("Des_ans")
+            print(des_ans)
+            print("Des_ans_pred")
+            print(pred_des_ans)
+            print("Argmax => prediction")
+            print(torch.argmax(pred_des_ans, dim=1, keepdim=False))
+            print("Top1_err and Top5err")
+            print(top1_err, top5_err)
+            print("Loss_des_val = {}".format(loss_des_val))
+
+            print(" --- Multiple Choice questions results --- ")
+            print("Mc_q")
+            print(mc_q)
+            print("Mc_ans")
+            print(mc_ans)
+            print("Pred_mc_ans")
+            print(pred_mc_ans)
+            print("Sigmoid(pred_mc_ans)")
+            print(torch.sigmoid(pred_mc_ans))
+            print("mc_opt_err = {} \nmc_q_err = {}".format(mc_opt_err, mc_q_err))
+            print("Loss_mc_val = {}".format(loss_mc_val))
+            test_counter += 1
+            if test_counter == 4: 
+                break
 
     # Log epoch stats.
     val_meter.log_epoch_stats(cur_epoch)
@@ -322,3 +387,59 @@ def train(cfg):
         # Evaluate the model on validation set.
         if is_eval_epoch:
             eval_epoch(val_loader, model, val_meter, cur_epoch, cfg)
+
+
+def test_implementation(cfg):
+    """
+    Simulates a train and val epoch to check if the gradients are being updated,
+    metrics are being calculated correctly
+    Args:
+        cfg (CfgNode): configs. Details can be found in
+            slowfast/config/defaults.py
+    """
+    # Set random seed from configs.
+    np.random.seed(cfg.RNG_SEED)
+    torch.manual_seed(cfg.RNG_SEED)
+
+    # Setup logging format.
+    logging.setup_logging(cfg.OUTPUT_DIR)
+    # Print config.
+    logger.info("Test implementation")
+
+    # Build the video model and print model statistics.
+    model = build_clevrer_model(cfg)
+
+    # Construct the optimizer.
+    optimizer = optim.construct_optimizer(model, cfg)
+
+    start_epoch = cu.load_train_checkpoint(cfg, model, optimizer)
+
+    # Create the video train and val loaders.
+    train_loader = loader.construct_loader(cfg, "train")
+    val_loader = loader.construct_loader(cfg, "val")
+
+    # Create meters.
+    train_meter = ClevrerTrainMeter(len(train_loader), cfg)
+    val_meter = ClevrerValMeter(len(val_loader), cfg)
+
+    # Perform the training loop.
+    logger.info("Start epoch: {}".format(start_epoch + 1))
+    # Train for one epoch.
+    model_before = copy.deepcopy(model)
+    cur_epoch = start_epoch
+    train_epoch(
+        train_loader, model, optimizer, train_meter, cur_epoch, cfg, test_imp=True
+    )
+    print("Check if parameters changed")
+    for (p_b_name, p_b), (p_name, p) in zip(model_before.named_parameters(), model.named_parameters()):
+        if p.requires_grad:
+            print("Parameter requires grad:")
+            print(p_name, p_b_name)
+            assert (p_b != p).any()
+            print("--Check--")
+        else:
+            print("Parameter does not require grad:")
+            print(p_name)
+            print(p)
+    print("Val epoch")
+    eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=True)
