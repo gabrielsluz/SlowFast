@@ -403,8 +403,8 @@ def train(cfg):
     start_epoch = cu.load_train_checkpoint(cfg, model, optimizer)
 
     # Create the video train and val loaders.
-    train_loader = loader.construct_loader(cfg, "train")
-    val_loader = loader.construct_loader(cfg, "val")
+    train_loader = build_dataloader(cfg, "train")
+    val_loader = build_dataloader(cfg, "val")
 
     # Create meters.
     train_meter = ClevrerTrainMeter(len(train_loader), cfg)
@@ -414,7 +414,7 @@ def train(cfg):
     logger.info("Start epoch: {}".format(start_epoch + 1))
     for cur_epoch in range(start_epoch, cfg.SOLVER.MAX_EPOCH):
         # Shuffle the dataset.
-        loader.shuffle_dataset(train_loader, cur_epoch)
+        #loader.shuffle_dataset(train_loader, cur_epoch)
         # Train for one epoch.
         train_epoch(
             train_loader, model, optimizer, train_meter, cur_epoch, cfg
