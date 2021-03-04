@@ -828,3 +828,28 @@ class Clevrertext_mc(torch.utils.data.Dataset):
             (int): the number of videos in the dataset.
         """
         return len(self._dataset)
+
+
+
+#-_-__---_------------___-___--_____Clevrertext_join-_-__---_------------___-___--_____
+@DATASET_REGISTRY.register()
+class Clevrertext_join(torch.utils.data.Dataset):
+    def __init__(self, des_dataset, mc_dataset):
+        """
+        Based on the fact that mc_dataset is smaller than des_dataset
+        """
+        self.des_dataset = des_dataset
+        self.mc_dataset = mc_dataset
+
+    def __getitem__(self, index):
+        item_dict = {}
+        item_dict['des'] = self.des_dataset[index]
+        if index < len(self.mc_dataset):
+            item_dict['has_mc'] = True
+            item_dict['mc'] = self.mc_dataset[index]
+        else:
+            item_dict['has_mc'] = False
+        return item_dict
+
+    def __len__(self):
+        return len(self.des_dataset)
