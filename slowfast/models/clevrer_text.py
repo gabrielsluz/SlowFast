@@ -84,7 +84,7 @@ class TEXT_LSTM(nn.Module):
         # self.des_pred_head = nn.Linear(self.hid_st_dim*2, self.ans_vocab_len)
         # self.mc_pred_head = nn.Linear(self.hid_st_dim*2, 4)
 
-        Prediction head MLP
+        #Prediction head MLP
         hid_dim = 2048
         hid_dim_2 = 1024
         input_dim = self.hid_st_dim*2
