@@ -781,6 +781,7 @@ def clear_file(file_name):
 class ClevrerTrainMeter(object):
     """
     Measure training stats. Specific for Clevrer dataset.
+    Separated between mc and des questions
     """
 
     def __init__(self, epoch_iters, cfg):
@@ -795,20 +796,26 @@ class ClevrerTrainMeter(object):
         self.iter_timer = Timer()
         self.data_timer = Timer()
         self.net_timer = Timer()
-        self.loss = ScalarMeter(cfg.LOG_PERIOD)
-        self.loss_total = 0.0
         self.lr = None
         # Current minibatch errors (smoothed over a window).
         self.mb_top1_err = ScalarMeter(cfg.LOG_PERIOD)
         self.mb_top5_err = ScalarMeter(cfg.LOG_PERIOD)
-        self.mb_mc_opt_err = ScalarMeter(cfg.LOG_PERIOD)
-        self.mb_mc_q_err = ScalarMeter(cfg.LOG_PERIOD)
         # Number of misclassified examples.
         self.num_top1_mis = 0
         self.num_top5_mis = 0
+        self.num_samples_des = 0
+        self.loss_des = ScalarMeter(cfg.LOG_PERIOD)
+        self.loss_total_des = 0.0
+
+        self.mb_mc_opt_err = ScalarMeter(cfg.LOG_PERIOD)
+        self.mb_mc_q_err = ScalarMeter(cfg.LOG_PERIOD)
+        # Number of misclassified examples.
         self.num_mc_opt_mis = 0
         self.num_mc_q_mis = 0
-        self.num_samples = 0
+        self.num_samples_mc = 0
+        self.loss_mc = ScalarMeter(cfg.LOG_PERIOD)
+        self.loss_total_mc = 0.0
+
         self.output_dir = cfg.OUTPUT_DIR
 
         self.print_file = cfg.TRAIN.TRAIN_STATS_FILE
@@ -818,18 +825,22 @@ class ClevrerTrainMeter(object):
         """
         Reset the Meter.
         """
-        self.loss.reset()
-        self.loss_total = 0.0
         self.lr = None
         self.mb_top1_err.reset()
         self.mb_top5_err.reset()
-        self.mb_mc_opt_err.reset()
-        self.mb_mc_q_err.reset()
         self.num_top1_mis = 0
         self.num_top5_mis = 0
+        self.num_samples_des = 0
+        self.loss_des.reset()
+        self.loss_total_des = 0.0
+
+        self.mb_mc_opt_err.reset()
+        self.mb_mc_q_err.reset()
         self.num_mc_opt_mis = 0
         self.num_mc_q_mis = 0
-        self.num_samples = 0
+        self.num_samples_mc = 0
+        self.loss_mc.reset()
+        self.loss_total_mc = 0.0
 
     def iter_tic(self):
         """
@@ -849,7 +860,7 @@ class ClevrerTrainMeter(object):
         self.data_timer.pause()
         self.net_timer.reset()
 
-    def update_stats(self, top1_err, top5_err, mc_opt_err, mc_q_err, loss, lr, mb_size):
+    def update_stats(self, top1_err, top5_err, mc_opt_err, mc_q_err, loss_des, loss_mc, lr, mb_size_des, mb_size_mc):
         """
         Update the current stats.
         Args:
@@ -861,21 +872,27 @@ class ClevrerTrainMeter(object):
             lr (float): learning rate.
             mb_size (int): mini batch size.
         """
-        self.loss.add_value(loss)
+        self.loss_des.add_value(loss_des)
         self.lr = lr
-        self.loss_total += loss * mb_size
-        self.num_samples += mb_size
+        self.loss_total_des += loss_des * mb_size_des
+        self.num_samples_des += mb_size_des
 
         # Current minibatch stats
         self.mb_top1_err.add_value(top1_err)
         self.mb_top5_err.add_value(top5_err)
-        self.mb_mc_opt_err.add_value(mc_opt_err)
-        self.mb_mc_q_err.add_value(mc_q_err)
         # Aggregate stats
-        self.num_top1_mis += top1_err * mb_size
-        self.num_top5_mis += top5_err * mb_size
-        self.num_mc_opt_mis += mc_opt_err * mb_size
-        self.num_mc_q_mis += mc_q_err * mb_size
+        self.num_top1_mis += top1_err * mb_size_des
+        self.num_top5_mis += top5_err * mb_size_des
+
+        if not mb_size_mc is None:
+            self.loss_mc.add_value(loss_mc)
+            self.loss_total_mc += loss_mc * mb_size_mc
+            self.num_samples_mc += mb_size_mc
+
+            self.mb_mc_opt_err.add_value(mc_opt_err)
+            self.mb_mc_q_err.add_value(mc_q_err)
+            self.num_mc_opt_mis += mc_opt_err * mb_size_mc
+            self.num_mc_q_mis += mc_q_err * mb_size_mc
 
     def log_iter_stats(self, cur_epoch, cur_iter):
         """
@@ -898,12 +915,14 @@ class ClevrerTrainMeter(object):
             "dt_data": self.data_timer.seconds(),
             "dt_net": self.net_timer.seconds(),
             "eta": eta,
-            "loss": self.loss.get_win_median(),
             "lr": self.lr,
             "gpu_mem": "{:.2f}G".format(misc.gpu_mem_usage()),
         }
+        stats["loss_des"] = self.loss_des.get_win_median()
         stats["top1_err"] = self.mb_top1_err.get_win_median()
         stats["top5_err"] = self.mb_top5_err.get_win_median()
+
+        stats["loss_mc"] = self.loss_mc.get_win_median()
         stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_median()
         stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
         logging.log_json_stats(stats)
@@ -931,17 +950,20 @@ class ClevrerTrainMeter(object):
             "gpu_mem": "{:.2f}G".format(misc.gpu_mem_usage()),
             "RAM": "{:.2f}/{:.2f}G".format(*misc.cpu_mem_usage()),
         }
-        top1_err = self.num_top1_mis / self.num_samples
-        top5_err = self.num_top5_mis / self.num_samples
-        mc_opt_err = self.num_mc_opt_mis / self.num_samples
-        mc_q_err = self.num_mc_q_mis / self.num_samples
-
-        avg_loss = self.loss_total / self.num_samples
+        top1_err = self.num_top1_mis / self.num_samples_des
+        top5_err = self.num_top5_mis / self.num_samples_des
         stats["top1_err"] = top1_err
         stats["top5_err"] = top5_err
-        stats["loss"] = avg_loss
+        avg_loss_des = self.loss_total_des / self.num_samples_des
+        stats["loss_des"] = avg_loss_des
+        
+        mc_opt_err = self.num_mc_opt_mis / self.num_samples_mc
+        mc_q_err = self.num_mc_q_mis / self.num_samples_mc
         stats["mc_opt_err"] = mc_opt_err
         stats["mc_q_err"] = mc_q_err
+        avg_loss_mc = self.loss_total_mc / self.num_samples_mc
+        stats["loss_mc"] = avg_loss_mc
+
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
 
@@ -964,21 +986,28 @@ class ClevrerValMeter(object):
         # Current minibatch errors (smoothed over a window).
         self.mb_top1_err = ScalarMeter(cfg.LOG_PERIOD)
         self.mb_top5_err = ScalarMeter(cfg.LOG_PERIOD)
+        # Number of misclassified examples.
+        self.num_top1_mis = 0
+        self.num_top5_mis = 0
+        self.num_samples_des = 0
+        self.loss_des = ScalarMeter(cfg.LOG_PERIOD)
+        self.loss_total_des = 0.0
+
         self.mb_mc_opt_err = ScalarMeter(cfg.LOG_PERIOD)
         self.mb_mc_q_err = ScalarMeter(cfg.LOG_PERIOD)
-        self.loss = ScalarMeter(cfg.LOG_PERIOD)
-        self.loss_total = 0.0
+        # Number of misclassified examples.
+        self.num_mc_opt_mis = 0
+        self.num_mc_q_mis = 0
+        self.num_samples_mc = 0
+        self.loss_mc = ScalarMeter(cfg.LOG_PERIOD)
+        self.loss_total_mc = 0.0
+
         # Min errors (over the full val set).
         self.min_top1_err = 100.0
         self.min_top5_err = 100.0
         self.min_mc_opt_err = 100.0
         self.min_mc_q_err = 100.0
-        # Number of misclassified examples.
-        self.num_top1_mis = 0
-        self.num_top5_mis = 0
-        self.num_mc_opt_mis = 0
-        self.num_mc_q_mis = 0
-        self.num_samples = 0
+
         self.output_dir = cfg.OUTPUT_DIR
 
         self.print_file = cfg.TRAIN.TRAIN_STATS_FILE
@@ -988,19 +1017,21 @@ class ClevrerValMeter(object):
         """
         Reset the Meter.
         """
-        self.loss.reset()
-        self.loss_total = 0.0
-
-        self.iter_timer.reset()
         self.mb_top1_err.reset()
         self.mb_top5_err.reset()
-        self.mb_mc_opt_err.reset()
-        self.mb_mc_q_err.reset()
         self.num_top1_mis = 0
         self.num_top5_mis = 0
+        self.num_samples_des = 0
+        self.loss_des.reset()
+        self.loss_total_des = 0.0
+
+        self.mb_mc_opt_err.reset()
+        self.mb_mc_q_err.reset()
         self.num_mc_opt_mis = 0
         self.num_mc_q_mis = 0
-        self.num_samples = 0
+        self.num_samples_mc = 0
+        self.loss_mc.reset()
+        self.loss_total_mc = 0.0
 
     def iter_tic(self):
         """
@@ -1020,7 +1051,7 @@ class ClevrerValMeter(object):
         self.data_timer.pause()
         self.net_timer.reset()
 
-    def update_stats(self, top1_err, top5_err, mc_opt_err, mc_q_err, mb_size, loss):
+    def update_stats(self, top1_err, top5_err, mc_opt_err, mc_q_err, loss_des, loss_mc, mb_size_des, mb_size_mc):
         """
         Update the current stats.
         Args:
@@ -1028,19 +1059,26 @@ class ClevrerValMeter(object):
             top5_err (float): top5 error rate.
             mb_size (int): mini batch size.
         """
-        self.loss.add_value(loss)
-        self.loss_total += loss * mb_size
+        self.loss_des.add_value(loss_des)
+        self.loss_total_des += loss_des * mb_size_des
+        self.num_samples_des += mb_size_des
 
+        # Current minibatch stats
         self.mb_top1_err.add_value(top1_err)
         self.mb_top5_err.add_value(top5_err)
-        self.num_top1_mis += top1_err * mb_size
-        self.num_top5_mis += top5_err * mb_size
-        self.num_samples += mb_size
+        # Aggregate stats
+        self.num_top1_mis += top1_err * mb_size_des
+        self.num_top5_mis += top5_err * mb_size_des
 
-        self.mb_mc_opt_err.add_value(mc_opt_err)
-        self.mb_mc_q_err.add_value(mc_q_err)
-        self.num_mc_opt_mis += mc_opt_err * mb_size
-        self.num_mc_q_mis += mc_q_err * mb_size
+        if not mb_size_mc is None:
+            self.loss_mc.add_value(loss_mc)
+            self.loss_total_mc += loss_mc * mb_size_mc
+            self.num_samples_mc += mb_size_mc
+
+            self.mb_mc_opt_err.add_value(mc_opt_err)
+            self.mb_mc_q_err.add_value(mc_q_err)
+            self.num_mc_opt_mis += mc_opt_err * mb_size_mc
+            self.num_mc_q_mis += mc_q_err * mb_size_mc
 
     def log_iter_stats(self, cur_epoch, cur_iter):
         """
@@ -1061,11 +1099,13 @@ class ClevrerValMeter(object):
             "eta": eta,
             "gpu_mem": "{:.2f}G".format(misc.gpu_mem_usage()),
         }
+        stats["loss_des"] = self.loss_des.get_win_median()
         stats["top1_err"] = self.mb_top1_err.get_win_median()
         stats["top5_err"] = self.mb_top5_err.get_win_median()
+
+        stats["loss_mc"] = self.loss_mc.get_win_median()
         stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_median()
         stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
-        stats["loss"] = self.loss.get_win_median()
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
 
@@ -1082,16 +1122,18 @@ class ClevrerValMeter(object):
             "gpu_mem": "{:.2f}G".format(misc.gpu_mem_usage()),
             "RAM": "{:.2f}/{:.2f}G".format(*misc.cpu_mem_usage()),
         }
-        top1_err = self.num_top1_mis / self.num_samples
-        top5_err = self.num_top5_mis / self.num_samples
+        top1_err = self.num_top1_mis / self.num_samples_des
+        top5_err = self.num_top5_mis / self.num_samples_des
         self.min_top1_err = min(self.min_top1_err, top1_err)
         self.min_top5_err = min(self.min_top5_err, top5_err)
-        mc_opt_err = self.num_mc_opt_mis / self.num_samples
-        mc_q_err = self.num_mc_q_mis / self.num_samples
+
+        mc_opt_err = self.num_mc_opt_mis / self.num_samples_mc
+        mc_q_err = self.num_mc_q_mis / self.num_samples_mc
         self.min_mc_opt_err = min(self.min_mc_opt_err, mc_opt_err)
         self.min_mc_q_err = min(self.min_mc_q_err, mc_q_err)
 
-        avg_loss = self.loss_total / self.num_samples
+        avg_loss_des = self.loss_total_des / self.num_samples_des
+        avg_loss_mc = self.loss_total_mc / self.num_samples_mc
         stats["mc_opt_err"] = mc_opt_err
         stats["mc_q_err"] = mc_q_err
         stats["top1_err"] = top1_err
@@ -1100,7 +1142,8 @@ class ClevrerValMeter(object):
         stats["min_top5_err"] = self.min_top5_err
         stats["min_mc_opt_err"] = self.min_mc_opt_err
         stats["min_mc_q_err"] = self.min_mc_q_err
-        stats["loss"] = avg_loss
+        stats["loss_des"] = avg_loss_des
+        stats["loss_mc"] = avg_loss_mc
 
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
