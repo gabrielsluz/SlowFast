@@ -371,15 +371,18 @@ def test_implementation_des(cfg):
     train_epoch(
         train_loader, model, optimizer, train_meter, cur_epoch, cfg, test_imp=True
     )
-    print("Check if parameters changed")
+    print("Check how much parameters changed")
     for (p_b_name, p_b), (p_name, p) in zip(model_before.named_parameters(), model.named_parameters()):
         if p.requires_grad:
             print("Parameter requires grad:")
             print(p_name, p_b_name)
+            #Calculate ratio of change
+            change = torch.abs(torch.linalg.norm(p) - torch.linalg.norm(p_b))
+            print("Ratio of change = {}".format(torch.true_divide(change, torch.linalg.norm(p_b))))
             if (p_b != p).any():
                 print("--Check--")
             else:
-                print("ALERT - WEIGHTS DID NOT CHANGE WITH TRANING.")
+                print("ALERT - WEIGHTS DID NOT CHANGE WITH TRAINING.")
         else:
             print("Parameter does not require grad:")
             print(p_name)
