@@ -372,7 +372,8 @@ def build_dataloader(cfg, mode):
     mc_dataset = Clevrertext_mc(cfg, mode)
     dataset = Clevrertext_join(des_dataset, mc_dataset)
     dataloader = DataLoader(dataset, batch_size=cfg.TRAIN.BATCH_SIZE,
-                        shuffle= mode=='train', num_workers=cfg.DATA_LOADER.NUM_WORKERS)
+                        shuffle= mode=='train', num_workers=cfg.DATA_LOADER.NUM_WORKERS,
+                        pin_memory=cfg.DATA_LOADER.PIN_MEMORY)
     return dataloader
 
 

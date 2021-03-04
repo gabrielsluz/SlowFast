@@ -73,40 +73,42 @@ class TEXT_LSTM(nn.Module):
             self.embed_layer.weight.requires_grad = False
             
         #LSTM
-        self.hid_st_dim = 1024
+        self.hid_st_dim = 256
         self.num_layers = 2
-        self.num_directions = 2
+        self.num_directions = 2 #Check bellow: parameter bidirectional
         self.LSTM = torch.nn.LSTM(
             input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
-            bias=True, batch_first=True, dropout=0.7, bidirectional=(self.num_directions == 2)
-        )
-        #Prediction head MLP
-        hid_dim = 4096
-        #Question especific
-        self.des_pred_head = nn.Sequential(
-            nn.Linear(self.hid_st_dim, hid_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.7),
-            nn.Linear(hid_dim, self.ans_vocab_len)
-        )
-        #Multiple choice answer => outputs a vector of size 4, 
-        # which is interpreted as 4 logits, one for each binary classification of each choice
-        self.mc_pred_head = nn.Sequential(
-            nn.Linear(self.hid_st_dim, hid_dim),
-            nn.ReLU(),
-            nn.Dropout(p=0.7),
-            nn.Linear(hid_dim, 4)
+            bias=True, batch_first=True, dropout=0.0, bidirectional=(self.num_directions == 2)
         )
 
-        # #Prediction head MLP
+        self.des_pred_head = nn.Linear(self.hid_st_dim*2, self.ans_vocab_len)
+        self.mc_pred_head = nn.Linear(self.hid_st_dim*2, 4)
+
+        #Prediction head MLP
+        # hid_dim = 2048
+        # hid_dim_2 = 1024
+        # input_dim = self.hid_st_dim*2
+        # dropout_p = 0.0
         # #Question especific
         # self.des_pred_head = nn.Sequential(
-        #     nn.Linear(self.hid_st_dim, self.ans_vocab_len)
+        #     nn.Linear(input_dim, hid_dim),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=dropout_p),
+        #     nn.Linear(hid_dim, hid_dim_2),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=dropout_p),
+        #     nn.Linear(hid_dim_2, self.ans_vocab_len)
         # )
         # #Multiple choice answer => outputs a vector of size 4, 
         # # which is interpreted as 4 logits, one for each binary classification of each choice
         # self.mc_pred_head = nn.Sequential(
-        #     nn.Linear(self.hid_st_dim, 4)
+        #     nn.Linear(input_dim, hid_dim),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=dropout_p),
+        #     nn.Linear(hid_dim, hid_dim_2),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=dropout_p),
+        #     nn.Linear(hid_dim_2, 4)
         # )
 
         #Init parameters
@@ -121,11 +123,10 @@ class TEXT_LSTM(nn.Module):
                 is_des_q (bool): Indicates if is descriptive question or multiple choice
         """
         #Question embbeding and aggregation
-        x = self.embed_layer(question_b)
+        embs = self.embed_layer(question_b)
         #LSTM
-        _, x = self.LSTM(x)
-        x = x[0]
-        x = x[self.num_directions*self.num_layers - 1]
+        _, (h_n, _) = self.LSTM(embs)
+        x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
         if is_des_q:
             return self.des_pred_head(x)
         else:

@@ -257,7 +257,8 @@ def build_clevrer_model(cfg, gpu_id=None):
 def build_dataloader(cfg, mode):
     dataset = Clevrertext_des(cfg, mode)
     dataloader = DataLoader(dataset, batch_size=cfg.TRAIN.BATCH_SIZE,
-                        shuffle= mode=='train', num_workers=cfg.DATA_LOADER.NUM_WORKERS)
+                        shuffle= mode=='train', num_workers=cfg.DATA_LOADER.NUM_WORKERS,
+                        pin_memory=cfg.DATA_LOADER.PIN_MEMORY)
     return dataloader
 
 
