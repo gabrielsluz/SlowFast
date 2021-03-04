@@ -456,6 +456,7 @@ class Clevrertext_des(torch.utils.data.Dataset):
                                     + is_des: bool flag indicating questiontype
                                     + question
                                     + ans
+                                    + len
         The questions are already in LongTensor for the Embedding layer
         The answers for descriptive answers are a single integer indicating the
         index of the ans_vocab.

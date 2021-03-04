@@ -3,12 +3,12 @@
 
 """Wrapper to train and test the CLEVRER model.
 Example:
-
 ----Clevrer dataset-----
 python3 clevrer_dev/text_baseline/run_net.py \
   --cfg clevrer_dev/text_baseline/text_gru.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
+  TRAIN.DATASET Clevrertext_des \
   NUM_GPUS 0 \
   LOG_PERIOD 1 \
   TRAIN.BATCH_SIZE 3 \
@@ -18,7 +18,7 @@ python3 clevrer_dev/text_baseline/run_net.py \
   WORD_EMB.TRAINABLE True \
   WORD_EMB.GLOVE_PATH '/datasets/word_embs/glove.6B/glove.6B.50d.txt' \
   WORD_EMB.EMB_DIM 50 \
-  TRAIN.ENABLE False \
+  TRAIN.ONLY_DES True \
   SOLVER.MAX_EPOCH 2
 
 python3 clevrer_dev/text_baseline/run_net.py \
@@ -42,6 +42,7 @@ from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args
 
 from train_net import train, test_implementation
+from train_net_des import train_des, test_implementation_des
 
 def main():
     """
@@ -52,9 +53,15 @@ def main():
 
     # Perform training.
     if cfg.TRAIN.ENABLE:
-        launch_job(cfg=cfg, init_method=args.init_method, func=train)
+        if cfg.TRAIN.ONLY_DES:
+            launch_job(cfg=cfg, init_method=args.init_method, func=train_des)
+        else:
+            launch_job(cfg=cfg, init_method=args.init_method, func=train)
     else:
-        launch_job(cfg=cfg, init_method=args.init_method, func=test_implementation)
+        if cfg.TRAIN.ONLY_DES:
+            launch_job(cfg=cfg, init_method=args.init_method, func=test_implementation_des)
+        else:
+            launch_job(cfg=cfg, init_method=args.init_method, func=test_implementation)
 
 
 if __name__ == "__main__":

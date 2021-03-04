@@ -21,6 +21,13 @@ python3 clevrer_dev/text_baseline/test_clevrer_text.py \
   WORD_EMB.USE_PRETRAINED_EMB True \
   WORD_EMB.TRAINABLE True \
   DATA.PATH_PREFIX /datasets/clevrer_dummy
+
+python3 clevrer_dev/text_baseline/test_clevrer_text.py \
+  --cfg clevrer_dev/text_baseline/text_gru.yaml \
+  DATA.PATH_TO_DATA_DIR /content/clevrer \
+  WORD_EMB.USE_PRETRAINED_EMB True \
+  WORD_EMB.TRAINABLE True \
+  DATA.PATH_PREFIX /content/clevrer
 """
 
 args = parse_args()

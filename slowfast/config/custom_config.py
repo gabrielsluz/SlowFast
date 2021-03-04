@@ -10,6 +10,8 @@ def add_custom_config(_C):
 
     #Train and Val stats printing
     _C.TRAIN.TRAIN_STATS_FILE = "./train_stats.txt"
+    #Train only des questions
+    _C.TRAIN.ONLY_DES = False
 
     #Cycle cosine loss function
     _C.SOLVER.EPOCH_CYCLE = 20.0

@@ -921,10 +921,10 @@ class ClevrerTrainMeter(object):
         stats["loss_des"] = self.loss_des.get_win_median()
         stats["top1_err"] = self.mb_top1_err.get_win_median()
         stats["top5_err"] = self.mb_top5_err.get_win_median()
-
-        stats["loss_mc"] = self.loss_mc.get_win_median()
-        stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_median()
-        stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
+        if self.num_samples_mc > 0.0:
+            stats["loss_mc"] = self.loss_mc.get_win_median()
+            stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_median()
+            stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
         logging.log_json_stats(stats)
 
         write_to_file(self.print_file, str(stats))
@@ -956,13 +956,13 @@ class ClevrerTrainMeter(object):
         stats["top5_err"] = top5_err
         avg_loss_des = self.loss_total_des / self.num_samples_des
         stats["loss_des"] = avg_loss_des
-        
-        mc_opt_err = self.num_mc_opt_mis / self.num_samples_mc
-        mc_q_err = self.num_mc_q_mis / self.num_samples_mc
-        stats["mc_opt_err"] = mc_opt_err
-        stats["mc_q_err"] = mc_q_err
-        avg_loss_mc = self.loss_total_mc / self.num_samples_mc
-        stats["loss_mc"] = avg_loss_mc
+        if self.num_samples_mc > 0.0:
+            mc_opt_err = self.num_mc_opt_mis / self.num_samples_mc
+            mc_q_err = self.num_mc_q_mis / self.num_samples_mc
+            stats["mc_opt_err"] = mc_opt_err
+            stats["mc_q_err"] = mc_q_err
+            avg_loss_mc = self.loss_total_mc / self.num_samples_mc
+            stats["loss_mc"] = avg_loss_mc
 
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
@@ -1102,10 +1102,10 @@ class ClevrerValMeter(object):
         stats["loss_des"] = self.loss_des.get_win_median()
         stats["top1_err"] = self.mb_top1_err.get_win_median()
         stats["top5_err"] = self.mb_top5_err.get_win_median()
-
-        stats["loss_mc"] = self.loss_mc.get_win_median()
-        stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_median()
-        stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
+        if self.num_samples_mc > 0.0:
+            stats["loss_mc"] = self.loss_mc.get_win_median()
+            stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_median()
+            stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
 
@@ -1126,24 +1126,24 @@ class ClevrerValMeter(object):
         top5_err = self.num_top5_mis / self.num_samples_des
         self.min_top1_err = min(self.min_top1_err, top1_err)
         self.min_top5_err = min(self.min_top5_err, top5_err)
-
-        mc_opt_err = self.num_mc_opt_mis / self.num_samples_mc
-        mc_q_err = self.num_mc_q_mis / self.num_samples_mc
-        self.min_mc_opt_err = min(self.min_mc_opt_err, mc_opt_err)
-        self.min_mc_q_err = min(self.min_mc_q_err, mc_q_err)
-
         avg_loss_des = self.loss_total_des / self.num_samples_des
-        avg_loss_mc = self.loss_total_mc / self.num_samples_mc
-        stats["mc_opt_err"] = mc_opt_err
-        stats["mc_q_err"] = mc_q_err
         stats["top1_err"] = top1_err
         stats["top5_err"] = top5_err
         stats["min_top1_err"] = self.min_top1_err
         stats["min_top5_err"] = self.min_top5_err
-        stats["min_mc_opt_err"] = self.min_mc_opt_err
-        stats["min_mc_q_err"] = self.min_mc_q_err
         stats["loss_des"] = avg_loss_des
-        stats["loss_mc"] = avg_loss_mc
+        
+        if self.num_samples_mc > 0.0:
+            mc_opt_err = self.num_mc_opt_mis / self.num_samples_mc
+            mc_q_err = self.num_mc_q_mis / self.num_samples_mc
+            self.min_mc_opt_err = min(self.min_mc_opt_err, mc_opt_err)
+            self.min_mc_q_err = min(self.min_mc_q_err, mc_q_err)
+            avg_loss_mc = self.loss_total_mc / self.num_samples_mc
+            stats["mc_opt_err"] = mc_opt_err
+            stats["mc_q_err"] = mc_q_err
+            stats["min_mc_opt_err"] = self.min_mc_opt_err
+            stats["min_mc_q_err"] = self.min_mc_q_err
+            stats["loss_mc"] = avg_loss_mc
 
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
