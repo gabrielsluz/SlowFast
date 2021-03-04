@@ -918,13 +918,13 @@ class ClevrerTrainMeter(object):
             "lr": self.lr,
             "gpu_mem": "{:.2f}G".format(misc.gpu_mem_usage()),
         }
-        stats["loss_des"] = self.loss_des.get_win_median()
-        stats["top1_err"] = self.mb_top1_err.get_win_median()
-        stats["top5_err"] = self.mb_top5_err.get_win_median()
+        stats["loss_des"] = self.loss_des.get_win_avg()
+        stats["top1_err"] = self.mb_top1_err.get_win_avg()
+        stats["top5_err"] = self.mb_top5_err.get_win_avg()
         if self.num_samples_mc > 0.0:
-            stats["loss_mc"] = self.loss_mc.get_win_median()
-            stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_median()
-            stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
+            stats["loss_mc"] = self.loss_mc.get_win_avg()
+            stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_avg()
+            stats["mc_q_err"] = self.mb_mc_q_err.get_win_avg()
         logging.log_json_stats(stats)
 
         write_to_file(self.print_file, str(stats))
@@ -1099,13 +1099,13 @@ class ClevrerValMeter(object):
             "eta": eta,
             "gpu_mem": "{:.2f}G".format(misc.gpu_mem_usage()),
         }
-        stats["loss_des"] = self.loss_des.get_win_median()
-        stats["top1_err"] = self.mb_top1_err.get_win_median()
-        stats["top5_err"] = self.mb_top5_err.get_win_median()
+        stats["loss_des"] = self.loss_des.get_win_avg()
+        stats["top1_err"] = self.mb_top1_err.get_win_avg()
+        stats["top5_err"] = self.mb_top5_err.get_win_avg()
         if self.num_samples_mc > 0.0:
-            stats["loss_mc"] = self.loss_mc.get_win_median()
-            stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_median()
-            stats["mc_q_err"] = self.mb_mc_q_err.get_win_median()
+            stats["loss_mc"] = self.loss_mc.get_win_avg()
+            stats["mc_opt_err"] = self.mb_mc_opt_err.get_win_avg()
+            stats["mc_q_err"] = self.mb_mc_q_err.get_win_avg()
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
 
