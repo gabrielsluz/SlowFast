@@ -401,7 +401,10 @@ def train(cfg):
 
     # Load a checkpoint to resume training if applicable.
     start_epoch = cu.load_train_checkpoint(cfg, model, optimizer)
-
+    # Create the video train and val loaders.
+    if cfg.TRAIN.DATASET != 'Clevrertext_join':
+        print("This train script does not support your dataset: -{}-. Only Clevrertext_join".format(cfg.TRAIN.DATASET))
+        exit()
     # Create the video train and val loaders.
     train_loader = build_dataloader(cfg, "train")
     val_loader = build_dataloader(cfg, "val")

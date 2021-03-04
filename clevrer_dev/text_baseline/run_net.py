@@ -18,7 +18,6 @@ python3 clevrer_dev/text_baseline/run_net.py \
   WORD_EMB.TRAINABLE True \
   WORD_EMB.GLOVE_PATH '/datasets/word_embs/glove.6B/glove.6B.50d.txt' \
   WORD_EMB.EMB_DIM 50 \
-  TRAIN.ENABLE False \
   SOLVER.MAX_EPOCH 2
 
 python3 clevrer_dev/text_baseline/run_net.py \

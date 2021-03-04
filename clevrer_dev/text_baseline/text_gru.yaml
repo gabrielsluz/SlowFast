@@ -1,6 +1,6 @@
 TRAIN:
   ENABLE: True
-  DATASET: Clevrertext
+  DATASET: Clevrertext_join
   BATCH_SIZE: 1
   EVAL_PERIOD: 10
   CHECKPOINT_PERIOD: 1
