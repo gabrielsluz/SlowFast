@@ -225,6 +225,8 @@ class Clevrertext(torch.utils.data.Dataset):
         with g_pathmgr.open(path_to_file, "r") as f:
             data = json.load(f)
             for i in range(len(data)):
+                if i == 3:
+                    break
                 path = get_filepath(self.mode, int(data[i]['scene_index']))
                 full_path = os.path.join(self.cfg.DATA.PATH_PREFIX, path)
                 self._dataset += self._constructs_questions_ans(data[i], full_path)
@@ -476,6 +478,8 @@ class Clevrertext_des(torch.utils.data.Dataset):
         with g_pathmgr.open(path_to_file, "r") as f:
             data = json.load(f)
             for i in range(len(data)):
+                if i == 3:
+                    break
                 path = get_filepath(self.mode, int(data[i]['scene_index']))
                 full_path = os.path.join(self.cfg.DATA.PATH_PREFIX, path)
                 self._dataset += self._constructs_questions_ans(data[i], full_path)
@@ -731,6 +735,8 @@ class Clevrertext_mc(torch.utils.data.Dataset):
         with g_pathmgr.open(path_to_file, "r") as f:
             data = json.load(f)
             for i in range(len(data)):
+                if i == 3:
+                    break
                 path = get_filepath(self.mode, int(data[i]['scene_index']))
                 full_path = os.path.join(self.cfg.DATA.PATH_PREFIX, path)
                 self._dataset += self._constructs_questions_ans(data[i], full_path)
