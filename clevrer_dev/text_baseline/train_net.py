@@ -169,8 +169,8 @@ def train_epoch(
         #For testing implementation
         if test_imp:
             print(" --- Descriptive questions results --- ")
-            print("Des_q")
-            print(des_q)
+            # print("Des_q")
+            # print(des_q)
             print("Des_ans")
             print(des_ans)
             #print("Des_ans_pred")
@@ -182,10 +182,10 @@ def train_epoch(
             print("Loss_des_val = {}".format(loss_des_val))
             if has_mc:
                 print(" --- Multiple Choice questions results --- ")
-                print("Mc_q")
-                print(mc_q)
-                print("Mc errors pred x ans")
-                print(torch.abs(mc_ans - (torch.sigmoid(pred_mc_ans) >= 0.5).float()))
+                # print("Mc_q")
+                # print(mc_q)
+                # print("Mc errors pred x ans")
+                # print(torch.abs(mc_ans - (torch.sigmoid(pred_mc_ans) >= 0.5).float()))
                 print("mc_opt_err = {} \nmc_q_err = {}".format(mc_opt_err, mc_q_err))
                 print("Loss_mc_val = {}".format(loss_mc_val))
             test_counter += 1
@@ -300,8 +300,8 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=False):
         #For testing implementation
         if test_imp:
             print(" --- Descriptive questions results --- ")
-            print("Des_q")
-            print(des_q)
+            # print("Des_q")
+            # print(des_q)
             print("Des_ans")
             print(des_ans)
             #print("Des_ans_pred")
@@ -313,10 +313,10 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=False):
             print("Loss_des_val = {}".format(loss_des_val))
             if has_mc:
                 print(" --- Multiple Choice questions results --- ")
-                print("Mc_q")
-                print(mc_q)
-                print("Mc errors pred x ans")
-                print(torch.abs(mc_ans - (torch.sigmoid(pred_mc_ans) >= 0.5).float()))
+                # print("Mc_q")
+                # print(mc_q)
+                # print("Mc errors pred x ans")
+                # print(torch.abs(mc_ans - (torch.sigmoid(pred_mc_ans) >= 0.5).float()))
                 print("mc_opt_err = {} \nmc_q_err = {}".format(mc_opt_err, mc_q_err))
                 print("Loss_mc_val = {}".format(loss_mc_val))
             test_counter += 1
