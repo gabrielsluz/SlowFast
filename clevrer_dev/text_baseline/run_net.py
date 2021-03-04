@@ -11,13 +11,14 @@ python3 clevrer_dev/text_baseline/run_net.py \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
   NUM_GPUS 0 \
   LOG_PERIOD 1 \
-  TRAIN.BATCH_SIZE 1 \
+  TRAIN.BATCH_SIZE 3 \
   TRAIN.EVAL_PERIOD 1 \
   TRAIN.CHECKPOINT_PERIOD 1 \
   WORD_EMB.USE_PRETRAINED_EMB False \
   WORD_EMB.TRAINABLE True \
   WORD_EMB.GLOVE_PATH '/datasets/word_embs/glove.6B/glove.6B.50d.txt' \
   WORD_EMB.EMB_DIM 50 \
+  TRAIN.ENABLE False \
   SOLVER.MAX_EPOCH 2
 
 python3 clevrer_dev/text_baseline/run_net.py \

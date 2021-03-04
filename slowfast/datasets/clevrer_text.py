@@ -847,9 +847,10 @@ class Clevrertext_join(torch.utils.data.Dataset):
         if index < len(self.mc_dataset):
             item_dict['has_mc'] = True
             item_dict['mc'] = self.mc_dataset[index]
-        else:
-            item_dict['has_mc'] = False
-            item_dict['mc'] = False
+        else:#Lazy, must be updated
+            i_mc = random.randint(0, len(self.mc_dataset) - 1)
+            item_dict['has_mc'] = True
+            item_dict['mc'] = self.mc_dataset[i_mc]
         return item_dict
 
     def __len__(self):

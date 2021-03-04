@@ -56,7 +56,7 @@ def train_epoch(
             des_ans = des_ans.cuda()
             des_len = des_len.cuda(non_blocking=True)
         
-        has_mc = sampled_batch['has_mc']
+        has_mc = sampled_batch['has_mc'][0]
         if has_mc:
             mc_batch = sampled_batch['mc']
             mc_q = mc_batch['question_dict']['question']
@@ -227,7 +227,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=False):
             des_ans = des_ans.cuda()
             des_len = des_len.cuda(non_blocking=True)
         
-        has_mc = sampled_batch['has_mc']
+        has_mc = sampled_batch['has_mc'][0]
         if has_mc:
             mc_batch = sampled_batch['mc']
             mc_q = mc_batch['question_dict']['question']
