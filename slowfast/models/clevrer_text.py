@@ -78,7 +78,7 @@ class TEXT_LSTM(nn.Module):
         self.num_directions = 2 #Check bellow: parameter bidirectional
         self.LSTM = torch.nn.LSTM(
             input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
-            bias=True, batch_first=True, dropout=0.0, bidirectional=(self.num_directions == 2)
+            bias=True, batch_first=True, dropout=0.5, bidirectional=(self.num_directions == 2)
         )
 
         # self.des_pred_head = nn.Linear(self.hid_st_dim*2, self.ans_vocab_len)
@@ -88,7 +88,7 @@ class TEXT_LSTM(nn.Module):
         hid_dim = 2048
         hid_dim_2 = 1024
         input_dim = self.hid_st_dim*2
-        dropout_p = 0.0
+        dropout_p = 0.5
         #Question especific
         self.des_pred_head = nn.Sequential(
             nn.Linear(input_dim, hid_dim),
