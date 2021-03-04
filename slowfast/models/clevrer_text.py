@@ -124,11 +124,9 @@ class TEXT_LSTM(nn.Module):
         """
         #Question embbeding and aggregation
         embs = self.embed_layer(question_b)
-        print(embs)
         #LSTM
         _, (h_n, _) = self.LSTM(embs)
         x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
-        print(x)
         if is_des_q:
             return self.des_pred_head(x)
         else:
