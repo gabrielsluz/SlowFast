@@ -381,7 +381,7 @@ def test_implementation_des(cfg):
             print("Parameter requires grad:")
             print(p_name, p_b_name)
             #Calculate ratio of change
-            change = torch.abs(torch.linalg.norm(p) - torch.linalg.norm(p_b))
+            change = torch.abs(torch.norm(p) - torch.norm(p_b))
             print("Ratio of change = {}".format(torch.true_divide(change, torch.linalg.norm(p_b))))
             if (p_b != p).any():
                 print("--Check--")
