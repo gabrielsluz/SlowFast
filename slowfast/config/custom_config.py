@@ -40,7 +40,8 @@ def add_custom_config(_C):
     _C.CLEVRERMAIN.MONET_TRAINABLE = False
     #Slot dataset path
     _C.CLEVRERMAIN.SLOT_DATASET_PATH = '/datasets/slot_dataset/slot_dataset.pyth'
-
+    #LSTM hidden dim
+    _C.CLEVRERMAIN.LSTM_HID_DIM = 64
     #For word embeddings
     _C.WORD_EMB = CfgNode()
     _C.WORD_EMB.USE_PRETRAINED_EMB = False

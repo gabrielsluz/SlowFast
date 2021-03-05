@@ -180,7 +180,7 @@ class CNN_LSTM(nn.Module):
             self.embed_layer.weight.requires_grad = False
 
         #LSTM
-        self.hid_st_dim = 256
+        self.hid_st_dim = cfg.CLEVRERMAIN.LSTM_HID_DIM
         self.num_layers = 2
         self.num_directions = 2
         self.LSTM = torch.nn.LSTM(
