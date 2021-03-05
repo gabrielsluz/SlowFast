@@ -16,7 +16,7 @@ Prints information about the dataset for testing and debugging
 
 Example:
 python3 clevrer_dev/text_baseline/test_clevrer_text.py \
-  --cfg clevrer_dev/text_baseline/text_gru.yaml \
+  --cfg clevrer_dev/text_baseline/text_lstm.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   WORD_EMB.USE_PRETRAINED_EMB True \
   WORD_EMB.TRAINABLE True \
@@ -39,9 +39,9 @@ logging.setup_logging(cfg.OUTPUT_DIR)
 np.random.seed(cfg.RNG_SEED)
 torch.manual_seed(cfg.RNG_SEED)
 
-dataset = Clevrertext(cfg, 'train')
-dataset_des = Clevrertext_des(cfg, 'train')
-dataset_mc = Clevrertext_mc(cfg, 'train')
+dataset = Clevrertext(cfg, 'val')
+dataset_des = Clevrertext_des(cfg, 'val')
+dataset_mc = Clevrertext_mc(cfg, 'val')
 print("Dataset len = {}".format(len(dataset)))
 print("Dataset Des len = {}".format(len(dataset_des)))
 print("Dataset Mc len = {}".format(len(dataset_mc)))

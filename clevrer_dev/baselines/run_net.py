@@ -5,10 +5,18 @@
 Example:
 
 ----Clevrer dataset-----
+
 python3 clevrer_dev/baselines/run_net.py \
   --cfg clevrer_dev/baselines/cnn_lstm.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer_dummy \
   DATA.PATH_PREFIX /datasets/clevrer_dummy \
+  TRAIN.DATASET Clevrer_des \
+  TRAIN.ONLY_DES True \
+  TRAIN.ENABLE True \
+  WORD_EMB.USE_PRETRAINED_EMB False \
+  WORD_EMB.TRAINABLE True \
+  WORD_EMB.GLOVE_PATH '/datasets/word_embs/glove.6B/glove.6B.50d.txt' \
+  WORD_EMB.EMB_DIM 50 \
   NUM_GPUS 0 \
   LOG_PERIOD 1 \
   TRAIN.BATCH_SIZE 2 \
@@ -20,6 +28,13 @@ python3 clevrer_dev/baselines/run_net.py \
   --cfg clevrer_dev/baselines/cnn_lstm.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
+  TRAIN.DATASET Clevrer_des \
+  TRAIN.ONLY_DES True \
+  TRAIN.ENABLE True \
+  WORD_EMB.USE_PRETRAINED_EMB False \
+  WORD_EMB.TRAINABLE True \
+  WORD_EMB.GLOVE_PATH '/datasets/word_embs/glove.6B/glove.6B.50d.txt' \
+  WORD_EMB.EMB_DIM 50 \
   DATA.NUM_FRAMES 10 \
   DATA.SAMPLING_RATE 12 \
   NUM_GPUS 1 \
@@ -41,6 +56,7 @@ from slowfast.utils.parser import load_config, parse_args
 #from demo_net import demo
 # from test_net import test
 from train_net import train
+from train_net_des import train_des, test_implementation_des
 # from visualization import visualize
 
 
@@ -51,24 +67,16 @@ def main():
     args = parse_args()
     cfg = load_config(args)
 
-    # Perform training.
     if cfg.TRAIN.ENABLE:
-        launch_job(cfg=cfg, init_method=args.init_method, func=train)
-
-    # Perform multi-clip testing.
-    # if cfg.TEST.ENABLE:
-    #     launch_job(cfg=cfg, init_method=args.init_method, func=test)
-
-    # Perform model visualization.
-    # if cfg.TENSORBOARD.ENABLE and (
-    #     cfg.TENSORBOARD.MODEL_VIS.ENABLE
-    #     or cfg.TENSORBOARD.WRONG_PRED_VIS.ENABLE
-    # ):
-    #     launch_job(cfg=cfg, init_method=args.init_method, func=visualize)
-
-    # Run demo.
-    # if cfg.DEMO.ENABLE:
-    #     demo(cfg)
+        if cfg.TRAIN.ONLY_DES:
+            launch_job(cfg=cfg, init_method=args.init_method, func=train_des)
+        else:
+            launch_job(cfg=cfg, init_method=args.init_method, func=train)
+    else:
+        if cfg.TRAIN.ONLY_DES:
+            launch_job(cfg=cfg, init_method=args.init_method, func=test_implementation_des)
+        else:
+            launch_job(cfg=cfg, init_method=args.init_method, func=test_implementation)
 
 
 if __name__ == "__main__":
