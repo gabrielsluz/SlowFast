@@ -928,6 +928,7 @@ class ClevrerTrainMeter(object):
         logging.log_json_stats(stats)
 
         write_to_file(self.print_file, str(stats))
+        return stats
 
     def log_epoch_stats(self, cur_epoch):
         """
@@ -966,6 +967,7 @@ class ClevrerTrainMeter(object):
 
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
+        return stats
 
 
 class ClevrerValMeter(object):
@@ -1108,6 +1110,7 @@ class ClevrerValMeter(object):
             stats["mc_q_err"] = self.mb_mc_q_err.get_win_avg()
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
+        return stats
 
     def log_epoch_stats(self, cur_epoch):
         """
@@ -1147,3 +1150,4 @@ class ClevrerValMeter(object):
 
         logging.log_json_stats(stats)
         write_to_file(self.print_file, str(stats))
+        return stats
