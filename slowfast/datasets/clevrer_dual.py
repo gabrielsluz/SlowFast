@@ -325,7 +325,7 @@ class Clevrer_des(torch.utils.data.Dataset):
                     index = random.randint(0, len(self._path_to_videos) - 1)
                 continue
 
-            # Perform color normalization.
+            # #Perform color normalization.
             # frames = utils.tensor_normalize(
             #     frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
             # )

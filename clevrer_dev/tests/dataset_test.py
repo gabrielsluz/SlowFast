@@ -39,7 +39,8 @@ for i in range(max_i):
 #Test DataLoader
 dataloader = DataLoader(dataset, batch_size=1,
                         shuffle=True, num_workers=0)
-
+print("Vocab = {}".format(dataset.vocab))
+print("Ans_vocab = {}".format(dataset.ans_vocab))
 for i_batch, sample_batched in enumerate(dataloader):
     index = sample_batched['index'].item()
     print("Video info = {}".format(dataset.get_video_info(index)))
@@ -51,5 +52,5 @@ for i_batch, sample_batched in enumerate(dataloader):
 
     for i_frame in range(sample_batched['frames'].size()[1]):
         plt.imshow(sample_batched['frames'][0][i_frame].permute(1,2,0))
-        plt.savefig('./clevrer_dev/tests/sample_frame{}.png'.format(i_frame))
+        #plt.savefig('./clevrer_dev/tests/sample_frame{}.png'.format(i_frame))
     break

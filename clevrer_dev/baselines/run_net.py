@@ -16,13 +16,16 @@ python3 clevrer_dev/baselines/run_net.py \
   WORD_EMB.USE_PRETRAINED_EMB False \
   WORD_EMB.TRAINABLE True \
   WORD_EMB.GLOVE_PATH '/datasets/word_embs/glove.6B/glove.6B.50d.txt' \
-  WORD_EMB.EMB_DIM 50 \
+  WORD_EMB.EMB_DIM 5 \
+  CLEVRERMAIN.LSTM_HID_DIM 5 \
   NUM_GPUS 0 \
-  LOG_PERIOD 1 \
+  LOG_PERIOD 4 \
   TRAIN.BATCH_SIZE 2 \
-  TRAIN.EVAL_PERIOD 1 \
-  TRAIN.CHECKPOINT_PERIOD 1 \
-  SOLVER.MAX_EPOCH 1
+  TRAIN.EVAL_PERIOD 11 \
+  TRAIN.CHECKPOINT_PERIOD 3 \
+  SOLVER.WARMUP_START_LR 0.0001 \
+  SOLVER.WEIGHT_DECAY 0.0 \
+  SOLVER.MAX_EPOCH 11
 
 python3 clevrer_dev/baselines/run_net.py \
   --cfg clevrer_dev/baselines/cnn_lstm.yaml \

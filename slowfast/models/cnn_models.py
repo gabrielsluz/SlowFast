@@ -107,7 +107,6 @@ class CNN_MLP(nn.Module):
 
 
 #__--____--____---___-LSTM__--____--____---___-
-
 @MODEL_REGISTRY.register()
 class CNN_LSTM(nn.Module):
     """
@@ -168,8 +167,10 @@ class CNN_LSTM(nn.Module):
         self.enc_dim = cfg.WORD_EMB.EMB_DIM
         #ResNet
         self.frame_enc_dim = self.enc_dim
-        self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, num_classes=self.frame_enc_dim)
-
+        # norm_layer = nn.BatchNorm2d
+        # self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, 
+        #     num_classes=self.frame_enc_dim, norm_layer=norm_layer)
+        self.cnn = torchvision.models.AlexNet(num_classes=self.frame_enc_dim)
         #Question Embedding
         self.question_enc_dim = self.enc_dim
         self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim, padding_idx=1) #Index 1 is for pad token
@@ -230,15 +231,31 @@ class CNN_LSTM(nn.Module):
         """
         #Receives a batch of frames. To apply a CNN we can join the batch and time dimensions
         cb_sz = clips_b.size()
+        # print("Clips = {}".format(clips_b))
+        # print("Clips size = {}".format(clips_b.size()))
+        # print("Cat clips = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])))
+        # print("Cat clips size = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]).size()))
         frame_encs = self.cnn(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+        # print("Frame_encs after cnn = {}".format(frame_encs))
+        # print("Frame_encs after cnn size = {}".format(frame_encs.size()))
         frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.frame_enc_dim) #Returns to batch format
+        # print("Frame_encs in batch format = {}".format(frame_encs))
+        # print("Frame_encs in batch format size = {}".format(frame_encs.size()))
         #Question embbeding and aggregation
+        # print("Questions = {}".format(question_b))
+        # print("Questions size = {}".format(question_b.size()))
         word_encs = self.embed_layer(question_b)
+        # print("Questions embeddings {}".format(word_encs))
+        # print("Questions embeddings size{}".format(word_encs.size()))
         #Concatenate question and video encodings
         rnn_input = torch.cat((word_encs, frame_encs), dim=1)
+        # print("Rnn input = {}".format(rnn_input))
+        # print("Rnn input size = {}".format(rnn_input.size()))
         #LSTM
         _, (h_n, _) = self.LSTM(rnn_input)
         x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
+        # print("Rnn cat output = {}".format(x))
+        # print("Rnn cat output size = {}".format(x.size()))
         if is_des_q:
             return self.des_pred_head(x)
         else:

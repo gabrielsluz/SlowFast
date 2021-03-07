@@ -121,7 +121,7 @@ def train_epoch(
             print(top1_err, top5_err)
             print("Loss_des_val = {}".format(loss_des_val))
             test_counter += 1
-            if test_counter == 4: 
+            if test_counter == 1: 
                 break
 
     # Log epoch stats.
@@ -211,7 +211,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=False):
             print(top1_err, top5_err)
             print("Loss_des_val = {}".format(loss_des_val))
             test_counter += 1
-            if test_counter == 4: 
+            if test_counter == 1: 
                 break
 
     # Log epoch stats.
