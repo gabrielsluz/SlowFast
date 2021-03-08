@@ -235,6 +235,9 @@ class CNN_LSTM(nn.Module):
         # print("Clips size = {}".format(clips_b.size()))
         # print("Cat clips = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])))
         # print("Cat clips size = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]).size()))
+        # print("CNN weights = ")
+        # for name, param in self.cnn.named_parameters():
+        #     print(name, param)
         frame_encs = self.cnn(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
         # print("Frame_encs after cnn = {}".format(frame_encs))
         # print("Frame_encs after cnn size = {}".format(frame_encs.size()))
