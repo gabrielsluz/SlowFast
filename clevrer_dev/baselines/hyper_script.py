@@ -88,7 +88,7 @@ def get_init_params_cfg():
     cfg.MODEL.MODEL_NAME = "CNN_LSTM"
 
     cfg.NUM_GPUS = 1
-    cfg.LOG_PERIOD = 100
+    cfg.LOG_PERIOD = 20
     cfg.OUTPUT_DIR = "./"
 
     cfg.WORD_EMB.USE_PRETRAINED_EMB = False

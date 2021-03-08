@@ -25,7 +25,9 @@ python3 clevrer_dev/baselines/run_net.py \
   TRAIN.CHECKPOINT_PERIOD 3 \
   SOLVER.WARMUP_START_LR 0.0001 \
   SOLVER.WEIGHT_DECAY 0.0 \
-  SOLVER.MAX_EPOCH 11
+  DATA.MAX_TRAIN_LEN 5 \
+  DATA.MAX_VAL_LEN None \
+  SOLVER.MAX_EPOCH 1
 
 python3 clevrer_dev/baselines/run_net.py \
   --cfg clevrer_dev/baselines/cnn_lstm.yaml \
