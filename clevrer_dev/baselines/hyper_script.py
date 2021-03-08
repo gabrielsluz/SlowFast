@@ -74,7 +74,7 @@ def get_init_params_cfg():
     cfg.SOLVER.LR_POLICY = "cosine"
     cfg.SOLVER.COSINE_END_LR = 0.00005
     cfg.SOLVER.EPOCH_CYCLE = 40.0
-    cfg.SOLVER.MAX_EPOCH = 5
+    cfg.SOLVER.MAX_EPOCH = 1
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.NESTEROV = True
     cfg.SOLVER.WEIGHT_DECAY = 0.00001
@@ -104,7 +104,10 @@ def get_init_params_cfg():
 def main():
     init_method = 'tcp://localhost:9999'
     cfg = get_init_params_cfg()
-    launch_job(cfg=cfg, init_method=init_method, func=train_des)
+    with open(cfg.TRAIN.TRAIN_STATS_FILE, 'a') as f:
+        f.write(str(dict(cfg.items())))
+        f.write('\n')
+    launch_job(cfg=cfg, init_method=init_method, func=train_des)  
 
 
 if __name__ == "__main__":
