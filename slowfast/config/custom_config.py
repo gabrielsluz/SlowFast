@@ -26,6 +26,10 @@ def add_custom_config(_C):
     #Data params for resizing Height and Width
     _C.DATA.RESIZE_H = 64
     _C.DATA.RESIZE_W = 64
+    
+    #Able to support dataset with certain size
+    _C.DATA.MAX_TRAIN_LEN = None
+    _C.DATA.MAX_VAL_LEN= None
 
     #CLEVRERMain parameters
     _C.CLEVRERMAIN = CfgNode()

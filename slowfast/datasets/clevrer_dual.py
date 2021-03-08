@@ -204,6 +204,7 @@ class Clevrer_des(torch.utils.data.Dataset):
         self._create_vocabs(path_to_file)
         #Main data structure
         self._dataset = []
+        max_len = self.cfg.DATA.MAX_TRAIN_LEN if self.mode == 'train' else self.cfg.DATA.MAX_VAL_LEN
 
         with g_pathmgr.open(path_to_file, "r") as f:
             data = json.load(f)
@@ -211,6 +212,9 @@ class Clevrer_des(torch.utils.data.Dataset):
                 path = get_filepath(self.mode, int(data[i]['scene_index']))
                 full_path = os.path.join(self.cfg.DATA.PATH_PREFIX, path)
                 self._dataset += self._constructs_questions_ans(data[i], full_path)
+                if not max_len is None:
+                    if len(self._dataset) >= max_len:
+                        break
 
         assert (
             len(self._dataset) > 0
