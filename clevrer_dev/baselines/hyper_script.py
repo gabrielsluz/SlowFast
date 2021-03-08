@@ -52,7 +52,7 @@ def get_init_params_cfg():
     cfg = get_cfg()
     cfg.TRAIN.ENABLE = True
     cfg.TRAIN.ONLY_DES = True
-    cfg.TRAIN.DATASET = Clevrer_des
+    cfg.TRAIN.DATASET = "Clevrer_des"
     cfg.TRAIN.BATCH_SIZE = 75
     cfg.TRAIN.EVAL_PERIOD = 1
     cfg.TRAIN.CHECKPOINT_PERIOD = 1
@@ -71,7 +71,7 @@ def get_init_params_cfg():
     cfg.DATA.PATH_PREFIX = "/datasets/clevrer"
 
     cfg.SOLVER.BASE_LR = 0.001
-    cfg.SOLVER.LR_POLICY = cosine
+    cfg.SOLVER.LR_POLICY = "cosine"
     cfg.SOLVER.COSINE_END_LR = 0.00005
     cfg.SOLVER.EPOCH_CYCLE = 40.0
     cfg.SOLVER.MAX_EPOCH = 5
@@ -80,13 +80,14 @@ def get_init_params_cfg():
     cfg.SOLVER.WEIGHT_DECAY = 0.00001
     cfg.SOLVER.WARMUP_EPOCHS = 0.0
     cfg.SOLVER.WARMUP_START_LR = 0.01
-    cfg.SOLVER.OPTIMIZING_METHOD = adam
+    cfg.SOLVER.OPTIMIZING_METHOD = "adam"
     
-    cfg.MODEL.ARCH = CNN_LSTM
-    cfg.MODEL.MODEL_NAME = CNN_LSTM
+    cfg.MODEL.ARCH = "CNN_LSTM"
+    cfg.MODEL.MODEL_NAME = "CNN_LSTM"
 
     cfg.NUM_GPUS = 1
     cfg.LOG_PERIOD = 100
+    cfg.OUTPUT_DIR = "./"
 
     cfg.WORD_EMB.USE_PRETRAINED_EMB = False
     cfg.WORD_EMB.TRAINABLE = True
@@ -103,4 +104,8 @@ def get_init_params_cfg():
 def main():
     init_method = 'tcp://localhost:9999'
     cfg = get_init_params_cfg()
-    launch_job(cfg=cfg, init_method=args.init_method, func=train_des)
+    launch_job(cfg=cfg, init_method=init_method, func=train_des)
+
+
+if __name__ == "__main__":
+    main()
