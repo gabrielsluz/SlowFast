@@ -37,7 +37,7 @@ python3 clevrer_dev/baselines/run_net.py \
   SOLVER.LR_POLICY cosine \
   SOLVER.BASE_LR 0.001 \
   SOLVER.COSINE_END_LR 0.00005 \
-  SOLVER.WEIGHT_DECAY 0.00001 \
+  SOLVER.WEIGHT_DECAY 0.00005 \
   SOLVER.OPTIMIZING_METHOD adam \
   SOLVER.MAX_EPOCH 2
 {"_type": "val_iter", "epoch": "1/2", "eta": "0:01:24", "gpu_mem": "4.48G", "iter": "100/734", "loss_des": 4.77786, "time_diff": 0.13320, "top1_err": 84.00000, "top5_err": 50.04000}
@@ -69,6 +69,8 @@ def get_init_params_cfg():
     cfg.DATA.INPUT_CHANNEL_NUM = [3]
     cfg.DATA.PATH_TO_DATA_DIR = "/datasets/clevrer"
     cfg.DATA.PATH_PREFIX = "/datasets/clevrer"
+    cfg.DATA.MAX_TRAIN_LEN = 20000
+    cfg.DATA.MAX_VAL_LEN = 5000
 
     cfg.SOLVER.BASE_LR = 0.001
     cfg.SOLVER.LR_POLICY = "cosine"
