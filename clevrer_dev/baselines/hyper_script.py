@@ -69,7 +69,7 @@ def get_init_params_cfg():
     cfg.DATA.INPUT_CHANNEL_NUM = [3]
     cfg.DATA.PATH_TO_DATA_DIR = "/datasets/clevrer"
     cfg.DATA.PATH_PREFIX = "/datasets/clevrer"
-    cfg.DATA.MAX_TRAIN_LEN = 20000
+    cfg.DATA.MAX_TRAIN_LEN = 40000
     cfg.DATA.MAX_VAL_LEN = 5000
 
     cfg.SOLVER.BASE_LR = 0.001
@@ -79,8 +79,7 @@ def get_init_params_cfg():
     cfg.SOLVER.MAX_EPOCH = 1
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.NESTEROV = True
-    #cfg.SOLVER.WEIGHT_DECAY = 0.00005
-    cfg.SOLVER.WEIGHT_DECAY = 0.00001
+    cfg.SOLVER.WEIGHT_DECAY = 0.00005
     cfg.SOLVER.WARMUP_EPOCHS = 0.0
     cfg.SOLVER.WARMUP_START_LR = 0.01
     cfg.SOLVER.OPTIMIZING_METHOD = "adam"
@@ -111,8 +110,12 @@ def run_exp(cfg):
 
 def main():
     init_method = 'tcp://localhost:9999'
+    #1
     cfg = get_init_params_cfg()
     run_exp(cfg) 
+    #2
+    cfg.SOLVER.WEIGHT_DECAY = 0.00001
+    run_exp(cfg)
 
 
 if __name__ == "__main__":
