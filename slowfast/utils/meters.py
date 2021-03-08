@@ -819,7 +819,6 @@ class ClevrerTrainMeter(object):
         self.output_dir = cfg.OUTPUT_DIR
 
         self.print_file = cfg.TRAIN.TRAIN_STATS_FILE
-        clear_file(self.print_file)
 
     def reset(self):
         """
@@ -1013,7 +1012,6 @@ class ClevrerValMeter(object):
         self.output_dir = cfg.OUTPUT_DIR
 
         self.print_file = cfg.TRAIN.TRAIN_STATS_FILE
-        clear_file(self.print_file)
 
     def reset(self):
         """
