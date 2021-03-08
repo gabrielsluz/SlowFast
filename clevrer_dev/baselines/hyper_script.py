@@ -77,7 +77,7 @@ def get_init_params_cfg():
     cfg.SOLVER.MAX_EPOCH = 1
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.NESTEROV = True
-    cfg.SOLVER.WEIGHT_DECAY = 0.00001
+    cfg.SOLVER.WEIGHT_DECAY = 0.00005
     cfg.SOLVER.WARMUP_EPOCHS = 0.0
     cfg.SOLVER.WARMUP_START_LR = 0.01
     cfg.SOLVER.OPTIMIZING_METHOD = "adam"
