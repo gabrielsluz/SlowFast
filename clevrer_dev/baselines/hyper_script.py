@@ -109,13 +109,12 @@ def run_exp(cfg):
     launch_job(cfg=cfg, init_method=init_method, func=train_des) 
 
 def main():
-    init_method = 'tcp://localhost:9999'
     #1
     cfg = get_init_params_cfg()
     run_exp(cfg) 
     #2
-    cfg.SOLVER.WEIGHT_DECAY = 0.00001
-    run_exp(cfg)
+    # cfg.SOLVER.WEIGHT_DECAY = 0.00001
+    # run_exp(cfg)
 
 
 if __name__ == "__main__":
