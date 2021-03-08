@@ -79,7 +79,8 @@ def get_init_params_cfg():
     cfg.SOLVER.MAX_EPOCH = 1
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.NESTEROV = True
-    cfg.SOLVER.WEIGHT_DECAY = 0.00005
+    #cfg.SOLVER.WEIGHT_DECAY = 0.00005
+    cfg.SOLVER.WEIGHT_DECAY = 0.00001
     cfg.SOLVER.WARMUP_EPOCHS = 0.0
     cfg.SOLVER.WARMUP_START_LR = 0.01
     cfg.SOLVER.OPTIMIZING_METHOD = "adam"
@@ -101,15 +102,17 @@ def get_init_params_cfg():
 
     return cfg
 
-
+def run_exp(cfg):
+    init_method = 'tcp://localhost:9999'
+    with open(cfg.TRAIN.TRAIN_STATS_FILE, 'a') as f:
+        f.write(str(dict(cfg.items())))
+        f.write('\n')
+    launch_job(cfg=cfg, init_method=init_method, func=train_des) 
 
 def main():
     init_method = 'tcp://localhost:9999'
     cfg = get_init_params_cfg()
-    with open(cfg.TRAIN.TRAIN_STATS_FILE, 'a') as f:
-        f.write(str(dict(cfg.items())))
-        f.write('\n')
-    launch_job(cfg=cfg, init_method=init_method, func=train_des)  
+    run_exp(cfg) 
 
 
 if __name__ == "__main__":
