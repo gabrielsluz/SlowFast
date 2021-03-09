@@ -69,8 +69,8 @@ def get_init_params_cfg():
     cfg.DATA.INPUT_CHANNEL_NUM = [3]
     cfg.DATA.PATH_TO_DATA_DIR = "/datasets/clevrer"
     cfg.DATA.PATH_PREFIX = "/datasets/clevrer"
-    cfg.DATA.MAX_TRAIN_LEN = None
-    cfg.DATA.MAX_VAL_LEN = None
+    cfg.DATA.MAX_TRAIN_LEN = 30000
+    cfg.DATA.MAX_VAL_LEN = 10000
 
     cfg.SOLVER.BASE_LR = 0.0001
     cfg.SOLVER.LR_POLICY = "cosine"
