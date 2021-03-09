@@ -186,7 +186,7 @@ class CNN_LSTM(nn.Module):
         self.num_layers = 2
         self.num_directions = 2
         self.LSTM = torch.nn.LSTM(
-            input_size=self.enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
+            input_size=self.enc_dim+2, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
             bias=True, batch_first=True, dropout=cfg.CLEVRERMAIN.T_DROPOUT, bidirectional=True
         )
         #Prediction head MLP
@@ -251,6 +251,17 @@ class CNN_LSTM(nn.Module):
         word_encs = self.embed_layer(question_b)
         # print("Questions embeddings {}".format(word_encs))
         # print("Questions embeddings size{}".format(word_encs.size()))
+        #Indicate which are words and which are frames
+        ones_v = torch.ones((cb_sz[0], cb_sz[1]+word_encs.size(1), 1))
+        zeros_v = torch.zeros((cb_sz[0], cb_sz[1]+word_encs.size(1), 1))
+        if self.num_gpus:
+            cur_device = torch.cuda.current_device()
+            ones_v = ones_v.cuda(device=cur_device)
+            zeros_v = zeros_v.cuda(device=cur_device)
+        word_encs = torch.cat((word_encs, ones_v[:,0:word_encs.size(1)], zeros_v[:,0:word_encs.size(1)]), dim=2)
+        frame_encs = torch.cat((frame_encs, zeros_v[:,0:cb_sz[1]], ones_v[:,0:cb_sz[1]]), dim=2)
+        # print("Word_encs with indicator: {}".format(word_encs))
+        # print("Frame_encs with indicator: {}".format(frame_encs))
         #Concatenate question and video encodings
         rnn_input = torch.cat((word_encs, frame_encs), dim=1)
         # print("Rnn input = {}".format(rnn_input))
@@ -342,6 +353,7 @@ class CNN_Transformer(nn.Module):
             self.embed_layer.weight.requires_grad = False
 
         #Transformer
+        self.trans_dim = self.enc_dim + 2
         self.Transformer = Transformer(input_dim=self.trans_dim, 
                                         nhead=cfg.CLEVRERMAIN.T_HEADS, hid_dim=cfg.CLEVRERMAIN.T_HID_DIM, 
                                         nlayers=cfg.CLEVRERMAIN.T_LAYERS, dropout=cfg.CLEVRERMAIN.T_DROPOUT)
@@ -407,15 +419,25 @@ class CNN_Transformer(nn.Module):
         word_encs = self.embed_layer(question_b)
         # print("Questions embeddings {}".format(word_encs))
         # print("Questions embeddings size{}".format(word_encs.size()))
+        #Indicate which are words and which are frames
+        ones_v = torch.ones((cb_sz[0], cb_sz[1]+word_encs.size(1), 1))
+        zeros_v = torch.zeros((cb_sz[0], cb_sz[1]+word_encs.size(1), 1))
+        if self.num_gpus:
+            cur_device = torch.cuda.current_device()
+            ones_v = ones_v.cuda(device=cur_device)
+            zeros_v = zeros_v.cuda(device=cur_device)
+        word_encs = torch.cat((word_encs, ones_v[:,0:word_encs.size(1)], zeros_v[:,0:word_encs.size(1)]), dim=2)
+        frame_encs = torch.cat((frame_encs, zeros_v[:,0:cb_sz[1]], ones_v[:,0:cb_sz[1]]), dim=2)
+        # print("Word_encs with indicator: {}".format(word_encs))
+        # print("Frame_encs with indicator: {}".format(frame_encs))
         #Concatenate question and video encodings
-        rnn_input = torch.cat((word_encs, frame_encs), dim=1)
-        # print("Rnn input = {}".format(rnn_input))
-        # print("Rnn input size = {}".format(rnn_input.size()))
-        #LSTM
-        _, (h_n, _) = self.LSTM(rnn_input)
-        x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
-        # print("Rnn cat output = {}".format(x))
-        # print("Rnn cat output size = {}".format(x.size()))
+        trans_input = torch.cat((word_encs, frame_encs), dim=1)
+        print("Rnn input = {}".format(rnn_input))
+        print("Rnn input size = {}".format(rnn_input.size()))
+        #Transformer
+        x = self.LSTM(trans_input)
+        print("Transformer output = {}".format(x))
+        print("Transformer output size = {}".format(x.size()))
         if is_des_q:
             return self.des_pred_head(x)
         else:
