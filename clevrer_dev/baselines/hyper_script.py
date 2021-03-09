@@ -111,11 +111,31 @@ def run_exp(cfg):
 def main():
     #1
     cfg = get_init_params_cfg()
+    cfg.SOLVER.WEIGHT_DECAY = 0.01
     run_exp(cfg) 
     #2
-    # cfg.SOLVER.WEIGHT_DECAY = 0.00001
-    # run_exp(cfg)
-
+    cfg.SOLVER.WEIGHT_DECAY = 0.001
+    run_exp(cfg)
+    #3
+    cfg.SOLVER.WEIGHT_DECAY = 0.005
+    run_exp(cfg)
+    #4
+    cfg.SOLVER.WEIGHT_DECAY = 0.0005
+    run_exp(cfg)
+    #5
+    cfg.SOLVER.BASE_LR = 0.001
+    cfg.SOLVER.WEIGHT_DECAY = 0.005
+    run_exp(cfg)
+    #6
+    cfg.SOLVER.BASE_LR = 0.01
+    cfg.SOLVER.WEIGHT_DECAY = 0.01
+    run_exp(cfg)
+    #7
+    cfg.SOLVER.BASE_LR = 0.001
+    cfg.SOLVER.WEIGHT_DECAY = 0.005
+    cfg.DATA.MAX_TRAIN_LEN = None
+    cfg.DATA.MAX_VAL_LEN = None
+    run_exp(cfg)
 
 if __name__ == "__main__":
     main()
