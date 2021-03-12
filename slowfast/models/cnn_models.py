@@ -169,9 +169,9 @@ class CNN_LSTM(nn.Module):
         #ResNet
         self.frame_enc_dim = self.enc_dim
         # norm_layer = nn.BatchNorm2d
-        # self.cnn = torchvision.models.resnet18(pretrained=True, progress=True, 
-        #     num_classes=self.frame_enc_dim, norm_layer=norm_layer)
-        self.cnn = torchvision.models.AlexNet(num_classes=self.frame_enc_dim, pretrained=True)
+        self.cnn = torchvision.models.resnet18(pretrained=True, progress=True, 
+            num_classes=self.frame_enc_dim, norm_layer=norm_layer)
+        # self.cnn = torchvision.models.AlexNet(num_classes=self.frame_enc_dim, pretrained=True)
         #Question Embedding
         self.question_enc_dim = self.enc_dim
         self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim, padding_idx=1) #Index 1 is for pad token
