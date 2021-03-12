@@ -53,7 +53,7 @@ def get_init_params_cfg():
     cfg.TRAIN.ENABLE = True
     cfg.TRAIN.ONLY_DES = True
     cfg.TRAIN.DATASET = "Clevrer_des"
-    cfg.TRAIN.BATCH_SIZE = 75
+    cfg.TRAIN.BATCH_SIZE = 32
     cfg.TRAIN.EVAL_PERIOD = 1
     cfg.TRAIN.CHECKPOINT_PERIOD = 1
     cfg.TRAIN.AUTO_RESUME = True
