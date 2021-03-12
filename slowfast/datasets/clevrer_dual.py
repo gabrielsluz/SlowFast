@@ -329,17 +329,14 @@ class Clevrer_des(torch.utils.data.Dataset):
                     index = random.randint(0, len(self._path_to_videos) - 1)
                 continue
 
-            # #Perform color normalization.
-            # frames = utils.tensor_normalize(
-            #     frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
-            # )
             # T H W C -> T C H W.
             frames = frames.permute(0, 3, 1, 2)
             # Perform resize
             transform_rs = transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W]),
-                transforms.ToTensor()
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ])
             frames_size = frames.size()
             resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)

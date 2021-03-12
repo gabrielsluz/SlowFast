@@ -340,9 +340,9 @@ class CNN_Transformer(nn.Module):
         #ResNet
         self.frame_enc_dim = self.enc_dim
         # norm_layer = nn.BatchNorm2d
-        # self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, 
+        # self.cnn = torchvision.models.resnet18(pretrained=True, progress=True, 
         #     num_classes=self.frame_enc_dim, norm_layer=norm_layer)
-        self.cnn = torchvision.models.AlexNet(num_classes=self.frame_enc_dim)
+        self.cnn = torchvision.models.AlexNet(num_classes=self.frame_enc_dim, pretrained=True)
         #Question Embedding
         self.question_enc_dim = self.enc_dim
         self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim, padding_idx=1) #Index 1 is for pad token
@@ -360,7 +360,7 @@ class CNN_Transformer(nn.Module):
         #Prediction head MLP
         hid_dim = 2048
         hid_dim_2 = 2048
-        ph_input_dim = self.hid_st_dim*2
+        ph_input_dim = cfg.CLEVRERMAIN.T_HID_DIM
         #Question especific
         self.des_pred_head = nn.Sequential(
             nn.Linear(ph_input_dim, hid_dim),
@@ -432,10 +432,10 @@ class CNN_Transformer(nn.Module):
         # print("Frame_encs with indicator: {}".format(frame_encs))
         #Concatenate question and video encodings
         trans_input = torch.cat((word_encs, frame_encs), dim=1)
-        print("Rnn input = {}".format(rnn_input))
-        print("Rnn input size = {}".format(rnn_input.size()))
+        print("trans_input = {}".format(trans_input))
+        print("trans_input size = {}".format(trans_input.size()))
         #Transformer
-        x = self.LSTM(trans_input)
+        x = self.Transformer(trans_input)
         print("Transformer output = {}".format(x))
         print("Transformer output size = {}".format(x.size()))
         if is_des_q:
