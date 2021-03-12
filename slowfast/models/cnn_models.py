@@ -165,7 +165,8 @@ class CNN_LSTM(nn.Module):
         self.ans_vocab_len = ans_vocab_len
         self.vocab = vocab
         #Input dimension for LSTM
-        self.enc_dim = cfg.WORD_EMB.EMB_DIM
+        # self.enc_dim = cfg.WORD_EMB.EMB_DIM
+        self.enc_dim = 1000
         #ResNet
         self.frame_enc_dim = self.enc_dim
         norm_layer = nn.BatchNorm2d
