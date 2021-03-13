@@ -54,32 +54,32 @@ def get_init_params_cfg():
     cfg.TRAIN.ONLY_DES = True
     cfg.TRAIN.DATASET = "Clevrer_des"
     cfg.TRAIN.BATCH_SIZE = 32
-    cfg.TRAIN.EVAL_PERIOD = 1
+    cfg.TRAIN.EVAL_PERIOD = 2
     cfg.TRAIN.CHECKPOINT_PERIOD = 1
     cfg.TRAIN.AUTO_RESUME = True
     cfg.TRAIN.TRAIN_STATS_FILE = "./train_stats_hyper.txt"
 
     cfg.DATA.RESIZE_H = 224
     cfg.DATA.RESIZE_W = 224
-    cfg.DATA.NUM_FRAMES = 10
-    cfg.DATA.SAMPLING_RATE = 12
+    cfg.DATA.NUM_FRAMES = 15
+    cfg.DATA.SAMPLING_RATE = 8
     cfg.DATA.TRAIN_JITTER_SCALES = [256, 320]
     cfg.DATA.TRAIN_CROP_SIZE = 224 
     cfg.DATA.TEST_CROP_SIZE = 224
     cfg.DATA.INPUT_CHANNEL_NUM = [3]
     cfg.DATA.PATH_TO_DATA_DIR = "/datasets/clevrer"
     cfg.DATA.PATH_PREFIX = "/datasets/clevrer"
-    cfg.DATA.MAX_TRAIN_LEN = 10000
-    cfg.DATA.MAX_VAL_LEN = 1000
+    cfg.DATA.MAX_TRAIN_LEN = None
+    cfg.DATA.MAX_VAL_LEN = None
 
     cfg.SOLVER.BASE_LR = 0.0001
     cfg.SOLVER.LR_POLICY = "cosine"
-    cfg.SOLVER.COSINE_END_LR = 0.00005
-    cfg.SOLVER.EPOCH_CYCLE = 40.0
-    cfg.SOLVER.MAX_EPOCH = 1
+    cfg.SOLVER.COSINE_END_LR = 0.00001
+    cfg.SOLVER.EPOCH_CYCLE = 10.0
+    cfg.SOLVER.MAX_EPOCH = 10
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.NESTEROV = True
-    cfg.SOLVER.WEIGHT_DECAY = 0.05
+    cfg.SOLVER.WEIGHT_DECAY = 0.001
     cfg.SOLVER.WARMUP_EPOCHS = 0.0
     cfg.SOLVER.WARMUP_START_LR = 0.01
     cfg.SOLVER.OPTIMIZING_METHOD = "adam"
@@ -88,7 +88,7 @@ def get_init_params_cfg():
     cfg.MODEL.MODEL_NAME = "CNN_LSTM"
 
     cfg.NUM_GPUS = 1
-    cfg.LOG_PERIOD = 20
+    cfg.LOG_PERIOD = 100
     cfg.OUTPUT_DIR = "./"
 
     cfg.WORD_EMB.USE_PRETRAINED_EMB = False
@@ -111,31 +111,30 @@ def run_exp(cfg):
 def main():
     #1
     cfg = get_init_params_cfg()
-    cfg.SOLVER.WEIGHT_DECAY = 0.01
     run_exp(cfg) 
     #2
-    cfg.SOLVER.WEIGHT_DECAY = 0.001
-    run_exp(cfg)
-    #3
-    cfg.SOLVER.WEIGHT_DECAY = 0.005
-    run_exp(cfg)
-    #4
-    cfg.SOLVER.WEIGHT_DECAY = 0.0005
-    run_exp(cfg)
-    #5
-    cfg.SOLVER.BASE_LR = 0.001
-    cfg.SOLVER.WEIGHT_DECAY = 0.005
-    run_exp(cfg)
-    #6
-    cfg.SOLVER.BASE_LR = 0.01
-    cfg.SOLVER.WEIGHT_DECAY = 0.01
-    run_exp(cfg)
-    #7
-    cfg.SOLVER.BASE_LR = 0.001
-    cfg.SOLVER.WEIGHT_DECAY = 0.005
-    cfg.DATA.MAX_TRAIN_LEN = None
-    cfg.DATA.MAX_VAL_LEN = None
-    run_exp(cfg)
+    # cfg.SOLVER.WEIGHT_DECAY = 0.001
+    # run_exp(cfg)
+    # #3
+    # cfg.SOLVER.WEIGHT_DECAY = 0.005
+    # run_exp(cfg)
+    # #4
+    # cfg.SOLVER.WEIGHT_DECAY = 0.0005
+    # run_exp(cfg)
+    # #5
+    # cfg.SOLVER.BASE_LR = 0.001
+    # cfg.SOLVER.WEIGHT_DECAY = 0.005
+    # run_exp(cfg)
+    # #6
+    # cfg.SOLVER.BASE_LR = 0.01
+    # cfg.SOLVER.WEIGHT_DECAY = 0.01
+    # run_exp(cfg)
+    # #7
+    # cfg.SOLVER.BASE_LR = 0.001
+    # cfg.SOLVER.WEIGHT_DECAY = 0.005
+    # cfg.DATA.MAX_TRAIN_LEN = None
+    # cfg.DATA.MAX_VAL_LEN = None
+    # run_exp(cfg)
 
 if __name__ == "__main__":
     main()
