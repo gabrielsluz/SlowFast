@@ -72,14 +72,14 @@ def get_init_params_cfg():
     cfg.DATA.MAX_TRAIN_LEN = None
     cfg.DATA.MAX_VAL_LEN = None
 
-    cfg.SOLVER.BASE_LR = 0.0001
+    cfg.SOLVER.BASE_LR = 0.001
     cfg.SOLVER.LR_POLICY = "cosine"
     cfg.SOLVER.COSINE_END_LR = 0.000001
     cfg.SOLVER.EPOCH_CYCLE = 1.0
     cfg.SOLVER.MAX_EPOCH = 10
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.NESTEROV = True
-    cfg.SOLVER.WEIGHT_DECAY = 0.00001
+    cfg.SOLVER.WEIGHT_DECAY = 0.000001
     cfg.SOLVER.WARMUP_EPOCHS = 0.0
     cfg.SOLVER.WARMUP_START_LR = 0.01
     cfg.SOLVER.OPTIMIZING_METHOD = "adam"
