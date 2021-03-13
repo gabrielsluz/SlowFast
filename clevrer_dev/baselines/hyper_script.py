@@ -74,8 +74,8 @@ def get_init_params_cfg():
 
     cfg.SOLVER.BASE_LR = 0.0001
     cfg.SOLVER.LR_POLICY = "cosine"
-    cfg.SOLVER.COSINE_END_LR = 0.00001
-    cfg.SOLVER.EPOCH_CYCLE = 10.0
+    cfg.SOLVER.COSINE_END_LR = 0.000001
+    cfg.SOLVER.EPOCH_CYCLE = 1.0
     cfg.SOLVER.MAX_EPOCH = 10
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.NESTEROV = True
