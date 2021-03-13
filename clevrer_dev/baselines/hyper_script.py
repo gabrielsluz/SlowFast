@@ -72,9 +72,9 @@ def get_init_params_cfg():
     cfg.DATA.MAX_TRAIN_LEN = None
     cfg.DATA.MAX_VAL_LEN = None
 
-    cfg.SOLVER.BASE_LR = 0.001
+    cfg.SOLVER.BASE_LR = 0.0001
     cfg.SOLVER.LR_POLICY = "cosine"
-    cfg.SOLVER.COSINE_END_LR = 0.000001
+    cfg.SOLVER.COSINE_END_LR = 0.00001
     cfg.SOLVER.EPOCH_CYCLE = 1.0
     cfg.SOLVER.MAX_EPOCH = 10
     cfg.SOLVER.MOMENTUM = 0.9
@@ -82,7 +82,7 @@ def get_init_params_cfg():
     cfg.SOLVER.WEIGHT_DECAY = 0.000001
     cfg.SOLVER.WARMUP_EPOCHS = 0.0
     cfg.SOLVER.WARMUP_START_LR = 0.01
-    cfg.SOLVER.OPTIMIZING_METHOD = "adam"
+    cfg.SOLVER.OPTIMIZING_METHOD = "sgd"
     
     cfg.MODEL.ARCH = "CNN_LSTM"
     cfg.MODEL.MODEL_NAME = "CNN_LSTM"
@@ -96,7 +96,7 @@ def get_init_params_cfg():
     cfg.WORD_EMB.GLOVE_PATH = '/datasets/word_embs/glove.6B/glove.6B.50d.txt'
     cfg.WORD_EMB.EMB_DIM = 1000
 
-    cfg.CLEVRERMAIN.LSTM_HID_DIM = 512
+    cfg.CLEVRERMAIN.LSTM_HID_DIM = 1024
     cfg.CLEVRERMAIN.T_DROPOUT = 0.5
 
     return cfg
