@@ -53,7 +53,7 @@ def get_init_params_cfg():
     cfg.TRAIN.ENABLE = True
     cfg.TRAIN.ONLY_DES = True
     cfg.TRAIN.DATASET = "Clevrer_des"
-    cfg.TRAIN.BATCH_SIZE = 16
+    cfg.TRAIN.BATCH_SIZE = 8
     cfg.TRAIN.EVAL_PERIOD = 1
     cfg.TRAIN.CHECKPOINT_PERIOD = 1
     cfg.TRAIN.AUTO_RESUME = True
@@ -61,8 +61,8 @@ def get_init_params_cfg():
 
     cfg.DATA.RESIZE_H = 224
     cfg.DATA.RESIZE_W = 224
-    cfg.DATA.NUM_FRAMES = 15
-    cfg.DATA.SAMPLING_RATE = 8
+    cfg.DATA.NUM_FRAMES = 25
+    cfg.DATA.SAMPLING_RATE = 5
     cfg.DATA.TRAIN_JITTER_SCALES = [256, 320]
     cfg.DATA.TRAIN_CROP_SIZE = 224 
     cfg.DATA.TEST_CROP_SIZE = 224
@@ -72,9 +72,9 @@ def get_init_params_cfg():
     cfg.DATA.MAX_TRAIN_LEN = None
     cfg.DATA.MAX_VAL_LEN = None
 
-    cfg.SOLVER.BASE_LR = 0.001
+    cfg.SOLVER.BASE_LR = 0.0001
     cfg.SOLVER.LR_POLICY = "cosine"
-    cfg.SOLVER.COSINE_END_LR = 0.0001
+    cfg.SOLVER.COSINE_END_LR = 0.00001
     cfg.SOLVER.EPOCH_CYCLE = 1.0
     cfg.SOLVER.MAX_EPOCH = 10
     cfg.SOLVER.MOMENTUM = 0.9
@@ -112,29 +112,7 @@ def main():
     #1
     cfg = get_init_params_cfg()
     run_exp(cfg) 
-    #2
-    # cfg.SOLVER.WEIGHT_DECAY = 0.001
-    # run_exp(cfg)
-    # #3
-    # cfg.SOLVER.WEIGHT_DECAY = 0.005
-    # run_exp(cfg)
-    # #4
-    # cfg.SOLVER.WEIGHT_DECAY = 0.0005
-    # run_exp(cfg)
-    # #5
-    # cfg.SOLVER.BASE_LR = 0.001
-    # cfg.SOLVER.WEIGHT_DECAY = 0.005
-    # run_exp(cfg)
-    # #6
-    # cfg.SOLVER.BASE_LR = 0.01
-    # cfg.SOLVER.WEIGHT_DECAY = 0.01
-    # run_exp(cfg)
-    # #7
-    # cfg.SOLVER.BASE_LR = 0.001
-    # cfg.SOLVER.WEIGHT_DECAY = 0.005
-    # cfg.DATA.MAX_TRAIN_LEN = None
-    # cfg.DATA.MAX_VAL_LEN = None
-    # run_exp(cfg)
+    #Then try higher weight decay
 
 if __name__ == "__main__":
     main()
