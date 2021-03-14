@@ -70,12 +70,12 @@ def get_init_params_cfg():
     cfg.DATA.PATH_TO_DATA_DIR = "/datasets/clevrer"
     cfg.DATA.PATH_PREFIX = "/datasets/clevrer"
     cfg.DATA.MAX_TRAIN_LEN = None
-    cfg.DATA.MAX_VAL_LEN = None
+    cfg.DATA.MAX_VAL_LEN = 20000
 
     cfg.SOLVER.BASE_LR = 0.001
     cfg.SOLVER.LR_POLICY = "cosine"
-    cfg.SOLVER.COSINE_END_LR = 0.00005
-    cfg.SOLVER.EPOCH_CYCLE = 2.0
+    cfg.SOLVER.COSINE_END_LR = 0.000001
+    cfg.SOLVER.EPOCH_CYCLE = 3.0
     cfg.SOLVER.MAX_EPOCH = 10
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.NESTEROV = True
