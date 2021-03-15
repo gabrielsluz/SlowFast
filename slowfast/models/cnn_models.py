@@ -117,7 +117,7 @@ class CNN_LSTM(nn.Module):
 
     def init_params(self, layer):
         if type(layer) == nn.Embedding:
-            nn.init.kaiming_uniform(layer.weight, mode='fan_in', nonlinearity='relu')
+            nn.init.kaiming_uniform_(layer.weight, mode='fan_in', nonlinearity='relu')
             nn.init.zeros_(layer.weight[layer.padding_idx])
         elif type(layer) == nn.Linear:
             nn.init.xavier_normal_(layer.weight)
