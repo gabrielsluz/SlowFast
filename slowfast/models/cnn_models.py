@@ -170,7 +170,7 @@ class CNN_LSTM(nn.Module):
         #ResNet
         self.frame_enc_dim = self.enc_dim
         norm_layer = nn.BatchNorm2d
-        self.cnn = torchvision.models.resnet18(pretrained=True, progress=True, 
+        self.cnn = torchvision.models.resnet34(pretrained=True, progress=True, 
             num_classes=self.frame_enc_dim, norm_layer=norm_layer)
         # self.cnn = torchvision.models.AlexNet(num_classes=self.frame_enc_dim, pretrained=True)
         #Question Embedding
