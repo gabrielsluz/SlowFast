@@ -74,9 +74,9 @@ def get_init_params_cfg():
 
     cfg.SOLVER.BASE_LR = 0.001
     cfg.SOLVER.LR_POLICY = "cosine"
-    cfg.SOLVER.COSINE_END_LR = 0.000001
+    cfg.SOLVER.COSINE_END_LR = 0.00099
     cfg.SOLVER.EPOCH_CYCLE = 3.0
-    cfg.SOLVER.MAX_EPOCH = 10
+    cfg.SOLVER.MAX_EPOCH = 2
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.NESTEROV = True
     cfg.SOLVER.WEIGHT_DECAY = 0.000001
@@ -113,7 +113,14 @@ def main():
     #1
     cfg = get_init_params_cfg()
     run_exp(cfg) 
-    #Then try higher weight decay
+    
+    cfg.SOLVER.WEIGHT_DECAY = 0.0
+    run_exp(cfg)
+
+    cfg.SOLVER.BASE_LR = 0.0001
+    cfg.SOLVER.LR_POLICY = "cosine"
+    cfg.SOLVER.COSINE_END_LR = 0.000099
+    run_exp(cfg)
 
 if __name__ == "__main__":
     main()
