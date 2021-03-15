@@ -90,6 +90,7 @@ def get_init_params_cfg():
     cfg.NUM_GPUS = 1
     cfg.LOG_PERIOD = 100
     cfg.OUTPUT_DIR = "./"
+    cfg.RNG_SEED = 42
 
     cfg.WORD_EMB.USE_PRETRAINED_EMB = False
     cfg.WORD_EMB.TRAINABLE = True
