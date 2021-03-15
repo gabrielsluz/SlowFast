@@ -122,8 +122,8 @@ class CNN_LSTM(nn.Module):
             nn.init.kaiming_uniform(layer.weight, mode='fan_in', nonlinearity='relu')
             nn.init.zeros_(layer.weight[layer.padding_idx])
         elif type(layer) == nn.Linear:
-            init.xavier_normal_(layer.weight)
-            init.normal_(layer.bias)
+            nn.init.xavier_normal_(layer.weight)
+            nn.init.normal_(layer.bias)
         elif type(layer) == nn.Conv2d:
             nn.init.normal_(layer.weight, mean=0.0, std=0.01)
         print("After = {}".format(layer.weight))
@@ -184,6 +184,8 @@ class CNN_LSTM(nn.Module):
         if cfg.WORD_EMB.USE_PRETRAINED_EMB:
             weights_matrix = self.parse_glove_file(cfg.WORD_EMB.GLOVE_PATH, self.enc_dim, self.vocab)
             self.embed_layer.load_state_dict({'weight': weights_matrix})
+        else:
+            self.embed_layer.apply(self.init_params)
         if not cfg.WORD_EMB.TRAINABLE:
             self.embed_layer.weight.requires_grad = False
 
@@ -221,7 +223,7 @@ class CNN_LSTM(nn.Module):
             nn.Linear(hid_dim_2, 4)
         )
 
-        #Init parameters
+        #Init parameters *embed layer is initialized above
         #self.LSTM.apply(self.init_params)
         self.des_pred_head.apply(self.init_params)
         self.mc_pred_head.apply(self.init_params)
