@@ -98,7 +98,7 @@ def get_init_params_cfg():
     cfg.WORD_EMB.EMB_DIM = 1000
 
     cfg.CLEVRERMAIN.LSTM_HID_DIM = 1024
-    cfg.CLEVRERMAIN.T_DROPOUT = 0.5
+    cfg.CLEVRERMAIN.T_DROPOUT = 0.1
 
     return cfg
 
