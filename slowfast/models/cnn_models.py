@@ -120,18 +120,21 @@ class CNN_LSTM(nn.Module):
             nn.init.kaiming_uniform_(layer.weight, mode='fan_in', nonlinearity='relu')
             nn.init.zeros_(layer.weight[layer.padding_idx])
         elif type(layer) == nn.Linear:
-            nn.init.xavier_normal_(layer.weight)
+            # nn.init.xavier_normal_(layer.weight)
+            nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
             nn.init.normal_(layer.bias)
         elif type(layer) == nn.LSTM:
             for param in layer.parameters():
                 if len(param.shape) >= 2:
-                    nn.init.orthogonal_(param.data)
+                    #nn.init.orthogonal_(param.data)
+                    nn.init.kaiming_uniform_(param.data, mode='fan_in', nonlinearity='relu')
                 else:
                     nn.init.normal_(param.data)
         elif type(layer) == nn.LSTMCell:
             for param in layer.parameters():
                 if len(param.shape) >= 2:
-                    nn.init.orthogonal_(param.data)
+                    #nn.init.orthogonal_(param.data)
+                    nn.init.kaiming_uniform_(param.data, mode='fan_in', nonlinearity='relu')
                 else:
                     nn.init.normal_(param.data)
 
@@ -182,7 +185,7 @@ class CNN_LSTM(nn.Module):
         #ResNet
         self.frame_enc_dim = self.enc_dim
         norm_layer = nn.BatchNorm2d
-        self.cnn = torchvision.models.resnet34(pretrained=True, progress=True, 
+        self.cnn = torchvision.models.resnet18(pretrained=True, progress=True, 
             num_classes=self.frame_enc_dim, norm_layer=norm_layer)
         # self.cnn = torchvision.models.AlexNet(num_classes=self.frame_enc_dim, pretrained=True)
         #Question Embedding
