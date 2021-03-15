@@ -217,7 +217,7 @@ class CNN_LSTM(nn.Module):
         )
 
         #Init parameters
-        self.cnn.apply(self.init_params)
+        #self.cnn.apply(self.init_params)
         #self.LSTM.apply(self.init_params)
         self.des_pred_head.apply(self.init_params)
         self.mc_pred_head.apply(self.init_params)
