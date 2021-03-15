@@ -214,22 +214,22 @@ class CNN_LSTM(nn.Module):
         #Question especific
         self.des_pred_head = nn.Sequential(
             nn.Linear(ph_input_dim, hid_dim),
+            nn.BatchNorm1d(hid_dim),
             nn.ReLU(),
-            nn.Dropout(p=cfg.CLEVRERMAIN.T_DROPOUT),
             nn.Linear(hid_dim, hid_dim_2),
+            nn.BatchNorm1d(hid_dim_2),
             nn.ReLU(),
-            nn.Dropout(p=cfg.CLEVRERMAIN.T_DROPOUT),
             nn.Linear(hid_dim_2, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
         # which is interpreted as 4 logits, one for each binary classification of each choice
         self.mc_pred_head = nn.Sequential(
             nn.Linear(ph_input_dim, hid_dim),
+            nn.BatchNorm1d(hid_dim),
             nn.ReLU(),
-            nn.Dropout(p=cfg.CLEVRERMAIN.T_DROPOUT),
             nn.Linear(hid_dim, hid_dim_2),
+            nn.BatchNorm1d(hid_dim_2),
             nn.ReLU(),
-            nn.Dropout(p=cfg.CLEVRERMAIN.T_DROPOUT),
             nn.Linear(hid_dim_2, 4)
         )
 
