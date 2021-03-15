@@ -116,8 +116,6 @@ class CNN_LSTM(nn.Module):
     """
 
     def init_params(self, layer):
-        print("Type = {}".format(type(layer)))
-        print("Before = {}".format(layer.weight))
         if type(layer) == nn.Embedding:
             nn.init.kaiming_uniform(layer.weight, mode='fan_in', nonlinearity='relu')
             nn.init.zeros_(layer.weight[layer.padding_idx])
@@ -126,7 +124,6 @@ class CNN_LSTM(nn.Module):
             nn.init.normal_(layer.bias)
         elif type(layer) == nn.Conv2d:
             nn.init.normal_(layer.weight, mean=0.0, std=0.01)
-        print("After = {}".format(layer.weight))
 
     def parse_glove_file(self, file_name, emb_dim, vocab_dict):
         """
