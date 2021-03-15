@@ -122,8 +122,18 @@ class CNN_LSTM(nn.Module):
         elif type(layer) == nn.Linear:
             nn.init.xavier_normal_(layer.weight)
             nn.init.normal_(layer.bias)
-        elif type(layer) == nn.Conv2d:
-            nn.init.normal_(layer.weight, mean=0.0, std=0.01)
+        elif type(layer) == nn.LSTM:
+            for param in layer.parameters():
+                if len(param.shape) >= 2:
+                    nn.init.orthogonal_(param.data)
+                else:
+                    nn.init.normal_(param.data)
+        elif type(layer) == nn.LSTMCell:
+            for param in layer.parameters():
+                if len(param.shape) >= 2:
+                    nn.init.orthogonal_(param.data)
+                else:
+                    nn.init.normal_(param.data)
 
     def parse_glove_file(self, file_name, emb_dim, vocab_dict):
         """
@@ -221,7 +231,7 @@ class CNN_LSTM(nn.Module):
         )
 
         #Init parameters *embed layer is initialized above
-        #self.LSTM.apply(self.init_params)
+        self.LSTM.apply(self.init_params)
         self.des_pred_head.apply(self.init_params)
         self.mc_pred_head.apply(self.init_params)
 
