@@ -208,8 +208,8 @@ class CNN_LSTM(nn.Module):
             bias=True, batch_first=True, dropout=cfg.CLEVRERMAIN.T_DROPOUT, bidirectional=True
         )
         #Prediction head MLP
-        hid_dim = 4096
-        hid_dim_2 = 2048
+        hid_dim = 1024
+        hid_dim_2 = 512
         ph_input_dim = self.hid_st_dim*2
         #Question especific
         self.des_pred_head = nn.Sequential(
