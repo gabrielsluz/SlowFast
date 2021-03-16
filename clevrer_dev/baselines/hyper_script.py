@@ -54,7 +54,7 @@ def get_init_params_cfg():
     cfg.TRAIN.ONLY_DES = True
     cfg.TRAIN.DATASET = "Clevrer_des"
     cfg.TRAIN.BATCH_SIZE = 8
-    cfg.TRAIN.EVAL_PERIOD = 1
+    cfg.TRAIN.EVAL_PERIOD = 5
     cfg.TRAIN.CHECKPOINT_PERIOD = 1
     cfg.TRAIN.AUTO_RESUME = True
     cfg.TRAIN.TRAIN_STATS_FILE = "./train_stats_hyper.txt"
@@ -70,13 +70,13 @@ def get_init_params_cfg():
     cfg.DATA.PATH_TO_DATA_DIR = "/datasets/clevrer"
     cfg.DATA.PATH_PREFIX = "/datasets/clevrer"
     cfg.DATA.MAX_TRAIN_LEN = None
-    cfg.DATA.MAX_VAL_LEN = 20000
+    cfg.DATA.MAX_VAL_LEN = None
 
-    cfg.SOLVER.BASE_LR = 0.001
+    cfg.SOLVER.BASE_LR = 0.0001
     cfg.SOLVER.LR_POLICY = "cosine"
     cfg.SOLVER.COSINE_END_LR = 0.000001
-    cfg.SOLVER.EPOCH_CYCLE = 2.0
-    cfg.SOLVER.MAX_EPOCH = 2
+    cfg.SOLVER.EPOCH_CYCLE = 10.0
+    cfg.SOLVER.MAX_EPOCH = 10
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.NESTEROV = True
     cfg.SOLVER.WEIGHT_DECAY = 0.000001
@@ -114,13 +114,5 @@ def main():
     cfg = get_init_params_cfg()
     run_exp(cfg) 
     
-    cfg.SOLVER.WEIGHT_DECAY = 0.0
-    run_exp(cfg)
-
-    cfg.SOLVER.BASE_LR = 0.0001
-    cfg.SOLVER.LR_POLICY = "cosine"
-    cfg.SOLVER.COSINE_END_LR = 0.000099
-    run_exp(cfg)
-
 if __name__ == "__main__":
     main()
