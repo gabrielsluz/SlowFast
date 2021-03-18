@@ -33,7 +33,7 @@ print("Vocab = {}".format(dataset.vocab))
 print("Ans_vocab = {}".format(dataset.ans_vocab))
 
 for i_batch, sampled_batch in enumerate(dataloader):
-    index = sampled_batch['index'].item()
+    index = sampled_batch['index'][0].item()
     print("Video info = {}".format(dataset.get_video_info(index)))
     print(sampled_batch['slow_ft'].size())
     print(sampled_batch['fast_ft'].size())
@@ -54,7 +54,7 @@ print("Vocab = {}".format(dataset.vocab))
 print("Ans_vocab = {}".format(dataset.ans_vocab))
 
 for i_batch, sampled_batch in enumerate(dataloader):
-    index = sampled_batch['index'].item()
+    index = sampled_batch['index'][0].item()
     print("Video info = {}".format(dataset.get_video_info(index)))
     print(sampled_batch['slow_ft'].size())
     print(sampled_batch['fast_ft'].size())
