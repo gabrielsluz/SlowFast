@@ -112,21 +112,21 @@ class Clevrer_des(torch.utils.data.Dataset):
         Creates the vocabularies used to tokenize questions and answers
         It uses only the train.json file
         """
-        ans_vocab = {} #Used for descriptive questions
-        ans_vocab[' counter '] = 0
-        possible_ans = ["0", "1", "2", "3", "4", "5", 
-                        "yes", "no", "rubber", "metal",
-                        "sphere", "cube", "cylinder",
-                        "gray", "brown", "green", "red",
-                        "blue", "purple", "yellow", "cyan"
-        ]
-        update_vocab(ans_vocab, possible_ans)
+        # ans_vocab = {} #Used for descriptive questions
+        # ans_vocab[' counter '] = 0
+        # possible_ans = ["0", "1", "2", "3", "4", "5", 
+        #                 "yes", "no", "rubber", "metal",
+        #                 "sphere", "cube", "cylinder",
+        #                 "gray", "brown", "green", "red",
+        #                 "blue", "purple", "yellow", "cyan"
+        # ]
+        # update_vocab(ans_vocab, possible_ans)
 
-        vocab = {}
-        vocab[' CLS '] = 0
-        vocab[' PAD '] = 1
-        vocab['|'] = 2
-        vocab[' counter '] = 3 #Has spaces in key => not a valid token
+        # vocab = {}
+        # vocab[' CLS '] = 0
+        # vocab[' PAD '] = 1
+        # vocab['|'] = 2
+        # vocab[' counter '] = 3 #Has spaces in key => not a valid token
 
         des_q_lens = [] #Description question lens
 
@@ -136,11 +136,13 @@ class Clevrer_des(torch.utils.data.Dataset):
                 questions = data[i]['questions']
                 for q in questions:
                     split_q = string_to_token_list(q['question'])
-                    update_vocab(vocab, split_q)
+                    # update_vocab(vocab, split_q)
                     if q['question_type'] == 'descriptive':
                         des_q_lens.append(len(split_q))
-        self.vocab = vocab
-        self.ans_vocab = ans_vocab
+        # self.vocab = vocab
+        # self.ans_vocab = ans_vocab
+        self.vocab = {' CLS ': 0, ' PAD ': 1, '|': 2, ' counter ': 74, 'what': 3, 'is': 4, 'the': 5, 'shape': 6, 'of': 7, 'object': 8, 'to': 9, 'collide': 10, 'with': 11, 'purple': 12, '?': 13, 'color': 14, 'first': 15, 'gray': 16, 'sphere': 17, 'material': 18, 'how': 19, 'many': 20, 'collisions': 21, 'happen': 22, 'after': 23, 'cube': 24, 'enters': 25, 'scene': 26, 'objects': 27, 'enter': 28, 'are': 29, 'there': 30, 'before': 31, 'stationary': 32, 'rubber': 33, 'metal': 34, 'that': 35, 'moving': 36, 'cubes': 37, 'when': 38, 'blue': 39, 'exits': 40, 'any': 41, 'brown': 42, 'which': 43, 'following': 44, 'responsible': 45, 'for': 46, 'collision': 47, 'between': 48, 'and': 49, "'s": 50, 'colliding': 51, 'event': 52, 'will': 53, 'if': 54, 'cylinder': 55, 'removed': 56, 'without': 57, ',': 58, 'not': 59, 'red': 60, 'spheres': 61, 'exit': 62, 'cylinders': 63, 'video': 64, 'begins': 65, 'ends': 66, 'next': 67, 'last': 68, 'yellow': 69, 'cyan': 70, 'green': 71, 'second': 72, 'exiting': 73}
+        self.ans_vocab = {' counter ': 21, '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, 'yes': 6, 'no': 7, 'rubber': 8, 'metal': 9, 'sphere': 10, 'cube': 11, 'cylinder': 12, 'gray': 13, 'brown': 14, 'green': 15, 'red': 16, 'blue': 17, 'purple': 18, 'yellow': 19, 'cyan': 20}
         self.max_seq_len = max(des_q_lens)
     
     def _token_list_to_tensor(self, token_list, question_type):
