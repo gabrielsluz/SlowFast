@@ -24,16 +24,8 @@ cfg = load_config(args)
 logger = logging.get_logger(__name__)
 logging.setup_logging(cfg.OUTPUT_DIR)
 
-dataset = Clevrer(cfg, 'train')
+dataset = Clevrer_video(cfg, 'train')
 print("Dataset len = {}".format(len(dataset)))
-
-if len(dataset) > 5:
-    max_i = 5
-else:
-    max_i = len(dataset)
-print("First {} items".format(max_i))
-for i in range(max_i):
-    print(dataset.get_video_info(i))
 
 # tensor_image = dataset[0][0][0].permute(1,2,0)
 # plt.imshow(tensor_image)
@@ -44,9 +36,10 @@ dataloader = DataLoader(dataset, batch_size=1,
                         shuffle=True, num_workers=0)
 for i_batch, sample_batched in enumerate(dataloader):
     print(sample_batched[1])
-    print(sample_batched[0].size())
+    print(sample_batched[0][0].size())
+    print(sample_batched[0][1].size())
 
-    for i_frame in range(sample_batched[0].size()[1]):
-        plt.imshow(sample_batched[0][0].permute(1,2,3,0)[i_frame])
+    for i_frame in range(sample_batched[0][0].size()[1]):
+        plt.imshow(sample_batched[0][0][0].permute(1,2,3,0)[i_frame])
         plt.savefig('./clevrer_dev/feature_extraction/sample_frame{}.png'.format(i_frame))
     break

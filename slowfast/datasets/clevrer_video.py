@@ -95,7 +95,6 @@ class Clevrer_video(torch.utils.data.Dataset):
             path_to_file
         )
 
-        self._create_vocabs(path_to_file)
         #Main data structure
         self._dataset = []
 
@@ -104,7 +103,7 @@ class Clevrer_video(torch.utils.data.Dataset):
             for i in range(len(data)):
                 path = get_filepath(self.mode, int(data[i]['scene_index']))
                 full_path = os.path.join(self.cfg.DATA.PATH_PREFIX, path)
-                _dataset.append(full_path)
+                self._dataset.append(full_path)
         assert (
             len(self._dataset) > 0
         ), "Failed to load Clevrer from {}".format(
@@ -149,7 +148,7 @@ class Clevrer_video(torch.utils.data.Dataset):
             video_container = None
             try:
                 video_container = container.get_video_container(
-                    self._dataset[index]['video_path'],
+                    self._dataset[index],
                     self.cfg.DATA_LOADER.ENABLE_MULTI_THREAD_DECODE,
                     self.cfg.DATA.DECODING_BACKEND,
                 )
@@ -195,8 +194,8 @@ class Clevrer_video(torch.utils.data.Dataset):
             frames = utils.tensor_normalize(
                 frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
             )
-            # T H W C -> C T H W. 
-            frames = frames.permute(3, 0, 1, 2)
+            # T H W C -> T C H W. 
+            frames = frames.permute(0, 3, 1, 2)
             # Perform resize
             transform_rs = transforms.Compose([
                 transforms.ToPILImage(),
@@ -207,6 +206,9 @@ class Clevrer_video(torch.utils.data.Dataset):
             resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
             for i in range(frames_size[0]):
                 resized_frames[i] = transform_rs(frames[i])
+            
+            # T C H W -> C T H W. 
+            resized_frames = resized_frames.permute(1, 0, 2, 3)
             resized_frames = utils.pack_pathway_output(self.cfg, resized_frames)
 
             return resized_frames, index
