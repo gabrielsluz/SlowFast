@@ -72,10 +72,14 @@ def gen_dataset(cfg, mode, root):
 
     with torch.no_grad():
         for i, sampled_batch in tqdm(enumerate(dataloader)):
-            frames = sampled_batch[0]
+            inputs = sampled_batch[0]
             if cfg.NUM_GPUS:
-                frames = frames.cuda(non_blocking=True)
-            out = model(frames)
+                if isinstance(inputs, (list,)):
+                    for i in range(len(inputs)):
+                        inputs[i] = inputs[i].cuda(non_blocking=True)
+                else:
+                    inputs = inputs.cuda(non_blocking=True)
+            out = model(inputs)
             slow_ft = out[0].detach().cpu().numpy()
             fast_ft = out[1].detach().cpu().numpy() 
             slow_dset[i * batch_size:(i + 1) * batch_size] = slow_ft
