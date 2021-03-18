@@ -85,7 +85,6 @@ def gen_dataset(cfg, mode, root):
             slow_dset[i * batch_size:(i + 1) * batch_size] = slow_ft
             fast_dset[i * batch_size:(i + 1) * batch_size] = fast_ft
 
-            break
     slow_h5.close()
     fast_h5.close()
 
