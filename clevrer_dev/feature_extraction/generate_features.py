@@ -32,4 +32,5 @@ model = SlowFast(cfg)
 dataloader = DataLoader(dataset, batch_size=1,
                         shuffle=False, num_workers=0)
 for i_batch, sample_batched in enumerate(dataloader):
-    model(sample_batched[0])
+    print(model(sample_batched[0]))
+    break
