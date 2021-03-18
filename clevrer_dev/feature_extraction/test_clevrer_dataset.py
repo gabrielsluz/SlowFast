@@ -39,7 +39,7 @@ for i_batch, sample_batched in enumerate(dataloader):
     print(sample_batched[0][0].size())
     print(sample_batched[0][1].size())
 
-    for i_frame in range(sample_batched[0][0].size()[1]):
-        plt.imshow(sample_batched[0][0][0].permute(1,2,3,0)[i_frame])
+    for i_frame in range(sample_batched[0][1][0].size()[1]):
+        plt.imshow(sample_batched[0][1][0].permute(1,2,3,0)[i_frame])
         plt.savefig('./clevrer_dev/feature_extraction/sample_frame{}.png'.format(i_frame))
     break
