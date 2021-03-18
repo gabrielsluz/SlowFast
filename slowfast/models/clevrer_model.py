@@ -160,5 +160,3 @@ class ClevrerMain(nn.Module):
         else:
             ans = self.mc_pred_head(transformer_out[:, 0])
         return ans
-
-        
