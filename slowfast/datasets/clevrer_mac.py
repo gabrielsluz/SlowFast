@@ -260,7 +260,6 @@ class Clevrermac_des(torch.utils.data.Dataset):
         question_dict = copy.deepcopy(self._dataset[index])
         output_dict = {}
         ft_i = self.get_ft_index(self._dataset[index]['video_path'])
-        print(index, self._dataset[index]['video_path'], ft_i)
         output_dict['slow_ft'] = torch.from_numpy(self.slow_fts[ft_i])
         output_dict['fast_ft'] = torch.from_numpy(self.fast_fts[ft_i])
         output_dict['question_dict'] = question_dict
