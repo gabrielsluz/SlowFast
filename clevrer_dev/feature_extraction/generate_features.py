@@ -53,7 +53,9 @@ model.forward = forward.__get__(model, SlowFast)
 
 dataloader = DataLoader(dataset, batch_size=1,
                         shuffle=False, num_workers=0)
-for i_batch, sample_batched in enumerate(dataloader):
-    print(model(sample_batched[0])[0].size())
-    print(model(sample_batched[0])[1].size())
+for i_batch, sampled_batch in enumerate(dataloader):
+    print(sampled_batch[0][0].size())
+    out = model(sampled_batch[0])
+    print(out[0].size())
+    print(out[1].size())
     break
