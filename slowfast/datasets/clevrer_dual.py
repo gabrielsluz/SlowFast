@@ -200,8 +200,12 @@ class Clevrer_des(torch.utils.data.Dataset):
         assert g_pathmgr.exists(path_to_file), "{} dir not found".format(
             path_to_file
         )
+        train_file = os.path.join(
+            self.cfg.DATA.PATH_TO_DATA_DIR, "train.json"
+        )
 
-        self._create_vocabs(path_to_file)
+        self._create_vocabs(train_file)
+
         #Main data structure
         self._dataset = []
         max_len = self.cfg.DATA.MAX_TRAIN_LEN if self.mode == 'train' else self.cfg.DATA.MAX_VAL_LEN
