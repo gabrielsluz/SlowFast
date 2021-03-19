@@ -211,6 +211,10 @@ class MACNetwork(nn.Module):
                                         nn.ELU(),
                                         linear(dim, classes))
 
+        self.mc_pred_head = nn.Sequential(linear(dim * 3, dim),
+                                        nn.ELU(),
+                                        linear(dim, 4))
+
         self.max_step = max_step
         self.dim = dim
 
@@ -231,7 +235,7 @@ class MACNetwork(nn.Module):
 
         kaiming_uniform_(self.classifier[0].weight)
 
-    def forward(self, slow_ft, fast_ft, question, question_len, dropout=0.15):
+    def forward(self, slow_ft, fast_ft, question, question_len, is_des, dropout=0.15):
         b_size = question.size(0)
 
         slow_img = self.conv_slow(slow_ft)
@@ -239,11 +243,11 @@ class MACNetwork(nn.Module):
 
         fast_img = self.conv_fast(fast_ft)
         fast_img = fast_img.view(b_size, self.dim, -1)
-        knowledge_sf = torch.cat((slow_img, fast_img), dim=1)
+        knowledge_sf = torch.cat((slow_img, fast_img), dim=2)
 
         embed = self.embed(question)
         embed = nn.utils.rnn.pack_padded_sequence(embed, question_len,
-                                                batch_first=True)
+                                                enforce_sorted = False, batch_first=True)
         lstm_out, (h, _) = self.lstm(embed)
         lstm_out, _ = nn.utils.rnn.pad_packed_sequence(lstm_out,
                                                     batch_first=True)
@@ -253,6 +257,9 @@ class MACNetwork(nn.Module):
         memory = self.mac(lstm_out, h, knowledge_sf)
 
         out = torch.cat([memory, h], 1)
-        out = self.classifier(out)
+        if is_des:
+            out = self.classifier(out)
+        else:
+            out = self.mc_pred_head(out)
 
         return out
