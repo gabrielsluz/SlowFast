@@ -6,6 +6,8 @@ import numpy as np
 
 from slowfast.models.video_model_builder import SlowFast
 
+from transformers import BertModel
+
 from .build import MODEL_REGISTRY
 
 @MODEL_REGISTRY.register()
@@ -142,6 +144,86 @@ class CNN_3D_LSTM(nn.Module):
         _, (h_n, _) = self.LSTM(word_encs)
         words_x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
         x = torch.cat((words_x, frame_encs), dim=1)
+        if is_des_q:
+            return self.des_pred_head(x)
+        else:
+            return self.mc_pred_head(x)
+
+
+#_----_____-----_-----__BERT_----_____-----_-----__-_----___--_-
+@MODEL_REGISTRY.register()
+class CNN_3D_BERT(nn.Module):
+    """
+    Implemetation of a baseline SlowFast+BERT model for Clevrer
+    """
+
+    def init_params(self, layer):
+        if type(layer) == nn.Embedding:
+            nn.init.kaiming_uniform_(layer.weight, mode='fan_in', nonlinearity='relu')
+            nn.init.zeros_(layer.weight[layer.padding_idx])
+        elif type(layer) == nn.Linear:
+            nn.init.xavier_normal_(layer.weight)
+            # nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
+            nn.init.normal_(layer.bias)
+
+    def __init__(self, cfg):
+        """
+        The `__init__` method of any subclass should also contain these
+            arguments.
+
+        Args:
+            cfg (CfgNode): model building configs, details are in the
+                comments of the config file.
+        """
+        print("CNN_3D_BERT model")
+        super(CNN_3D_BERT, self).__init__()
+        #CUDA
+        self.num_gpus = cfg.NUM_GPUS
+        self.ans_vocab_len = 21
+        #SlowFast
+        self.frame_enc_dim = cfg.MODEL.NUM_CLASSES
+        self.SlowFast = SlowFast(cfg)
+        #BERT
+        self.BERT = BertModel.from_pretrained('bert-base-uncased')
+        bert_hid_dim = self.BERT.config.hidden_size
+        #Prediction head MLP
+        hid_dim = 2048
+        ph_input_dim = bert_hid_dim + self.frame_enc_dim
+        #Question especific
+        self.des_pred_head = nn.Sequential(
+            nn.Linear(ph_input_dim, hid_dim),
+            nn.ReLU(),
+            nn.Linear(hid_dim, self.ans_vocab_len)
+        )
+        #Multiple choice answer => outputs a vector of size 4, 
+        # which is interpreted as 4 logits, one for each binary classification of each choice
+        self.mc_pred_head = nn.Sequential(
+            nn.Linear(ph_input_dim, hid_dim),
+            nn.ReLU(),
+            nn.Linear(hid_dim, 4)
+        )
+
+        #Init parameters *embed layer is initialized above
+        self.des_pred_head.apply(self.init_params)
+        self.mc_pred_head.apply(self.init_params)
+
+    def forward(self, clips_b, question_b, is_des_q):
+        """
+        Receives a batch of clips and questions:
+                clips_b (tensor): the frames of sampled from the video. The dimension
+                    is `batch_size` x `num frames` x `channel` x `height` x `width`.
+                question_b (tensor): The dimension is
+                    `batch_size` x 'max sequence length'
+                is_des_q (bool): Indicates if is descriptive question or multiple choice
+        """
+        #Receives a batch of frames
+        frame_encs = self.SlowFast(clips_b)
+        #BERT pooler_output or last_hidden_state
+        bert_out = self.BERT(input_ids=question_b['input_ids'],
+                            attention_mask=question_b['attention_mask'],
+                            token_type_ids=question_b['token_type_ids'])
+        q_encs = bert_out.last_hidden_state[:,0,:]
+        x = torch.cat((q_encs, frame_encs), dim=1)
         if is_des_q:
             return self.des_pred_head(x)
         else:
