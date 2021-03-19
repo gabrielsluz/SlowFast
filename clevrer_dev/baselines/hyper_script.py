@@ -84,18 +84,18 @@ def get_init_params_cfg():
     cfg.SOLVER.WARMUP_START_LR = 0.01
     cfg.SOLVER.OPTIMIZING_METHOD = "sgd"
     
-    cfg.MODEL.ARCH = "CNN_LSTM"
-    cfg.MODEL.MODEL_NAME = "CNN_LSTM"
+    cfg.MODEL.ARCH = "CNN_SEP_LSTM"
+    cfg.MODEL.MODEL_NAME = "CNN_SEP_LSTM"
 
     cfg.NUM_GPUS = 1
     cfg.LOG_PERIOD = 100
     cfg.OUTPUT_DIR = "./"
     cfg.RNG_SEED = 42
 
-    cfg.WORD_EMB.USE_PRETRAINED_EMB = False
+    cfg.WORD_EMB.USE_PRETRAINED_EMB = True
     cfg.WORD_EMB.TRAINABLE = True
     cfg.WORD_EMB.GLOVE_PATH = '/datasets/word_embs/glove.6B/glove.6B.50d.txt'
-    cfg.WORD_EMB.EMB_DIM = 1000
+    cfg.WORD_EMB.EMB_DIM = 50
 
     cfg.CLEVRERMAIN.LSTM_HID_DIM = 256
     cfg.CLEVRERMAIN.T_DROPOUT = 0.1
