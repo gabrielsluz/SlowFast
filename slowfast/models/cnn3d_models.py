@@ -105,7 +105,7 @@ class CNN_3D_LSTM(nn.Module):
         )
         #Prediction head MLP
         hid_dim = 2048
-        ph_input_dim = self.hid_st_dim + self.frame_enc_dim
+        ph_input_dim = self.hid_st_dim*2 + self.frame_enc_dim
         #Question especific
         self.des_pred_head = nn.Sequential(
             nn.Linear(ph_input_dim, hid_dim),
