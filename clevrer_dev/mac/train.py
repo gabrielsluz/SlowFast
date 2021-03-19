@@ -13,7 +13,7 @@ from slowfast.datasets.clevrer_mac import Clevrermac_des
 from slowfast.models.mac import MACNetwork
 from slowfast.config.defaults import get_cfg
 
-batch_size = 64
+batch_size = 32
 n_epoch = 20
 dim = 512
 
@@ -85,7 +85,7 @@ def train(epoch):
 def valid(epoch):
     clevr = Clevrermac_des(cfg, "val")
     valid_set = DataLoader(
-        clevr, batch_size=batch_size, num_workers=4, collate_fn=collate_data
+        clevr, batch_size=batch_size, num_workers=4
     )
     dataset = iter(valid_set)
 
