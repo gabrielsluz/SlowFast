@@ -9,7 +9,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from slowfast.datasets.clevrer_mac import Clevrermac_des
+from slowfast.datasets.clevrer_mac import Clevrermac_mc
 from slowfast.models.mac import MACNetwork
 from slowfast.config.defaults import get_cfg
 
@@ -34,7 +34,7 @@ def accumulate(model1, model2, decay=0.999):
 
 
 def train(epoch):
-    clevr = Clevrermac_des(cfg, "train")
+    clevr = Clevrermac_mc(cfg, "train")
     train_set = DataLoader(
         clevr, batch_size=batch_size, num_workers=4
     )
@@ -97,7 +97,7 @@ def train(epoch):
 
 
 def valid(epoch):
-    clevr = Clevrermac_des(cfg, "val")
+    clevr = Clevrermac_mc(cfg, "val")
     valid_set = DataLoader(
         clevr, batch_size=batch_size, num_workers=4
     )
