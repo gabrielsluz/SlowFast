@@ -53,7 +53,4 @@ for i_batch, sample_batched in enumerate(dataloader):
     # for i_frame in range(sample_batched['frames'].size()[1]):
     #     plt.imshow(sample_batched['frames'][0][i_frame].permute(1,2,0))
     #     plt.savefig('./clevrer_dev/tests/sample_frame{}.png'.format(i_frame))
-    # break
-
-for i in range(1000):
-    print(dataset._dataset[i])
+    break

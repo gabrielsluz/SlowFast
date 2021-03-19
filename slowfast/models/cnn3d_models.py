@@ -6,7 +6,9 @@ import numpy as np
 
 from slowfast.models.video_model_builder import SlowFast
 
+from .build import MODEL_REGISTRY
 
+@MODEL_REGISTRY.register()
 class CNN_3D_LSTM(nn.Module):
     """
     Implemetation of a baseline SlowFast+LSTM model for Clevrer

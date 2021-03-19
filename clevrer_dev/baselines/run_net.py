@@ -84,6 +84,35 @@ python3 clevrer_dev/baselines/run_net.py \
   SOLVER.WEIGHT_DECAY 0.00005 \
   SOLVER.OPTIMIZING_METHOD adam \
   SOLVER.MAX_EPOCH 1
+
+
+  python3 clevrer_dev/baselines/run_net.py \
+  --cfg clevrer_dev/baselines/slowfast.yaml \
+  DATA.PATH_TO_DATA_DIR /datasets/clevrer \
+  DATA.PATH_PREFIX /datasets/clevrer \
+  TRAIN.DATASET Clevrer_des \
+  TRAIN.ONLY_DES True \
+  TRAIN.ENABLE True \
+  WORD_EMB.USE_PRETRAINED_EMB False \
+  WORD_EMB.TRAINABLE True \
+  WORD_EMB.GLOVE_PATH '/datasets/word_embs/glove.6B/glove.6B.50d.txt' \
+  WORD_EMB.EMB_DIM 16 \
+  MODEL.NUM_CLASSES 256 \
+  CLEVRERMAIN.LSTM_HID_DIM 64 \
+  DATA.NUM_FRAMES 32 \
+  DATA.SAMPLING_RATE 4 \
+  TRAIN.BATCH_SIZE 32 \
+  NUM_GPUS 1 \
+  LOG_PERIOD 100 \
+  TRAIN.EVAL_PERIOD 1 \
+  TRAIN.CHECKPOINT_PERIOD 1 \
+  SOLVER.EPOCH_CYCLE 10.0 \
+  SOLVER.LR_POLICY cosine \
+  SOLVER.BASE_LR 0.001 \
+  SOLVER.COSINE_END_LR 0.00005 \
+  SOLVER.WEIGHT_DECAY 0.0 \
+  SOLVER.OPTIMIZING_METHOD adam \
+  SOLVER.MAX_EPOCH 1
   """
 from slowfast.utils.misc import launch_job
 from slowfast.utils.parser import load_config, parse_args
