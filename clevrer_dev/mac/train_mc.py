@@ -69,9 +69,10 @@ def train(epoch):
         mc_q_err = 100 * torch.true_divide((diff_mc_ans.sum(dim=1, keepdim=True) != 0).float().sum(), question.size()[0])
         # Gather all the predictions across all the devices.
         if torch.cuda.is_available():
-            mc_opt_err, mc_q_err  = du.all_reduce(
-                [mc_opt_err, mc_q_err]
-            )
+            mc_opt_err, mc_q_err  = (
+                    mc_opt_err.item(), 
+                    mc_q_err.item()
+                )
 
         if moving_loss_q == 0:
             moving_loss_q = mc_q_err
@@ -127,8 +128,9 @@ def valid(epoch):
             mc_q_err = 100 * torch.true_divide((diff_mc_ans.sum(dim=1, keepdim=True) != 0).float().sum(), question.size()[0])
             # Gather all the predictions across all the devices.
             if torch.cuda.is_available():
-                mc_opt_err, mc_q_err  = du.all_reduce(
-                    [mc_opt_err, mc_q_err]
+                mc_opt_err, mc_q_err  = (
+                    mc_opt_err.item(), 
+                    mc_q_err.item()
                 )
             num_samples += question.size()[0]
             num_mc_opt_mis += mc_opt_err * question.size()[0]
