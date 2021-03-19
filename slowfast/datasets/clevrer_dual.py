@@ -306,8 +306,8 @@ class Clevrer_des(torch.utils.data.Dataset):
                     # let's try another one
                     index = random.randint(0, len(self._path_to_videos) - 1)
                 continue
-                
-            if cfg.MODEL.ARCH == "slowfast":
+
+            if self.cfg.MODEL.ARCH == "slowfast":
                 # T H W C -> T C H W. 
                 frames = frames.permute(0, 3, 1, 2)
                 # Perform resize
