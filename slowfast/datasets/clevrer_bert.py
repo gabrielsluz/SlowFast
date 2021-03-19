@@ -67,6 +67,7 @@ class Clevrerbert_des(torch.utils.data.Dataset):
         ], "Split '{}' not supported for Clevrerbert_des".format(mode)
         self.mode = mode
         self.cfg = cfg  
+        self._num_retries = 10
 
         logger.info("Constructing Clevrerbert_des {}...".format(mode))
         self._construct_loader()
