@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
 
-from slowfast.models.cnn_models import CNN_LSTM
+from slowfast.models.cnn_models import CNN_SEP_LSTM
 
 from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
@@ -34,7 +34,7 @@ print("Dataset len = {}".format(len(dataset)))
 vocab_len = dataset.get_vocab_len()
 ans_vocab_len = dataset.get_ans_vocab_len()
 vocab = dataset.get_vocab()
-model = CNN_LSTM(cfg, vocab_len, ans_vocab_len, vocab)
+model = CNN_SEP_LSTM(cfg, vocab_len, ans_vocab_len, vocab)
 
 
 #Test DataLoader
