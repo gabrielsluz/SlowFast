@@ -146,7 +146,22 @@ class Clevrerbert_des(torch.utils.data.Dataset):
             )
         )
     
-    def _get_video(self, video_path):
+    def __getitem__(self, index):
+        """
+        Given the video index, return the list of frames, question_dict, and video
+        index if the video can be fetched and decoded successfully, otherwise
+        repeatly find a random video that can be decoded as a replacement.
+        Args:
+            index (int): the video index provided by the pytorch sampler.
+        Returns:
+        A dict containing:
+                frames (tensor): the frames of sampled from the video. The dimension
+                    is `num frames` x `channel` x `height` x `width`.
+                question_dict (dict): A dictionary with the question and answer (if not test)
+                index (int): if the video provided by pytorch sampler can be
+                    decoded, then return the index of the video. If not, return the
+                    index of the video replacement that can be decoded.
+        """
         # -1 indicates random sampling.
         temporal_sample_index = -1
         spatial_sample_index = -1
@@ -157,21 +172,21 @@ class Clevrerbert_des(torch.utils.data.Dataset):
             video_container = None
             try:
                 video_container = container.get_video_container(
-                    video_path,
+                    self._dataset[index]['video_path'],
                     self.cfg.DATA_LOADER.ENABLE_MULTI_THREAD_DECODE,
                     self.cfg.DATA.DECODING_BACKEND,
                 )
             except Exception as e:
                 logger.info(
                     "Failed to load video from {} with error {}".format(
-                        video_path, e
+                        self._dataset[index]['video_path'], e
                     )
                 )
             # Select a random video if the current video was not able to access.
             if video_container is None:
                 logger.warning(
                     "Failed to meta load video idx {} from {}; trial {}".format(
-                        index, video_path, i_try
+                        index, self._dataset[index]['video_path'], i_try
                     )
                 )
                 if self.mode not in ["test"] and i_try > self._num_retries // 2:
@@ -197,7 +212,7 @@ class Clevrerbert_des(torch.utils.data.Dataset):
             if frames is None:
                 logger.warning(
                     "Failed to decode video idx {} from {}; trial {}".format(
-                        index, video_path, i_try
+                        index, self._dataset[index]['video_path'], i_try
                     )
                 )
                 if self.mode not in ["test"] and i_try > self._num_retries // 2:
@@ -237,33 +252,19 @@ class Clevrerbert_des(torch.utils.data.Dataset):
                 resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
                 for i in range(frames_size[0]):
                     resized_frames[i] = transform_rs(frames[i])
-            return resized_frames
+
+            question_dict = copy.deepcopy(self._dataset[index])
+            output_dict = {}
+            output_dict['frames'] = resized_frames
+            output_dict['question_dict'] = question_dict
+            output_dict['index'] = index
+            return output_dict
         else:
             raise RuntimeError(
                 "Failed to fetch video after {} retries.".format(
                     self._num_retries
                 )
             )
-
-    def __getitem__(self, index):
-        """
-        Given the dataset index, return question_dict, and video
-        index
-        Args:
-            index (int): the dataset index provided by the pytorch sampler.
-        Returns:
-        A dict containing:
-                question_dict (dict): A dictionary with the questions and answers (if not test)
-                index (int): if the video provided by pytorch sampler can be
-                    decoded, then return the index of the video. If not, return the
-                    index of the video replacement that can be decoded.
-        """
-        question_dict = copy.deepcopy(self._dataset[index])
-        output_dict = {}
-        output_dict['frames'] = self._get_video(self._dataset[index]['video_path'])
-        output_dict['question_dict'] = question_dict
-        output_dict['index'] = index
-        return output_dict
 
     def decode_question(self, ids):
         """
