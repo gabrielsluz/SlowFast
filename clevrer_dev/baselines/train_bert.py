@@ -231,11 +231,8 @@ def train_des(cfg):
     # Build the video model and print model statistics.
     model = CNN_3D_BERT(cfg)
     if cfg.NUM_GPUS:
-        if gpu_id is None:
-            # Determine the GPU used by the current process
-            cur_device = torch.cuda.current_device()
-        else:
-            cur_device = gpu_id
+        # Determine the GPU used by the current process
+        cur_device = torch.cuda.current_device()
         # Transfer the model to the current GPU device
         model = model.cuda(device=cur_device)
 
