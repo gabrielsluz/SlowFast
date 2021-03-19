@@ -16,6 +16,29 @@ from slowfast.utils.meters import ClevrerTrainMeter, ClevrerValMeter
 from slowfast.datasets.clevrer_bert import Clevrerbert_des
 from slowfast.models.cnn3d_models import CNN_3D_BERT
 
+"""
+python3 clevrer_dev/baselines/train_bert.py \
+  --cfg clevrer_dev/baselines/slowfast.yaml \
+  DATA.PATH_TO_DATA_DIR /datasets/clevrer \
+  DATA.PATH_PREFIX /datasets/clevrer \
+  TRAIN.DATASET Clevrerbert_des \
+  TRAIN.ONLY_DES True \
+  TRAIN.ENABLE True \
+  MODEL.NUM_CLASSES 256 \
+  DATA.NUM_FRAMES 32 \
+  DATA.SAMPLING_RATE 4 \
+  TRAIN.BATCH_SIZE 8 \
+  NUM_GPUS 1 \
+  LOG_PERIOD 100 \
+  TRAIN.EVAL_PERIOD 1 \
+  TRAIN.CHECKPOINT_PERIOD 1 \
+  SOLVER.BASE_LR 0.0001 \
+  SOLVER.WEIGHT_DECAY 0.0 \
+  SOLVER.MAX_EPOCH 1
+"""
+
+
+
 def train_epoch(
     train_loader, model, optimizer, scheduler, train_meter, cur_epoch, cfg, test_imp=False
 ):
