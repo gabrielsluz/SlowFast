@@ -34,7 +34,7 @@ else:
 print("First {} items".format(max_i))
 for i in range(max_i):
     print(dataset.get_video_info(i))
-
+print(dataset.vocab)
 # tensor_image = dataset[0][0][0].permute(1,2,0)
 # plt.imshow(tensor_image)
 # plt.savefig('sample_frame.png')
