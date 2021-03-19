@@ -15,7 +15,7 @@ Prints information about the dataset for testing and debugging
 Example:
 python3 clevrer_dev/tests/model_eval_test.py \
   --cfg clevrer_dev/baselines/cnn_lstm.yaml \
-  DATA.NUM_FRAMES 1 \
+  DATA.NUM_FRAMES 2 \
   NUM_GPUS 0 \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer
