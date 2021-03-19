@@ -11,12 +11,18 @@ from tqdm import tqdm
 
 from slowfast.datasets.clevrer_mac import Clevrermac_des
 from slowfast.models.mac import MACNetwork
+from slowfast.config.defaults import get_cfg
 
 batch_size = 64
 n_epoch = 20
 dim = 512
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+#cfg for dataset
+cfg = get_cfg()
+cfg.DATA.PATH_TO_DATA_DIR = '/datasets/clevrer'
+cfg.DATA.PATH_PREFIX = '/datasets/clevrer'
 
 
 def accumulate(model1, model2, decay=0.999):
@@ -28,7 +34,7 @@ def accumulate(model1, model2, decay=0.999):
 
 
 def train(epoch):
-    clevr = CLEVR(sys.argv[1], transform=transform)
+    clevr = Clevrermac_des(cfg, "train")
     train_set = DataLoader(
         clevr, batch_size=batch_size, num_workers=4
     )
@@ -38,15 +44,21 @@ def train(epoch):
     moving_loss = 0
 
     net.train(True)
-    for image, question, q_len, answer, _ in pbar:
-        image, question, answer = (
-            image.to(device),
+    for sampled_batch in pbar:
+        slow_ft = sampled_batch['slow_ft']
+        fast_ft = sampled_batch['fast_ft']
+        question = sampled_batch['question_dict']['question']
+        answer = sampled_batch['question_dict']['ans']
+        q_len = sampled_batch['question_dict']['len']
+        slow_ft, fast_ft, question, answer = (
+            slow_ft.to(device),
+            fast_ft.to(device),
             question.to(device),
             answer.to(device),
         )
 
         net.zero_grad()
-        output = net(image, question, q_len)
+        output = net(slow_ft, fast_ft, question, q_len)
         loss = criterion(output, answer)
         loss.backward()
         optimizer.step()
@@ -71,33 +83,43 @@ def train(epoch):
 
 
 def valid(epoch):
-    clevr = CLEVR(sys.argv[1], 'val', transform=None)
+    clevr = Clevrermac_des(cfg, "val")
     valid_set = DataLoader(
         clevr, batch_size=batch_size, num_workers=4, collate_fn=collate_data
     )
     dataset = iter(valid_set)
 
     net_running.train(False)
-    family_correct = Counter()
-    family_total = Counter()
+    correct_cnt = 0.0
+    total_cnt = 0.0
     with torch.no_grad():
-        for image, question, q_len, answer, family in tqdm(dataset):
-            image, question = image.to(device), question.to(device)
+        for sampled_batch in tqdm(dataset):
+            slow_ft = sampled_batch['slow_ft']
+            fast_ft = sampled_batch['fast_ft']
+            question = sampled_batch['question_dict']['question']
+            answer = sampled_batch['question_dict']['ans']
+            q_len = sampled_batch['question_dict']['len']
+            slow_ft, fast_ft, question, answer = (
+                slow_ft.to(device),
+                fast_ft.to(device),
+                question.to(device),
+                answer.to(device),
+            )
 
-            output = net_running(image, question, q_len)
+            output = net_running(slow_ft, fast_ft, question, q_len)
             correct = output.detach().argmax(1) == answer.to(device)
-            for c, fam in zip(correct, family):
+            for c in correct:
                 if c:
-                    family_correct[fam] += 1
-                family_total[fam] += 1
+                    correct_cnt += 1
+                total_cnt += 1
 
-    with open('log/log_{}.txt'.format(str(epoch + 1).zfill(2)), 'w') as w:
-        for k, v in family_total.items():
-            w.write('{}: {:.5f}\n'.format(k, family_correct[k] / v))
+    # with open('log/log_{}.txt'.format(str(epoch + 1).zfill(2)), 'w') as w:
+    #     for k, v in family_total.items():
+    #         w.write('{}: {:.5f}\n'.format(k, family_correct[k] / v))
 
     print(
         'Avg Acc: {:.5f}'.format(
-            sum(family_correct.values()) / sum(family_total.values())
+            correct_cnt / total_cnt
         )
     )
 
@@ -105,8 +127,10 @@ def valid(epoch):
 
 
 if __name__ == '__main__':
-
-    n_words = len(dic['word_dic']) + 1
+    #Vocabs
+    vocab = {' CLS ': 0, ' PAD ': 1, '|': 2, ' counter ': 74, 'what': 3, 'is': 4, 'the': 5, 'shape': 6, 'of': 7, 'object': 8, 'to': 9, 'collide': 10, 'with': 11, 'purple': 12, '?': 13, 'color': 14, 'first': 15, 'gray': 16, 'sphere': 17, 'material': 18, 'how': 19, 'many': 20, 'collisions': 21, 'happen': 22, 'after': 23, 'cube': 24, 'enters': 25, 'scene': 26, 'objects': 27, 'enter': 28, 'are': 29, 'there': 30, 'before': 31, 'stationary': 32, 'rubber': 33, 'metal': 34, 'that': 35, 'moving': 36, 'cubes': 37, 'when': 38, 'blue': 39, 'exits': 40, 'any': 41, 'brown': 42, 'which': 43, 'following': 44, 'responsible': 45, 'for': 46, 'collision': 47, 'between': 48, 'and': 49, "'s": 50, 'colliding': 51, 'event': 52, 'will': 53, 'if': 54, 'cylinder': 55, 'removed': 56, 'without': 57, ',': 58, 'not': 59, 'red': 60, 'spheres': 61, 'exit': 62, 'cylinders': 63, 'video': 64, 'begins': 65, 'ends': 66, 'next': 67, 'last': 68, 'yellow': 69, 'cyan': 70, 'green': 71, 'second': 72, 'exiting': 73}
+    ans_vocab = {' counter ': 21, '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, 'yes': 6, 'no': 7, 'rubber': 8, 'metal': 9, 'sphere': 10, 'cube': 11, 'cylinder': 12, 'gray': 13, 'brown': 14, 'green': 15, 'red': 16, 'blue': 17, 'purple': 18, 'yellow': 19, 'cyan': 20}
+    n_words = len(vocab.keys())
     n_answers = 21
 
     net = MACNetwork(n_words, dim).to(device)
