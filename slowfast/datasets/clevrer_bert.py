@@ -237,7 +237,13 @@ class Clevrerbert_des(torch.utils.data.Dataset):
                 resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
                 for i in range(frames_size[0]):
                     resized_frames[i] = transform_rs(frames[i])
-        return resized_frames
+            return resized_frames
+        else:
+            raise RuntimeError(
+                "Failed to fetch video after {} retries.".format(
+                    self._num_retries
+                )
+            )
 
     def __getitem__(self, index):
         """
