@@ -239,7 +239,7 @@ class MACNetwork(nn.Module):
 
         fast_img = self.conv_fast(fast_ft)
         fast_img = fast_img.view(b_size, self.dim, -1)
-        knowledge_sf = torch.concat((slow_img, fast_img), dim=1)
+        knowledge_sf = torch.cat((slow_img, fast_img), dim=1)
 
         embed = self.embed(question)
         embed = nn.utils.rnn.pack_padded_sequence(embed, question_len,
