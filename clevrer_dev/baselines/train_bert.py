@@ -16,6 +16,7 @@ from slowfast.utils.meters import ClevrerTrainMeter, ClevrerValMeter
 from slowfast.datasets.clevrer_bert import Clevrerbert_des
 from slowfast.models.cnn3d_models import CNN_3D_BERT
 
+logger = logging.get_logger(__name__)
 """
 python3 clevrer_dev/baselines/train_bert.py \
   --cfg clevrer_dev/baselines/slowfast.yaml \
