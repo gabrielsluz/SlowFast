@@ -123,20 +123,20 @@ class CNN_LSTM(nn.Module):
             nn.init.xavier_normal_(layer.weight)
             # nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
             nn.init.normal_(layer.bias)
-        elif type(layer) == nn.LSTM:
-            for param in layer.parameters():
-                if len(param.shape) >= 2:
-                    nn.init.orthogonal_(param.data)
-                    # nn.init.kaiming_uniform_(param.data, mode='fan_in', nonlinearity='relu')
-                else:
-                    nn.init.normal_(param.data)
-        elif type(layer) == nn.LSTMCell:
-            for param in layer.parameters():
-                if len(param.shape) >= 2:
-                    nn.init.orthogonal_(param.data)
-                    # nn.init.kaiming_uniform_(param.data, mode='fan_in', nonlinearity='relu')
-                else:
-                    nn.init.normal_(param.data)
+        # elif type(layer) == nn.LSTM:
+        #     for param in layer.parameters():
+        #         if len(param.shape) >= 2:
+        #             nn.init.orthogonal_(param.data)
+        #             # nn.init.kaiming_uniform_(param.data, mode='fan_in', nonlinearity='relu')
+        #         else:
+        #             nn.init.normal_(param.data)
+        # elif type(layer) == nn.LSTMCell:
+        #     for param in layer.parameters():
+        #         if len(param.shape) >= 2:
+        #             nn.init.orthogonal_(param.data)
+        #             # nn.init.kaiming_uniform_(param.data, mode='fan_in', nonlinearity='relu')
+        #         else:
+        #             nn.init.normal_(param.data)
 
     def parse_glove_file(self, file_name, emb_dim, vocab_dict):
         """
@@ -180,14 +180,13 @@ class CNN_LSTM(nn.Module):
         self.ans_vocab_len = ans_vocab_len
         self.vocab = vocab
         #Input dimension for LSTM
-        # self.enc_dim = cfg.WORD_EMB.EMB_DIM
-        self.enc_dim = 1000
+        self.enc_dim = cfg.WORD_EMB.EMB_DIM
         #ResNet
         self.frame_enc_dim = self.enc_dim
         norm_layer = nn.BatchNorm2d
-        self.cnn = torchvision.models.resnet18(pretrained=True, progress=True, 
+        self.cnn = torchvision.models.resnet18(pretrained=False, progress=True, 
             num_classes=self.frame_enc_dim, norm_layer=norm_layer)
-        # self.cnn = torchvision.models.AlexNet(num_classes=self.frame_enc_dim, pretrained=True)
+        # self.cnn = torchvision.models.AlexNet(num_classes=self.frame_enc_dim)
         #Question Embedding
         self.question_enc_dim = self.enc_dim
         self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim, padding_idx=1) #Index 1 is for pad token
@@ -249,25 +248,25 @@ class CNN_LSTM(nn.Module):
         """
         #Receives a batch of frames. To apply a CNN we can join the batch and time dimensions
         cb_sz = clips_b.size()
-        # print("Clips = {}".format(clips_b))
-        # print("Clips size = {}".format(clips_b.size()))
-        # print("Cat clips = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])))
-        # print("Cat clips size = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]).size()))
-        # print("CNN weights = ")
-        # for name, param in self.cnn.named_parameters():
-        #     print(name, param)
+        print("Clips = {}".format(clips_b))
+        print("Clips size = {}".format(clips_b.size()))
+        print("Cat clips = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])))
+        print("Cat clips size = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]).size()))
+        print("CNN weights = ")
+        for name, param in self.cnn.named_parameters():
+            print(name, param)
         frame_encs = self.cnn(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
-        # print("Frame_encs after cnn = {}".format(frame_encs))
-        # print("Frame_encs after cnn size = {}".format(frame_encs.size()))
+        print("Frame_encs after cnn = {}".format(frame_encs))
+        print("Frame_encs after cnn size = {}".format(frame_encs.size()))
         frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.frame_enc_dim) #Returns to batch format
-        # print("Frame_encs in batch format = {}".format(frame_encs))
-        # print("Frame_encs in batch format size = {}".format(frame_encs.size()))
+        print("Frame_encs in batch format = {}".format(frame_encs))
+        print("Frame_encs in batch format size = {}".format(frame_encs.size()))
         #Question embbeding and aggregation
-        # print("Questions = {}".format(question_b))
-        # print("Questions size = {}".format(question_b.size()))
+        print("Questions = {}".format(question_b))
+        print("Questions size = {}".format(question_b.size()))
         word_encs = self.embed_layer(question_b)
-        # print("Questions embeddings {}".format(word_encs))
-        # print("Questions embeddings size{}".format(word_encs.size()))
+        print("Questions embeddings {}".format(word_encs))
+        print("Questions embeddings size{}".format(word_encs.size()))
         #Indicate which are words and which are frames
         ones_v = torch.ones((cb_sz[0], cb_sz[1]+word_encs.size(1), 1))
         zeros_v = torch.zeros((cb_sz[0], cb_sz[1]+word_encs.size(1), 1))
@@ -277,17 +276,17 @@ class CNN_LSTM(nn.Module):
             zeros_v = zeros_v.cuda(device=cur_device)
         word_encs = torch.cat((word_encs, ones_v[:,0:word_encs.size(1)], zeros_v[:,0:word_encs.size(1)]), dim=2)
         frame_encs = torch.cat((frame_encs, zeros_v[:,0:cb_sz[1]], ones_v[:,0:cb_sz[1]]), dim=2)
-        # print("Word_encs with indicator: {}".format(word_encs))
-        # print("Frame_encs with indicator: {}".format(frame_encs))
+        print("Word_encs with indicator: {}".format(word_encs))
+        print("Frame_encs with indicator: {}".format(frame_encs))
         #Concatenate question and video encodings
         rnn_input = torch.cat((word_encs, frame_encs), dim=1)
-        # print("Rnn input = {}".format(rnn_input))
-        # print("Rnn input size = {}".format(rnn_input.size()))
+        print("Rnn input = {}".format(rnn_input))
+        print("Rnn input size = {}".format(rnn_input.size()))
         #LSTM
         _, (h_n, _) = self.LSTM(rnn_input)
         x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
-        # print("Rnn cat output = {}".format(x))
-        # print("Rnn cat output size = {}".format(x.size()))
+        print("Rnn cat output = {}".format(x))
+        print("Rnn cat output size = {}".format(x.size()))
         if is_des_q:
             return self.des_pred_head(x)
         else:
