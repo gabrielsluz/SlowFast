@@ -50,7 +50,11 @@ def train_epoch(
         # des_len = sampled_batch['question_dict']['len']
         # Transfer the data to the current GPU device.
         if cfg.NUM_GPUS:
-            frames = frames.cuda(non_blocking=True)
+            if isinstance(frames, (list,)):
+                for i in range(len(frames)):
+                    frames[i] = frames[i].cuda(non_blocking=True)
+            else:
+                frames = frames.cuda(non_blocking=True)
             des_q = des_q.cuda(non_blocking=True)
             des_ans = des_ans.cuda()
             # des_len = des_len.cuda(non_blocking=True)
@@ -153,7 +157,11 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=False):
         # des_len = sampled_batch['question_dict']['len']
         # Transfer the data to the current GPU device.
         if cfg.NUM_GPUS:
-            frames = frames.cuda(non_blocking=True)
+            if isinstance(frames, (list,)):
+                for i in range(len(frames)):
+                    frames[i] = frames[i].cuda(non_blocking=True)
+            else:
+                frames = frames.cuda(non_blocking=True)
             des_q = des_q.cuda(non_blocking=True)
             des_ans = des_ans.cuda()
             # des_len = des_len.cuda(non_blocking=True)
