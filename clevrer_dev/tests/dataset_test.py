@@ -55,5 +55,5 @@ for i_batch, sample_batched in enumerate(dataloader):
     #     plt.savefig('./clevrer_dev/tests/sample_frame{}.png'.format(i_frame))
     # break
 
-for i in range(len(dataset)):
+for i in range(1000):
     print(dataset._dataset[i])
