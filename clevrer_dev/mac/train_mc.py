@@ -51,7 +51,7 @@ def train(epoch):
         question = sampled_batch['question_dict']['question']
         answer = sampled_batch['question_dict']['ans']
         q_len = sampled_batch['question_dict']['len']
-        slow_ft, fast_ft, question, answer, is_des = (
+        slow_ft, fast_ft, question, answer = (
             slow_ft.to(device),
             fast_ft.to(device),
             question.to(device),
