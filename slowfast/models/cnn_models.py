@@ -250,6 +250,7 @@ class CNN_LSTM(nn.Module):
         cb_sz = clips_b.size()
         print("Clips = {}".format(clips_b))
         print("Clips size = {}".format(clips_b.size()))
+        print("First Clip = Second CLips = {}".format(torch.eq(clips_b[0], clips_b[1])))
         print("Cat clips = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])))
         print("Cat clips size = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]).size()))
         print("CNN weights = ")
