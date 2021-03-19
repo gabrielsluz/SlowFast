@@ -606,35 +606,35 @@ class CNN_SEP_LSTM(nn.Module):
         """
         #Receives a batch of frames. To apply a CNN we can join the batch and time dimensions
         cb_sz = clips_b.size()
-        print("Clips = {}".format(clips_b))
-        print("Clips size = {}".format(clips_b.size()))
-        print("First Clip == Second CLips = {}".format(torch.all(torch.eq(clips_b[0], clips_b[1]))))
-        print("Cat clips = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])))
-        print("Cat clips size = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]).size()))
-        print("Cat clips == Clips_b = {}".format(torch.all(torch.eq(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])[0:cb_sz[1]], clips_b[0]))))
+        # print("Clips = {}".format(clips_b))
+        # print("Clips size = {}".format(clips_b.size()))
+        # print("First Clip == Second CLips = {}".format(torch.all(torch.eq(clips_b[0], clips_b[1]))))
+        # print("Cat clips = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])))
+        # print("Cat clips size = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]).size()))
+        # print("Cat clips == Clips_b = {}".format(torch.all(torch.eq(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])[0:cb_sz[1]], clips_b[0]))))
         # print("CNN weights = ")
         # for name, param in self.cnn.named_parameters():
         #     print(name, param)
         frame_encs = self.cnn(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
-        print("Frame_encs after cnn = {}".format(frame_encs))
-        print("Frame_encs after cnn size = {}".format(frame_encs.size()))
+        # print("Frame_encs after cnn = {}".format(frame_encs))
+        # print("Frame_encs after cnn size = {}".format(frame_encs.size()))
         frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.frame_enc_dim) #Returns to batch format
-        print("Frame_encs in batch format = {}".format(frame_encs))
-        print("Frame_encs in batch format size = {}".format(frame_encs.size()))
+        # print("Frame_encs in batch format = {}".format(frame_encs))
+        # print("Frame_encs in batch format size = {}".format(frame_encs.size()))
         #Question embbeding and aggregation
-        print("Questions = {}".format(question_b))
-        print("Questions size = {}".format(question_b.size()))
+        # print("Questions = {}".format(question_b))
+        # print("Questions size = {}".format(question_b.size()))
         word_encs = self.embed_layer(question_b)
-        print("Questions embeddings {}".format(word_encs))
-        print("Questions embeddings size{}".format(word_encs.size()))
+        # print("Questions embeddings {}".format(word_encs))
+        # print("Questions embeddings size{}".format(word_encs.size()))
         #LSTM
         _, (h_n, _) = self.word_LSTM(word_encs)
         word_x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
         _, (h_n, _) = self.frame_LSTM(frame_encs)
         frame_x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
         x = torch.cat((frame_x, word_x), dim=1)
-        print("Rnn cat output = {}".format(x))
-        print("Rnn cat output size = {}".format(x.size()))
+        # print("Rnn cat output = {}".format(x))
+        # print("Rnn cat output size = {}".format(x.size()))
         if is_des_q:
             return self.des_pred_head(x)
         else:
