@@ -249,38 +249,10 @@ class Clevrer_des(torch.utils.data.Dataset):
                     decoded, then return the index of the video. If not, return the
                     index of the video replacement that can be decoded.
         """
-        short_cycle_idx = None
-        # When short cycle is used, input index is a tupple.
-        if isinstance(index, tuple):
-            index, short_cycle_idx = index
-
         # -1 indicates random sampling.
         temporal_sample_index = -1
         spatial_sample_index = -1
-        min_scale = self.cfg.DATA.TRAIN_JITTER_SCALES[0]
-        max_scale = self.cfg.DATA.TRAIN_JITTER_SCALES[1]
-        crop_size = self.cfg.DATA.TRAIN_CROP_SIZE
-        if short_cycle_idx in [0, 1]:
-            crop_size = int(
-                round(
-                    self.cfg.MULTIGRID.SHORT_CYCLE_FACTORS[short_cycle_idx]
-                    * self.cfg.MULTIGRID.DEFAULT_S
-                )
-            )
-        if self.cfg.MULTIGRID.DEFAULT_S > 0:
-            # Decreasing the scale is equivalent to using a larger "span"
-            # in a sampling grid.
-            min_scale = int(
-                round(
-                    float(min_scale)
-                    * crop_size
-                    / self.cfg.MULTIGRID.DEFAULT_S
-                )
-            )
-        sampling_rate = utils.get_random_sampling_rate(
-            self.cfg.MULTIGRID.LONG_CYCLE_SAMPLING_RATE,
-            self.cfg.DATA.SAMPLING_RATE,
-        )
+        sampling_rate = self.cfg.DATA.SAMPLING_RATE
         # Try to decode and sample a clip from a video. If the video cannot be
         # decoded, repeatly find a random video replacement that can be decoded.
         for i_try in range(self._num_retries):
@@ -319,7 +291,7 @@ class Clevrer_des(torch.utils.data.Dataset):
                 video_meta=None,
                 target_fps=self.cfg.DATA.TARGET_FPS,
                 backend=self.cfg.DATA.DECODING_BACKEND,
-                max_spatial_scale=min_scale,
+                max_spatial_scale=0
             )
 
             # If decoding failed (wrong format, video is too short, and etc),
@@ -334,21 +306,39 @@ class Clevrer_des(torch.utils.data.Dataset):
                     # let's try another one
                     index = random.randint(0, len(self._path_to_videos) - 1)
                 continue
+                
+            if cfg.MODEL.ARCH == "slowfast":
+                # T H W C -> T C H W. 
+                frames = frames.permute(0, 3, 1, 2)
+                # Perform resize
+                transform_rs = transforms.Compose([
+                    transforms.ToPILImage(),
+                    transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W]),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                ])
+                frames_size = frames.size()
+                resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
+                for i in range(frames_size[0]):
+                    resized_frames[i] = transform_rs(frames[i])
+                # T C H W -> C T H W. 
+                resized_frames = resized_frames.permute(1, 0, 2, 3)
+                resized_frames = utils.pack_pathway_output(self.cfg, resized_frames)
 
-            # T H W C -> T C H W.
-            frames = frames.permute(0, 3, 1, 2)
-            # Perform resize
-            transform_rs = transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W]),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            ])
-            frames_size = frames.size()
-            resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
-            for i in range(frames_size[0]):
-                resized_frames[i] = transform_rs(frames[i])
-            #resized_frames = utils.pack_pathway_output(self.cfg, resized_frames)
+            else:
+                # T H W C -> T C H W.
+                frames = frames.permute(0, 3, 1, 2)
+                # Perform resize
+                transform_rs = transforms.Compose([
+                    transforms.ToPILImage(),
+                    transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W]),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                ])
+                frames_size = frames.size()
+                resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
+                for i in range(frames_size[0]):
+                    resized_frames[i] = transform_rs(frames[i])
 
             question_dict = copy.deepcopy(self._dataset[index])
             output_dict = {}

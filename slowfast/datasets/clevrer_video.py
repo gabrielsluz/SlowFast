@@ -134,14 +134,7 @@ class Clevrer_video(torch.utils.data.Dataset):
         # -1 indicates random sampling.
         temporal_sample_index = -1
         spatial_sample_index = -1
-        min_scale = self.cfg.DATA.TRAIN_JITTER_SCALES[0]
-        max_scale = self.cfg.DATA.TRAIN_JITTER_SCALES[1]
-        crop_size = self.cfg.DATA.TRAIN_CROP_SIZE
-
-        sampling_rate = utils.get_random_sampling_rate(
-            self.cfg.MULTIGRID.LONG_CYCLE_SAMPLING_RATE,
-            self.cfg.DATA.SAMPLING_RATE,
-        )
+        sampling_rate = self.cfg.DATA.SAMPLING_RATE
         # Try to decode and sample a clip from a video. If the video can not be
         # decoded, repeat
         for i_try in range(self._num_retries):
@@ -177,7 +170,7 @@ class Clevrer_video(torch.utils.data.Dataset):
                 video_meta=None,
                 target_fps=self.cfg.DATA.TARGET_FPS,
                 backend=self.cfg.DATA.DECODING_BACKEND,
-                max_spatial_scale=min_scale,
+                max_spatial_scale=0
             )
 
             # If decoding failed (wrong format, video is too short, and etc),
