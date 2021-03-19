@@ -461,3 +461,181 @@ class CNN_Transformer(nn.Module):
             return self.mc_pred_head(x)
 
 
+
+
+
+#__--____--____---___-Separated LSTM__--____--____---___-
+@MODEL_REGISTRY.register()
+class CNN_SEP_LSTM(nn.Module):
+    """
+    Implemetation of a baseline CNN+LSTM model for Clevrer
+    First receives the sequence of word embeddings for the question, 
+    then the CNN embbedings for the frames
+    """
+
+    def init_params(self, layer):
+        if type(layer) == nn.Embedding:
+            nn.init.kaiming_uniform_(layer.weight, mode='fan_in', nonlinearity='relu')
+            nn.init.zeros_(layer.weight[layer.padding_idx])
+        elif type(layer) == nn.Linear:
+            nn.init.xavier_normal_(layer.weight)
+            # nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')
+            nn.init.normal_(layer.bias)
+        # elif type(layer) == nn.LSTM:
+        #     for param in layer.parameters():
+        #         if len(param.shape) >= 2:
+        #             nn.init.orthogonal_(param.data)
+        #             # nn.init.kaiming_uniform_(param.data, mode='fan_in', nonlinearity='relu')
+        #         else:
+        #             nn.init.normal_(param.data)
+        # elif type(layer) == nn.LSTMCell:
+        #     for param in layer.parameters():
+        #         if len(param.shape) >= 2:
+        #             nn.init.orthogonal_(param.data)
+        #             # nn.init.kaiming_uniform_(param.data, mode='fan_in', nonlinearity='relu')
+        #         else:
+        #             nn.init.normal_(param.data)
+
+    def parse_glove_file(self, file_name, emb_dim, vocab_dict):
+        """
+        Opens a Glove pretrained embeddings file with embeddings with dimension emb_dim
+        Builds a matrix vocab_size x emb_dim, compatible with nn.Embedding to be used with vocab_dict
+        """
+        word_list = []
+        for word in vocab_dict.keys():
+            word_list.append(word)
+        emb_mat = np.zeros((len(vocab_dict), emb_dim))
+        with open(file_name, 'rb') as f:
+            for l in f:
+                line = l.decode().split()
+                word = line[0]
+                if not word in vocab_dict:
+                    continue
+                vect = np.array(line[1:]).astype(np.float)
+                emb_mat[vocab_dict[word]] = vect
+                word_list.remove(word)
+
+        if len(word_list) > 0:
+            print("Missing following words in pretrained embeddings")
+            print(word_list)
+        return torch.from_numpy(emb_mat)
+
+    def __init__(self, cfg, vocab_len, ans_vocab_len, vocab):
+        """
+        The `__init__` method of any subclass should also contain these
+            arguments.
+
+        Args:
+            cfg (CfgNode): model building configs, details are in the
+                comments of the config file.
+        """
+        print("CNN_SEP_LSTM model")
+        super(CNN_SEP_LSTM, self).__init__()
+        #CUDA
+        self.num_gpus = cfg.NUM_GPUS
+        #Dataset specific parameters
+        self.vocab_len = vocab_len
+        self.ans_vocab_len = ans_vocab_len
+        self.vocab = vocab
+        #ResNet
+        self.frame_enc_dim = 1000
+        self.cnn = torchvision.models.resnet18(pretrained=True, progress=True, 
+            num_classes=self.frame_enc_dim)
+        # self.cnn = torchvision.models.AlexNet(num_classes=self.frame_enc_dim)
+        #Question Embedding
+        self.question_enc_dim = cfg.WORD_EMB.EMB_DIM
+        self.embed_layer = nn.Embedding(self.vocab_len, self.question_enc_dim, padding_idx=1) #Index 1 is for pad token
+        if cfg.WORD_EMB.USE_PRETRAINED_EMB:
+            weights_matrix = self.parse_glove_file(cfg.WORD_EMB.GLOVE_PATH, self.question_enc_dim, self.vocab)
+            self.embed_layer.load_state_dict({'weight': weights_matrix})
+        else:
+            self.embed_layer.apply(self.init_params)
+        if not cfg.WORD_EMB.TRAINABLE:
+            self.embed_layer.weight.requires_grad = False
+
+        #LSTMs
+        #WORD LSTM
+        self.hid_st_dim = cfg.CLEVRERMAIN.LSTM_HID_DIM
+        self.num_layers = 2
+        self.num_directions = 2
+        self.word_LSTM = torch.nn.LSTM(
+            input_size=self.question_enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
+            bias=True, batch_first=True, dropout=cfg.CLEVRERMAIN.T_DROPOUT, bidirectional=True
+        )
+        #FRAME LSTM
+        self.hid_st_dim = cfg.CLEVRERMAIN.LSTM_HID_DIM
+        self.num_layers = 2
+        self.num_directions = 2
+        self.frame_LSTM = torch.nn.LSTM(
+            input_size=self.frame_enc_dim, hidden_size=self.hid_st_dim, num_layers=self.num_layers,
+            bias=True, batch_first=True, dropout=cfg.CLEVRERMAIN.T_DROPOUT, bidirectional=True
+        )
+        #Prediction head MLP
+        hid_dim = 2048
+        ph_input_dim = self.hid_st_dim*4
+        #Question especific
+        self.des_pred_head = nn.Sequential(
+            nn.Linear(ph_input_dim, hid_dim),
+            nn.BatchNorm1d(hid_dim),
+            nn.ReLU(),
+            nn.Linear(hid_dim, self.ans_vocab_len)
+        )
+        #Multiple choice answer => outputs a vector of size 4, 
+        # which is interpreted as 4 logits, one for each binary classification of each choice
+        self.mc_pred_head = nn.Sequential(
+            nn.Linear(ph_input_dim, hid_dim),
+            nn.BatchNorm1d(hid_dim),
+            nn.ReLU(),
+            nn.Linear(hid_dim, 4)
+        )
+
+        #Init parameters *embed layer is initialized above
+        self.word_LSTM.apply(self.init_params)
+        self.frame_LSTM.apply(self.init_params)
+        self.des_pred_head.apply(self.init_params)
+        self.mc_pred_head.apply(self.init_params)
+
+    def forward(self, clips_b, question_b, is_des_q):
+        """
+        Receives a batch of clips and questions:
+                clips_b (tensor): the frames of sampled from the video. The dimension
+                    is `batch_size` x `num frames` x `channel` x `height` x `width`.
+                question_b (tensor): The dimension is
+                    `batch_size` x 'max sequence length'
+                is_des_q (bool): Indicates if is descriptive question or multiple choice
+        """
+        #Receives a batch of frames. To apply a CNN we can join the batch and time dimensions
+        cb_sz = clips_b.size()
+        print("Clips = {}".format(clips_b))
+        print("Clips size = {}".format(clips_b.size()))
+        print("First Clip == Second CLips = {}".format(torch.all(torch.eq(clips_b[0], clips_b[1]))))
+        print("Cat clips = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])))
+        print("Cat clips size = {}".format(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]).size()))
+        print("Cat clips == Clips_b = {}".format(torch.all(torch.eq(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])[0:cb_sz[1]], clips_b[0]))))
+        # print("CNN weights = ")
+        # for name, param in self.cnn.named_parameters():
+        #     print(name, param)
+        frame_encs = self.cnn(clips_b.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+        print("Frame_encs after cnn = {}".format(frame_encs))
+        print("Frame_encs after cnn size = {}".format(frame_encs.size()))
+        frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.frame_enc_dim) #Returns to batch format
+        print("Frame_encs in batch format = {}".format(frame_encs))
+        print("Frame_encs in batch format size = {}".format(frame_encs.size()))
+        #Question embbeding and aggregation
+        print("Questions = {}".format(question_b))
+        print("Questions size = {}".format(question_b.size()))
+        word_encs = self.embed_layer(question_b)
+        print("Questions embeddings {}".format(word_encs))
+        print("Questions embeddings size{}".format(word_encs.size()))
+        #LSTM
+        _, (h_n, _) = self.word_LSTM(word_encs)
+        word_x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
+        _, (h_n, _) = self.frame_LSTM(frame_encs)
+        frame_x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
+        x = torch.cat((frame_x, word_x), dim=1)
+        print("Rnn cat output = {}".format(x))
+        print("Rnn cat output size = {}".format(x.size()))
+        if is_des_q:
+            return self.des_pred_head(x)
+        else:
+            return self.mc_pred_head(x)
