@@ -135,7 +135,6 @@ class CNN_3D_LSTM(nn.Module):
                 is_des_q (bool): Indicates if is descriptive question or multiple choice
         """
         #Receives a batch of frames
-        cb_sz = clips_b.size()
         frame_encs = self.SlowFast(clips_b)
         #Question embbeding
         word_encs = self.embed_layer(question_b)
