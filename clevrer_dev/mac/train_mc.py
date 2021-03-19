@@ -51,17 +51,15 @@ def train(epoch):
         question = sampled_batch['question_dict']['question']
         answer = sampled_batch['question_dict']['ans']
         q_len = sampled_batch['question_dict']['len']
-        is_des = sampled_batch['question_dict']['is_des']
         slow_ft, fast_ft, question, answer, is_des = (
             slow_ft.to(device),
             fast_ft.to(device),
             question.to(device),
-            answer.to(device),
-            is_des.to(device)
+            answer.to(device)
         )
 
         net.zero_grad()
-        output = net(slow_ft, fast_ft, question, q_len, is_des)
+        output = net(slow_ft, fast_ft, question, q_len, False)
         loss = criterion(output, answer)
         loss.backward()
         optimizer.step()
@@ -123,7 +121,7 @@ def valid(epoch):
                 answer.to(device),
             )
 
-            output = net_running(slow_ft, fast_ft, question, q_len)
+            output = net_running(slow_ft, fast_ft, question, q_len, False)
             diff_mc_ans = torch.abs(answer - (torch.sigmoid(output) >= 0.5).float()) #Errors
             mc_opt_err = 100 * torch.true_divide(diff_mc_ans.sum(), (4*question.size()[0]))
             mc_q_err = 100 * torch.true_divide((diff_mc_ans.sum(dim=1, keepdim=True) != 0).float().sum(), question.size()[0])
