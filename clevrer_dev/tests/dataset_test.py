@@ -12,11 +12,11 @@ Prints information about the dataset for testing and debugging
 """
 
 cfg = get_cfg()
-cfg.DATA.PATH_TO_DATA_DIR = '/datasets/clevrer_dummy'
-cfg.DATA.PATH_PREFIX = '/datasets/clevrer_dummy'
+cfg.DATA.PATH_TO_DATA_DIR = '/datasets/clevrer'
+cfg.DATA.PATH_PREFIX = '/datasets/clevrer'
 cfg.DATA.RESIZE_H= 224
 cfg.DATA.RESIZE_W= 224
-cfg.DATA.NUM_FRAMES= 15
+cfg.DATA.NUM_FRAMES= 4
 cfg.DATA.SAMPLING_RATE= 8
 
 
@@ -50,7 +50,10 @@ for i_batch, sample_batched in enumerate(dataloader):
     print(sample_batched['question_dict']['len'])
     print(sample_batched['index'])
 
-    for i_frame in range(sample_batched['frames'].size()[1]):
-        plt.imshow(sample_batched['frames'][0][i_frame].permute(1,2,0))
-        #plt.savefig('./clevrer_dev/tests/sample_frame{}.png'.format(i_frame))
-    break
+    # for i_frame in range(sample_batched['frames'].size()[1]):
+    #     plt.imshow(sample_batched['frames'][0][i_frame].permute(1,2,0))
+    #     plt.savefig('./clevrer_dev/tests/sample_frame{}.png'.format(i_frame))
+    # break
+
+for i in range(len(dataset)):
+    print(dataset._dataset[i])

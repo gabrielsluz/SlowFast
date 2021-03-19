@@ -55,6 +55,3 @@ for i_batch, sample_batched in enumerate(dataloader):
         plt.imshow(sample_batched['frames'][0][i_frame].permute(1,2,0))
         #plt.savefig('sample_frame{}.png'.format(i_frame))
     break
-
-for i in range(len(dataset)):
-    print(dataset._dataset[i])
