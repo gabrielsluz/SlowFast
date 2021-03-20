@@ -219,13 +219,12 @@ class CNN_3D_BERT(nn.Module):
         #Receives a batch of frames
         frame_encs = self.SlowFast(clips_b)
         #BERT pooler_output or last_hidden_state
-        bert_out = self.BERT(input_ids=question_b['input_ids'],
-                            attention_mask=question_b['attention_mask'],
-                            token_type_ids=question_b['token_type_ids'])
-        q_encs = bert_out.last_hidden_state[:,0,:]
-        print("q_encs = {}".format(q_encs))
-        print("frame_encs = {}".format(frame_encs))
-        x = torch.cat((q_encs, frame_encs), dim=1)
+        # bert_out = self.BERT(input_ids=question_b['input_ids'],
+        #                     attention_mask=question_b['attention_mask'],
+        #                     token_type_ids=question_b['token_type_ids'])
+        # q_encs = bert_out.last_hidden_state[:,0,:]
+        # x = torch.cat((q_encs, frame_encs), dim=1)
+        x = frame_encs
         if is_des_q:
             return self.des_pred_head(x)
         else:
