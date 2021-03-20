@@ -270,6 +270,13 @@ class Clevrermac_des(torch.utils.data.Dataset):
         output_dict['fast_ft'] = torch.from_numpy(self.fast_fts[ft_i])
         output_dict['question_dict'] = question_dict
         output_dict['index'] = index
+        #print("DATASET PRINT BEGIN ---")
+        #print("Dataset entry = {}".format(self._dataset[index]))
+        #print("Dataset index = {}".format(index))
+        #print("Feature index index = {}".format(ft_i))
+        #print("Dataset slow ft sum = {}".format(torch.from_numpy(self.slow_fts[ft_i]).sum()))
+        #print("Dataset fast ft sum = {}".format(torch.from_numpy(self.fast_fts[ft_i]).sum()))
+        #print("DATASET PRINT END---")
         return output_dict
 
     def decode_question(self, q_tensor):
