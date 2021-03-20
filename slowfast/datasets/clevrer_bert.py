@@ -1,13 +1,18 @@
 import torch 
 import os
 import random
-import torch
 import torch.utils.data
 from iopath.common.file_io import g_pathmgr
 import json
 import copy
-import slowfast.utils.logging as logging
 from transformers import BertTokenizer
+import torchvision.transforms as transforms
+
+import slowfast.utils.logging as logging
+
+from . import decoder as decoder
+from . import utils as utils
+from . import video_container as container
 
 logger = logging.get_logger(__name__)
 
@@ -192,7 +197,7 @@ class Clevrerbert_des(torch.utils.data.Dataset):
                 )
                 if self.mode not in ["test"] and i_try > self._num_retries // 2:
                     # let's try another one
-                    index = random.randint(0, len(self._path_to_videos) - 1)
+                    index = random.randint(0, len(self._dataset) - 1)
                 continue
 
             # Decode video. Meta info is used to perform selective decoding.
@@ -218,7 +223,7 @@ class Clevrerbert_des(torch.utils.data.Dataset):
                 )
                 if self.mode not in ["test"] and i_try > self._num_retries // 2:
                     # let's try another one
-                    index = random.randint(0, len(self._path_to_videos) - 1)
+                    index = random.randint(0, len(self._dataset) - 1)
                 continue
 
             if self.cfg.MODEL.ARCH == "slowfast":
