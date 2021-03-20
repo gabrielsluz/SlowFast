@@ -39,8 +39,13 @@ def forward(self, x, bboxes=None):
     x = self.s3(x)
     x = self.s3_fuse(x)
     x = self.s4(x)
+    print("Start")
+    print(x.size())
     x = self.s4_fuse(x)
+    print(x.size())
     x = self.s5(x)
+    print(x.size())
+    print("End")
     return x
 
 
