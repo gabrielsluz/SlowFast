@@ -134,7 +134,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=False):
     val_meter.iter_tic()
 
     for cur_iter, sampled_batch in enumerate(val_loader):
-        frames = sampled_batch['frames']
+        frames = sampled_batch['res_ft']
         des_q = sampled_batch['question_dict']['question']
         des_ans = sampled_batch['question_dict']['ans']
         # Transfer the data to the current GPU device.
