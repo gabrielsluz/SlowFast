@@ -72,9 +72,9 @@ def train_epoch(
             else:
                 frames = frames.cuda(non_blocking=True)
             #BERT inputs
-            des_q['question_dict']['question']['input_ids'] = des_q['question_dict']['question']['input_ids'].cuda(non_blocking=True)
-            des_q['question_dict']['question']['attention_mask'] = des_q['question_dict']['question']['attention_mask'].cuda(non_blocking=True)
-            des_q['question_dict']['question']['token_type_ids'] = des_q['question_dict']['question']['token_type_ids'].cuda(non_blocking=True)
+            des_q['input_ids'] = des_q['input_ids'].cuda(non_blocking=True)
+            des_q['attention_mask'] = des_q['attention_mask'].cuda(non_blocking=True)
+            des_q['token_type_ids'] = des_q['token_type_ids'].cuda(non_blocking=True)
             des_ans = des_ans.cuda()
 
         train_meter.data_toc()
@@ -114,8 +114,8 @@ def train_epoch(
             mc_q_err,
             loss_des_val,
             None,
-            lr,
-            des_q.size()[0],
+            scheduler.get_last_lr(),
+            des_ans.size(0),
             mb_size_mc
         )
         train_meter.iter_toc()  # measure allreduce for this meter
@@ -155,9 +155,9 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=False):
             else:
                 frames = frames.cuda(non_blocking=True)
             #BERT inputs
-            des_q['question_dict']['question']['input_ids'] = des_q['question_dict']['question']['input_ids'].cuda(non_blocking=True)
-            des_q['question_dict']['question']['attention_mask'] = des_q['question_dict']['question']['attention_mask'].cuda(non_blocking=True)
-            des_q['question_dict']['question']['token_type_ids'] = des_q['question_dict']['question']['token_type_ids'].cuda(non_blocking=True)
+            des_q['input_ids'] = des_q['input_ids'].cuda(non_blocking=True)
+            des_q['attention_mask'] = des_q['attention_mask'].cuda(non_blocking=True)
+            des_q['token_type_ids'] = des_q['token_type_ids'].cuda(non_blocking=True)
             des_ans = des_ans.cuda()
 
         val_meter.data_toc()
@@ -192,7 +192,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=False):
             mc_q_err,
             loss_des_val,
             loss_mc_val,
-            des_q.size()[0],
+            des_ans.size(0),
             mb_size_mc
         )
         val_meter.log_iter_stats(cur_epoch, cur_iter)
