@@ -32,6 +32,10 @@ dataloader = DataLoader(dataset, batch_size=2,
 print("Vocab = {}".format(dataset.vocab))
 print("Ans_vocab = {}".format(dataset.ans_vocab))
 
+for i in range(10):
+    print(dataset[i]['slow_ft'].sum())
+    print(dataset[i]['fast_ft'].sum())
+
 for i_batch, sampled_batch in enumerate(dataloader):
     index = sampled_batch['index'][0].item()
     print("Video info = {}".format(dataset.get_video_info(index)))
@@ -64,3 +68,6 @@ for i_batch, sampled_batch in enumerate(dataloader):
     print(sampled_batch['index'])
 
     break
+for i in range(10):
+    print(dataset[i]['slow_ft'].sum())
+    print(dataset[i]['fast_ft'].sum())
