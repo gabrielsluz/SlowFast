@@ -188,7 +188,8 @@ class CNN_3D_BERT(nn.Module):
         bert_hid_dim = self.BERT.config.hidden_size
         #Prediction head MLP
         hid_dim = 2048
-        ph_input_dim = bert_hid_dim + self.frame_enc_dim
+        # ph_input_dim = bert_hid_dim + self.frame_enc_dim
+        ph_input_dim = self.frame_enc_dim
         #Question especific
         self.des_pred_head = nn.Sequential(
             nn.Linear(ph_input_dim, hid_dim),
