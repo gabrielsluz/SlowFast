@@ -188,12 +188,12 @@ class MACNetwork(nn.Module):
                 classes=21, dropout=0.15):
         super().__init__()
 
-        self.conv_slow = nn.Sequential(nn.Conv3d(2048, dim, 3, padding=1),
+        self.conv_slow = nn.Sequential(nn.Conv3d(1280, dim, 3, padding=1),
                                 nn.ELU(),
                                 nn.Conv3d(dim, dim, 3, padding=1),
                                 nn.ELU())
 
-        self.conv_fast = nn.Sequential(nn.Conv3d(256, dim, 3, padding=1),
+        self.conv_fast = nn.Sequential(nn.Conv3d(128, dim, 3, padding=1),
                                 nn.ELU(),
                                 nn.Conv3d(dim, dim, 3, padding=1),
                                 nn.ELU())
