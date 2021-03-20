@@ -2,6 +2,7 @@
 import torch
 from torch.utils.data import DataLoader
 import torchvision
+from torchvision.models.resnet import ResNet
 
 import sys
 import os
@@ -37,13 +38,9 @@ def forward(self, x):
     x = self.layer1(x)
     x = self.layer2(x)
     x = self.layer3(x)
-    print(x.size())
     x = self.layer4(x)
-    print(x.size())
     x = self.avgpool(x)
-    print(x.size())
     x = torch.flatten(x, 1)
-    print(x.size())
     #x = self.fc(x)
     return x
 
@@ -66,19 +63,17 @@ def gen_dataset(cfg, mode, root):
     #Slow
     h5_path = os.path.join(root, '{}_res50_features.hdf5'.format(mode))
     f_h5 = h5py.File(h5_path, 'w', libver='latest')
-    d_set_h5 = f_h5.create_dataset('data', (size * batch_size, 2048),
+    d_set_h5 = f_h5.create_dataset('data', (size * batch_size,cfg.DATA.NUM_FRAMES, 2048),
                             dtype='f4')
 
     with torch.no_grad():
         for i_batch, sampled_batch in tqdm(enumerate(dataloader)):
             inputs = sampled_batch[0]
             if cfg.NUM_GPUS:
-                if isinstance(inputs, (list,)):
-                    for i in range(len(inputs)):
-                        inputs[i] = inputs[i].cuda(non_blocking=True)
-                else:
-                    inputs = inputs.cuda(non_blocking=True)
-            out = model(inputs)
+                inputs = inputs.cuda(non_blocking=True)
+            cb_sz = inputs.size()
+            out = model(inputs.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+            out = out.view(cb_sz[0], cb_sz[1], 2048)
             d_set_h5[i_batch * batch_size:(i_batch + 1) * batch_size] = out.detach().cpu().numpy()
     f_h5.close()
 

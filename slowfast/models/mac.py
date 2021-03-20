@@ -253,7 +253,8 @@ class MACNetwork(nn.Module):
                                                     batch_first=True)
         lstm_out = self.lstm_proj(lstm_out)
         h = h.permute(1, 0, 2).contiguous().view(b_size, -1)
-
+        #print("MAC input lstm_out = {}".format(lstm_out))
+        #print("MAC input knowledge_sf = {}".format(knowledge_sf))
         memory = self.mac(lstm_out, h, knowledge_sf)
 
         out = torch.cat([memory, h], 1)

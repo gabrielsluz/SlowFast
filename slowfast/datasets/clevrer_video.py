@@ -141,21 +141,21 @@ class Clevrer_video(torch.utils.data.Dataset):
             video_container = None
             try:
                 video_container = container.get_video_container(
-                    self._dataset[index]['video_path'],
+                    self._dataset[index],
                     self.cfg.DATA_LOADER.ENABLE_MULTI_THREAD_DECODE,
                     self.cfg.DATA.DECODING_BACKEND,
                 )
             except Exception as e:
                 logger.info(
                     "Failed to load video from {} with error {}".format(
-                        self._dataset[index]['video_path'], e
+                        self._dataset[index], e
                     )
                 )
             # Select a random video if the current video was not able to access.
             if video_container is None:
                 logger.warning(
                     "Failed to meta load video idx {} from {}; trial {}".format(
-                        index, self._dataset[index]['video_path'], i_try
+                        index, self._dataset[index], i_try
                     )
                 )
                 continue
@@ -176,7 +176,7 @@ class Clevrer_video(torch.utils.data.Dataset):
             if frames is None:
                 logger.warning(
                     "Failed to decode video idx {} from {}; trial {}".format(
-                        index, self._dataset[index]['video_path'], i_try
+                        index, self._dataset[index], i_try
                     )
                 )
 
