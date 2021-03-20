@@ -774,8 +774,8 @@ class CNN_PRE_LSTM(nn.Module):
         """
         #Receives a batch of frames. To apply a CNN we can join the batch and time dimensions
         ft_sz = res_fts.size()
-        frame_encs = self.res_embbeder(res_fts.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
-        frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.question_enc_dim) #Returns to batch format
+        frame_encs = self.res_embbeder(res_fts.view(ft_sz[0]*ft_sz[1], ft_sz[2]))
+        frame_encs = frame_encs.view(ft_sz[0], ft_sz[1], self.question_enc_dim) #Returns to batch format
         word_encs = self.embed_layer(question_b)
         #LSTM
         #Concatenate question and video encodings
