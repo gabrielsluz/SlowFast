@@ -39,19 +39,15 @@ def forward(self, x, bboxes=None):
     x = self.s3(x)
     x = self.s3_fuse(x)
     x = self.s4(x)
-    print("Start")
-    print(x[0].size(), x[1].size())
     x = self.s4_fuse(x)
-    print(x[0].size(), x[1].size())
-    x = self.s5(x)
-    print(x[0].size(), x[1].size())
-    print("End")
+    #x = self.s5(x)
     return x
 
 
 def gen_dataset(cfg, mode, root):
     #Generates two datasets for a certain split. => Slow and fast features
     #When using the generated file must indicate in which index the dataset starts to work
+    #torch.Size([50, 1280, 4, 14, 14]) torch.Size([50, 128, 32, 14, 14])
     #Train starts in 0
     #Val starts in 10000
     #Test starts in 15000
@@ -67,12 +63,12 @@ def gen_dataset(cfg, mode, root):
     #Slow
     slow_path = os.path.join(root, '{}_slow_features.hdf5'.format(mode))
     slow_h5 = h5py.File(slow_path, 'w', libver='latest')
-    slow_dset = slow_h5.create_dataset('data', (size * batch_size, 2048, 4, 7, 7),
+    slow_dset = slow_h5.create_dataset('data', (size * batch_size, 1280, 4, 14, 14),
                             dtype='f4')
     #Fast
     fast_path = os.path.join(root, '{}_fast_features.hdf5'.format(mode))
     fast_h5 = h5py.File(fast_path, 'w', libver='latest')
-    fast_dset = fast_h5.create_dataset('data', (size * batch_size, 256, 32, 7, 7),
+    fast_dset = fast_h5.create_dataset('data', (size * batch_size, 128, 32, 14, 14),
                             dtype='f4')
 
     with torch.no_grad():
