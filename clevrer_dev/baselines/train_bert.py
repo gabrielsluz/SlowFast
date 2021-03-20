@@ -33,7 +33,7 @@ python3 clevrer_dev/baselines/train_bert.py \
   LOG_PERIOD 100 \
   TRAIN.EVAL_PERIOD 1 \
   TRAIN.CHECKPOINT_PERIOD 1 \
-  SOLVER.BASE_LR 0.0001 \
+  SOLVER.BASE_LR 0.00002 \
   SOLVER.WEIGHT_DECAY 0.0 \
   SOLVER.MAX_EPOCH 1
 """
@@ -241,7 +241,7 @@ def train_des(cfg):
                   lr = cfg.SOLVER.BASE_LR,
                   eps = 1e-8
                 )
-    start_epoch = 0
+    start_epoch = cu.load_train_checkpoint(cfg, model, optimizer)
     # Create the video train and val loaders.
     train_loader = build_dataloader(cfg, "train")
     val_loader = build_dataloader(cfg, "val")
@@ -275,8 +275,8 @@ def train_des(cfg):
         )
 
         # Save a checkpoint.
-        # if is_checkp_epoch:
-        #     cu.save_checkpoint(cfg.OUTPUT_DIR, model, optimizer, cur_epoch, cfg)
+        if is_checkp_epoch:
+            cu.save_checkpoint(cfg.OUTPUT_DIR, model, optimizer, cur_epoch, cfg)
         # Evaluate the model on validation set.
         if is_eval_epoch:
             eval_epoch(val_loader, model, val_meter, cur_epoch, cfg)

@@ -223,6 +223,8 @@ class CNN_3D_BERT(nn.Module):
                             attention_mask=question_b['attention_mask'],
                             token_type_ids=question_b['token_type_ids'])
         q_encs = bert_out.last_hidden_state[:,0,:]
+        print("q_encs = {}".format(q_encs))
+        print("frame_encs = {}".format(frame_encs))
         x = torch.cat((q_encs, frame_encs), dim=1)
         if is_des_q:
             return self.des_pred_head(x)
