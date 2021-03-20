@@ -188,8 +188,7 @@ class CNN_3D_BERT(nn.Module):
         bert_hid_dim = self.BERT.config.hidden_size
         #Prediction head MLP
         hid_dim = 2048
-        # ph_input_dim = bert_hid_dim + self.frame_enc_dim
-        ph_input_dim = self.frame_enc_dim
+        ph_input_dim = bert_hid_dim + self.frame_enc_dim
         #Question especific
         self.des_pred_head = nn.Sequential(
             nn.Linear(ph_input_dim, hid_dim),
@@ -220,12 +219,11 @@ class CNN_3D_BERT(nn.Module):
         #Receives a batch of frames
         frame_encs = self.SlowFast(clips_b)
         #BERT pooler_output or last_hidden_state
-        # bert_out = self.BERT(input_ids=question_b['input_ids'],
-        #                     attention_mask=question_b['attention_mask'],
-        #                     token_type_ids=question_b['token_type_ids'])
-        # q_encs = bert_out.last_hidden_state[:,0,:]
-        # x = torch.cat((q_encs, frame_encs), dim=1)
-        x = frame_encs
+        bert_out = self.BERT(input_ids=question_b['input_ids'],
+                            attention_mask=question_b['attention_mask'],
+                            token_type_ids=question_b['token_type_ids'])
+        q_encs = bert_out.last_hidden_state[:,0,:]
+        x = torch.cat((q_encs, frame_encs), dim=1)
         if is_des_q:
             return self.des_pred_head(x)
         else:
