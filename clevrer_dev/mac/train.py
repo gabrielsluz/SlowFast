@@ -13,7 +13,7 @@ from slowfast.datasets.clevrer_mac import Clevrermac_des
 from slowfast.models.mac import MACNetwork
 from slowfast.config.defaults import get_cfg
 
-batch_size = 32
+batch_size = 10
 n_epoch = 20
 dim = 512
 
