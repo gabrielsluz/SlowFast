@@ -63,7 +63,9 @@ for i_batch, sampled_batch in enumerate(dataloader):
     print(sampled_batch['question_dict']['ans'])
     print(sampled_batch['question_dict']['len'])
     print(sampled_batch['index'])
+    print(sampled_batch['res_ft'].sum())
 
-    break
+    if i_batch > 50:
+        break
 for i in range(10):
     print(dataset[i]['res_ft'].sum())
