@@ -58,7 +58,7 @@ def train(epoch):
         )
 
         net.zero_grad()
-        output = net(slow_ft, fast_ft, question, q_len)
+        output = net(slow_ft, fast_ft, question, q_len, True)
         loss = criterion(output, answer)
         loss.backward()
         optimizer.step()
@@ -106,7 +106,7 @@ def valid(epoch):
                 answer.to(device),
             )
 
-            output = net_running(slow_ft, fast_ft, question, q_len)
+            output = net_running(slow_ft, fast_ft, question, q_len, True)
             correct = output.detach().argmax(1) == answer.to(device)
             for c in correct:
                 if c:
