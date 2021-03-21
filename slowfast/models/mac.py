@@ -184,11 +184,11 @@ class MACUnit(nn.Module):
 class MACNetwork(nn.Module):
     def __init__(self, n_vocab, dim, embed_hidden=300,
                 max_step=12, self_attention=False, memory_gate=False,
-                classes=21, dropout=0.15):
+                classes=21, dropout=0.15, resnet_sz='res101'):
         super().__init__()
 
         #CONV
-        self.use_conv = cfg.RESNET_SZ == 'res101'
+        self.use_conv = resnet_sz == 'res101'
         if self.use_conv:
             self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, padding=1),
                                     nn.ELU(),
