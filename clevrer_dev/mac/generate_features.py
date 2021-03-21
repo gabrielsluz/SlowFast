@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 import torchvision
 from torchvision.models.resnet import ResNet

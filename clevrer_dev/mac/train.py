@@ -17,6 +17,7 @@ batch_size = 64
 n_epoch = 60
 dim = 512
 dropout = 0.5
+res_sz = 'res50'
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -24,7 +25,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 cfg = get_cfg()
 cfg.DATA.PATH_TO_DATA_DIR = '/datasets/clevrer'
 cfg.DATA.PATH_PREFIX = '/datasets/clevrer'
-cfg.RESNET_SZ = 'res101'
+cfg.RESNET_SZ = res_sz
 
 
 def accumulate(model1, model2, decay=0.999):
@@ -133,10 +134,10 @@ if __name__ == '__main__':
     n_words = len(vocab.keys())
     n_answers = 21
 
-    net = MACNetwork(n_words, dim, dropout=dropout).to(device)
+    net = MACNetwork(n_words, dim, dropout=dropout, resnet_sz=res_sz).to(device)
     if len(sys.argv) > 1:
         net.load_state_dict(torch.load(sys.argv[1]))
-    net_running = MACNetwork(n_words, dim, dropout=dropout).to(device)
+    net_running = MACNetwork(n_words, dim, dropout=dropout, resnet_sz=res_sz).to(device)
     accumulate(net_running, net, 0)
 
     criterion = nn.CrossEntropyLoss()
