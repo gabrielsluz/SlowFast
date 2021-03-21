@@ -223,12 +223,13 @@ class BERT_CNN_MAC(nn.Module):
         self.bert_proj = nn.Linear(self.bert_hid_dim, dim)
         self.bert_cls_proj = nn.Linear(self.bert_hid_dim, dim*2)
         #CONV
-        self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, stride=3, padding=1),
-                                nn.ELU(),
-                                nn.Conv2d(dim, dim, 3, padding=1),
-                                nn.ELU(),
-                                nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+        # self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, stride=3, padding=1),
+        #                         nn.ELU(),
+        #                         nn.Conv2d(dim, dim, 3, padding=1),
+        #                         nn.ELU(),
+        #                         nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
         #Generates => N x dim x 3 x 3
+        self.res_proj = nn.Linear(2048, dim)
         #MAC UNIT
         self.mac = MACUnit(dim, max_step,
                         self_attention, memory_gate, dropout)
@@ -252,11 +253,15 @@ class BERT_CNN_MAC(nn.Module):
 
 
     def forward(self, video, question):
+        # cb_sz = video.size()
+        # frame_encs = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+        # #N*T x C x H x W => N x T x C x H x W
+        # frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim, 3, 3)
+        # frame_encs = frame_encs.permute(0,2,1,3,4).contiguous().view(cb_sz[0], self.dim, -1)
         cb_sz = video.size()
-        frame_encs = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
-        #N*T x C x H x W => N x T x C x H x W
-        frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim, 3, 3)
-        frame_encs = frame_encs.permute(0,2,1,3,4).contiguous().view(cb_sz[0], self.dim, -1)
+        frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
+        frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim).permute(0,2,1)
+        frame_encs = frame_encs.reshape(b_size, self.dim, -1)
 
         bert_out = self.BERT(input_ids=question['input_ids'],
                             attention_mask=question['attention_mask'],

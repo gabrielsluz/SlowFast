@@ -23,6 +23,7 @@ python3 clevrer_dev/bert_mac/train_bert_mac.py \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
   TRAIN.DATASET Clevrerbert_resnet \
+  RESNET_SZ res50 \
   MAC.DIM 512 \
   MAC.MAX_STEPS 12 \
   MAC.DROPOUT 0.15 \
