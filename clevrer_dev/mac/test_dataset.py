@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from slowfast.datasets.clevrer_mac import Clevrerresnet_des
+from slowfast.datasets.clevrer_resnet import Clevrerresnet_des
 import torch
 from torch.utils.data import DataLoader
 
