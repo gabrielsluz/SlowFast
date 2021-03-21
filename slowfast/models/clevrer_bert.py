@@ -251,7 +251,7 @@ class BERT_CNN_MAC(nn.Module):
         kaiming_uniform_(self.classifier[0].weight)
 
 
-    def forward(self, video, question, question_len, dropout=0.15):
+    def forward(self, video, question):
         cb_sz = video.size()
         frame_encs = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
         #N*T x C x H x W => N x T x C x H x W
