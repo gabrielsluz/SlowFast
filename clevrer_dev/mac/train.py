@@ -13,7 +13,7 @@ from slowfast.datasets.clevrer_resnet import Clevrerresnet_des
 from slowfast.models.mac import MACNetwork
 from slowfast.config.defaults import get_cfg
 
-batch_size = 32
+batch_size = 64
 n_epoch = 60
 dim = 512
 dropout = 0.5
