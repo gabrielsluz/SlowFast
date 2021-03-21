@@ -14,7 +14,7 @@ from slowfast.models.mac import MACNetwork
 from slowfast.config.defaults import get_cfg
 
 batch_size = 32
-n_epoch = 20
+n_epoch = 60
 dim = 512
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -132,8 +132,10 @@ if __name__ == '__main__':
     n_words = len(vocab.keys())
     n_answers = 21
 
-    net = MACNetwork(n_words, dim).to(device)
-    net_running = MACNetwork(n_words, dim).to(device)
+    net = MACNetwork(n_words, dim, dropout=0.4).to(device)
+    if len(sys.argv) > 1:
+        net.load_state_dict(torch.load(sys.argv[1]))
+    net_running = MACNetwork(n_words, dim, dropout=0.4).to(device)
     accumulate(net_running, net, 0)
 
     criterion = nn.CrossEntropyLoss()
