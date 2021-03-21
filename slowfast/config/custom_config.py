@@ -57,5 +57,11 @@ def add_custom_config(_C):
     #ResNet features usesd
     _C.RESNET_SZ = 'res101'
 
+    #MAC
+    _C.MAC = CfgNode()
+    _C.MAC.DIM = 512
+    _C.MAC.MAX_STEPS = 12
+    _C.MAC.DROPOUT = 0.15
+
     
 
