@@ -187,11 +187,12 @@ class MACNetwork(nn.Module):
                 classes=21, dropout=0.15):
         super().__init__()
 
-        self.conv = nn.Sequential(nn.Conv2d(1024, dim, 3, padding=1),
-                                nn.ELU(),
-                                nn.Conv2d(dim, dim, 3, padding=1),
-                                nn.ELU(),
-                                nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+        # self.conv = nn.Sequential(nn.Conv2d(1024, dim, 3, padding=1),
+        #                         nn.ELU(),
+        #                         nn.Conv2d(dim, dim, 3, padding=1),
+        #                         nn.ELU(),
+        #                         nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+        self.res_proj = nn.Linear(2048, dim)
 
         self.embed = nn.Embedding(n_vocab, embed_hidden)
         self.lstm = nn.LSTM(embed_hidden, dim,
@@ -228,11 +229,16 @@ class MACNetwork(nn.Module):
     def forward(self, video, question, question_len, is_des, dropout=0.15):
         b_size = question.size(0)
 
+        # cb_sz = video.size()
+        # img = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+        # #N*T x C x H x W => N x T x C x H x W => N x C x T x H x W
+        # img = img.view(cb_sz[0], cb_sz[1], self.dim, 7, 7).permute(0,2,1,3,4)
+        # img = img.reshape(b_size, self.dim, -1)
         cb_sz = video.size()
-        img = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
-        #N*T x C x H x W => N x T x C x H x W => N x C x T x H x W
-        img = img.view(cb_sz[0], cb_sz[1], self.dim, 7, 7).permute(0,2,1,3,4)
+        img = self.res_proj(video.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
+        img = img.view(cb_sz[0], cb_sz[1], self.dim).permute(0,2,1)
         img = img.reshape(b_size, self.dim, -1)
+
 
         embed = self.embed(question)
         embed = nn.utils.rnn.pack_padded_sequence(embed, question_len,

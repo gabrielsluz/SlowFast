@@ -13,9 +13,9 @@ from slowfast.datasets.clevrer_resnet import Clevrerresnet_des
 from slowfast.models.mac import MACNetwork
 from slowfast.config.defaults import get_cfg
 
-batch_size = 48
+batch_size = 32
 n_epoch = 20
-dim = 256
+dim = 512
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -23,6 +23,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 cfg = get_cfg()
 cfg.DATA.PATH_TO_DATA_DIR = '/datasets/clevrer'
 cfg.DATA.PATH_PREFIX = '/datasets/clevrer'
+cfg.RESNET_SZ = 'res50'
 
 
 def accumulate(model1, model2, decay=0.999):
