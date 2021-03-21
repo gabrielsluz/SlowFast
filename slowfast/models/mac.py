@@ -230,12 +230,9 @@ class MACNetwork(nn.Module):
 
         cb_sz = video.size()
         img = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
-        print("After conv img size = {}".format(img.size()))
         #N*T x C x H x W => N x T x C x H x W => N x C x T x H x W
         img = img.view(cb_sz[0], cb_sz[1], self.dim, 7, 7).permute(0,2,1,3,4)
-        print("After view change img size = {}".format(img.size()))
-        img = img.view(b_size, self.dim, -1)
-        print("After second view change img size = {}".format(img.size()))
+        img = img.reshape(b_size, self.dim, -1)
 
         embed = self.embed(question)
         embed = nn.utils.rnn.pack_padded_sequence(embed, question_len,

@@ -13,7 +13,7 @@ from slowfast.datasets.clevrer_resnet import Clevrerresnet_des
 from slowfast.models.mac import MACNetwork
 from slowfast.config.defaults import get_cfg
 
-batch_size = 10
+batch_size = 48
 n_epoch = 20
 dim = 256
 
@@ -36,7 +36,7 @@ def accumulate(model1, model2, decay=0.999):
 def train(epoch):
     clevr = Clevrerresnet_des(cfg, "train")
     train_set = DataLoader(
-        clevr, batch_size=batch_size, num_workers=4
+        clevr, batch_size=batch_size, num_workers=8
     )
 
     dataset = iter(train_set)
@@ -49,10 +49,11 @@ def train(epoch):
         question = sampled_batch['question_dict']['question']
         answer = sampled_batch['question_dict']['ans']
         q_len = sampled_batch['question_dict']['len']
-        video_ft, question, answer = (
+        video_ft, question, answer, q_len = (
             video_ft.to(device),
             question.to(device),
             answer.to(device),
+            q_len.to(device)
         )
 
         net.zero_grad()
@@ -83,7 +84,7 @@ def train(epoch):
 def valid(epoch):
     clevr = Clevrerresnet_des(cfg, "val")
     valid_set = DataLoader(
-        clevr, batch_size=batch_size, num_workers=4
+        clevr, batch_size=batch_size, num_workers=8
     )
     dataset = iter(valid_set)
 
@@ -96,10 +97,11 @@ def valid(epoch):
             question = sampled_batch['question_dict']['question']
             answer = sampled_batch['question_dict']['ans']
             q_len = sampled_batch['question_dict']['len']
-            video_ft, question, answer = (
+            video_ft, question, answer, q_len = (
                 video_ft.to(device),
                 question.to(device),
                 answer.to(device),
+                q_len.to(device)
             )
 
             output = net_running(video_ft, question, q_len, True)
