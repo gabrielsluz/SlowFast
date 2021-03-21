@@ -187,12 +187,16 @@ class MACNetwork(nn.Module):
                 classes=21, dropout=0.15):
         super().__init__()
 
-        # self.conv = nn.Sequential(nn.Conv2d(1024, dim, 3, padding=1),
-        #                         nn.ELU(),
-        #                         nn.Conv2d(dim, dim, 3, padding=1),
-        #                         nn.ELU(),
-        #                         nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
-        self.res_proj = nn.Linear(2048, dim)
+        #CONV
+        self.use_conv = cfg.RESNET_SZ == 'res101'
+        if self.use_conv:
+            self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, padding=1),
+                                    nn.ELU(),
+                                    nn.Conv2d(dim, dim, 3, padding=1),
+                                    nn.ELU())
+            #Generates => N x dim x 3 x 3
+        else:
+            self.res_proj = nn.Linear(2048, dim)
 
         self.embed = nn.Embedding(n_vocab, embed_hidden)
         self.lstm = nn.LSTM(embed_hidden, dim,
@@ -219,25 +223,28 @@ class MACNetwork(nn.Module):
     def reset(self):
         self.embed.weight.data.uniform_(0, 1)
 
-        #kaiming_uniform_(self.conv[0].weight)
-        #self.conv[0].bias.data.zero_()
-        #kaiming_uniform_(self.conv[2].weight)
-        #self.conv[2].bias.data.zero_()
+        if self.use_conv:
+            kaiming_uniform_(self.conv[0].weight)
+            self.conv[0].bias.data.zero_()
+            kaiming_uniform_(self.conv[2].weight)
+            self.conv[2].bias.data.zero_()
 
         kaiming_uniform_(self.classifier[0].weight)
 
     def forward(self, video, question, question_len, is_des, dropout=0.15):
         b_size = question.size(0)
 
-        # cb_sz = video.size()
-        # img = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
-        # #N*T x C x H x W => N x T x C x H x W => N x C x T x H x W
-        # img = img.view(cb_sz[0], cb_sz[1], self.dim, 7, 7).permute(0,2,1,3,4)
-        # img = img.reshape(b_size, self.dim, -1)
-        cb_sz = video.size()
-        img = self.res_proj(video.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
-        img = img.view(cb_sz[0], cb_sz[1], self.dim).permute(0,2,1)
-        img = img.reshape(b_size, self.dim, -1)
+        if self.use_conv:
+            cb_sz = video.size()
+            frame_encs = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+            #N*T x C x H x W => N x T x C x H x W
+            frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim, 3, 3)
+            frame_encs = frame_encs.permute(0,2,1,3,4).contiguous().view(cb_sz[0], self.dim, -1)
+        else:
+            cb_sz = video.size()
+            frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
+            frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim).permute(0,2,1)
+            frame_encs = frame_encs.reshape(cb_sz[0], self.dim, -1)
 
 
         embed = self.embed(question)
@@ -249,7 +256,7 @@ class MACNetwork(nn.Module):
         lstm_out = self.lstm_proj(lstm_out)
         h = h.permute(1, 0, 2).contiguous().view(b_size, -1)
 
-        memory = self.mac(lstm_out, h, img)
+        memory = self.mac(lstm_out, h, frame_encs)
 
         out = torch.cat([memory, h], 1)
 

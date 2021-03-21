@@ -225,11 +225,10 @@ class BERT_CNN_MAC(nn.Module):
         #CONV
         self.use_conv = cfg.RESNET_SZ == 'res101'
         if self.use_conv:
-            self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, stride=3, padding=1),
+            self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, padding=1),
                                     nn.ELU(),
                                     nn.Conv2d(dim, dim, 3, padding=1),
-                                    nn.ELU(),
-                                    nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+                                    nn.ELU())
             #Generates => N x dim x 3 x 3
         else:
             self.res_proj = nn.Linear(2048, dim)
