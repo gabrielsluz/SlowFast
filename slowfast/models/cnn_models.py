@@ -745,9 +745,7 @@ class CNN_PRE_LSTM(nn.Module):
         ph_input_dim = self.hid_st_dim*2
         #Question especific
         self.des_pred_head = nn.Sequential(
-            nn.Linear(ph_input_dim, hid_dim),
-            nn.ReLU(),
-            nn.Linear(hid_dim, self.ans_vocab_len)
+            nn.Linear(ph_input_dim, self.ans_vocab_len)
         )
         #Multiple choice answer => outputs a vector of size 4, 
         # which is interpreted as 4 logits, one for each binary classification of each choice
@@ -774,21 +772,21 @@ class CNN_PRE_LSTM(nn.Module):
         """
         #Receives a batch of frames. To apply a CNN we can join the batch and time dimensions
         ft_sz = res_fts.size()
-        print("ResNet50 features = {}".format(res_fts))
+        #print("ResNet50 features = {}".format(res_fts))
         frame_encs = self.res_embbeder(res_fts.view(ft_sz[0]*ft_sz[1], ft_sz[2]))
-        print("Reduced ResNet50 features = {}".format(frame_encs))
+        #print("Reduced ResNet50 features = {}".format(frame_encs))
         frame_encs = frame_encs.view(ft_sz[0], ft_sz[1], self.question_enc_dim) #Returns to batch format
-        print("Reduced ResNet50 features in batch format = {}".format(frame_encs))
+        #print("Reduced ResNet50 features in batch format = {}".format(frame_encs))
         word_encs = self.embed_layer(question_b)
-        print("Word encs = {}".format(word_encs))
+        #print("Word encs = {}".format(word_encs))
         #LSTM
         #Concatenate question and video encodings
         rnn_input = torch.cat((frame_encs, word_encs), dim=1)
-        print("Rnn input = {}".format(rnn_input))
+        #print("Rnn input = {}".format(rnn_input))
         #LSTM
         _, (h_n, _) = self.LSTM(rnn_input)
         x = torch.cat((h_n[-1], h_n[-2]), dim=1) #Cat forward and backward
-        print("Rnn output = {}".format(x))
+        #print("Rnn output = {}".format(x))
         if is_des_q:
             return self.des_pred_head(x)
         else:
