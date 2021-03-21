@@ -261,7 +261,7 @@ class BERT_CNN_MAC(nn.Module):
         cb_sz = video.size()
         frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
         frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim).permute(0,2,1)
-        frame_encs = frame_encs.reshape(b_size, self.dim, -1)
+        frame_encs = frame_encs.reshape(cb_sz[0], self.dim, -1)
 
         bert_out = self.BERT(input_ids=question['input_ids'],
                             attention_mask=question['attention_mask'],
