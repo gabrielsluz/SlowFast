@@ -9,14 +9,14 @@ from torch import optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from slowfast.datasets.clevrer_resnet import Clevrerresnet_des
+from slowfast.datasets.clevrer_resnet import Clevrerresnet
 from slowfast.models.mac import MACNetwork
 from slowfast.config.defaults import get_cfg
 
 batch_size = 64
 n_epoch = 60
 dim = 512
-dropout = 0.5
+dropout = 0.4
 res_sz = 'res50'
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -36,12 +36,7 @@ def accumulate(model1, model2, decay=0.999):
         par1[k].data.mul_(decay).add_(1 - decay, par2[k].data)
 
 
-def train(epoch):
-    clevr = Clevrerresnet_des(cfg, "train")
-    train_set = DataLoader(
-        clevr, batch_size=batch_size, num_workers=8
-    )
-
+def train(epoch, train_set):
     dataset = iter(train_set)
     pbar = tqdm(dataset)
     moving_loss = 0
@@ -84,11 +79,7 @@ def train(epoch):
     clevr.close()
 
 
-def valid(epoch):
-    clevr = Clevrerresnet_des(cfg, "val")
-    valid_set = DataLoader(
-        clevr, batch_size=batch_size, num_workers=8
-    )
+def valid(epoch, valid_set):
     dataset = iter(valid_set)
 
     net_running.train(False)
@@ -143,9 +134,20 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=1e-4)
 
+    #Dataloaders
+    train_dst = Clevrerresnet(cfg, "train")
+    train_set = DataLoader(
+        train_dst, batch_size=batch_size, num_workers=8
+    )
+
+    valid_dst = Clevrerresnet(cfg, "val")
+    valid_set = DataLoader(
+        valid_dst, batch_size=batch_size, num_workers=8
+    )
+
     for epoch in range(n_epoch):
-        train(epoch)
-        valid(epoch)
+        train(epoch, train_set)
+        valid(epoch, valid_set)
         if epoch % 10 == 0:
             with open(
                 'checkpoint_mac/checkpoint_{}.model'.format(str(epoch + 1).zfill(2)), 'wb'
