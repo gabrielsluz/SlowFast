@@ -105,6 +105,7 @@ class Clevrerresnet_des(torch.utils.data.Dataset):
         h5_path = os.path.join(cfg.DATA.PATH_TO_DATA_DIR, '{}_{}_features.hdf5'.format(mode, cfg.RESNET_SZ))
         self.f_h5 = h5py.File(h5_path, 'r')
         self.res_fts = self.f_h5['data']
+        self.res_fts_index = self.f_h5['indexes']
 
     def close(self):
         self.f_h5.close()
@@ -262,6 +263,7 @@ class Clevrerresnet_des(torch.utils.data.Dataset):
         output_dict = {}
         ft_i = self.get_ft_index(self._dataset[index]['video_path'])
         output_dict['res_ft'] = torch.from_numpy(self.res_fts[ft_i])
+        output_dict['res_ft_index'] = torch.from_numpy(self.res_fts_index[ft_i])
         output_dict['question_dict'] = question_dict
         output_dict['index'] = index
         # print("DATASET PRINT BEGIN ---")
@@ -383,7 +385,7 @@ class Clevrerresnet_mc(torch.utils.data.Dataset):
         logger.info("Constructing Clevrerresnet_mc {}...".format(mode))
         self._construct_loader()
 
-        h5_path = os.path.join(cfg.DATA.PATH_TO_DATA_DIR, '{}_res50_features.hdf5'.format(mode))
+        h5_path = os.path.join(cfg.DATA.PATH_TO_DATA_DIR, '{}_{}_features.hdf5'.format(mode, cfg.RESNET_SZ))
         self.f_h5 = h5py.File(h5_path, 'r')
         self.res_fts = self.f_h5['data']
 

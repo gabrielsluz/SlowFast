@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from slowfast.datasets.clevrer_mac import Clevrermac_des
+from slowfast.datasets.clevrer_mac import Clevrerresnet_des
 import torch
 from torch.utils.data import DataLoader
 
@@ -23,7 +23,7 @@ cfg = load_config(args)
 logger = logging.get_logger(__name__)
 logging.setup_logging(cfg.OUTPUT_DIR)
 
-dataset = Clevrermac_des(cfg, 'train')
+dataset = Clevrerresnet_des(cfg, 'train')
 print("Dataset len = {}".format(len(dataset)))
 
 #Test DataLoader
@@ -33,22 +33,21 @@ print("Vocab = {}".format(dataset.vocab))
 print("Ans_vocab = {}".format(dataset.ans_vocab))
 
 for i in range(10):
-    print(dataset[i]['slow_ft'].sum())
-    print(dataset[i]['fast_ft'].sum())
+    print(dataset[i]['res_ft'].sum())
+    print(dataset[i]['res_ft_index'],i)
 
 for i_batch, sampled_batch in enumerate(dataloader):
     index = sampled_batch['index'][0].item()
     print("Video info = {}".format(dataset.get_video_info(index)))
-    print(sampled_batch['slow_ft'].size())
-    print(sampled_batch['fast_ft'].size())
+    print(sampled_batch['res_ft'].size())
     print(sampled_batch['question_dict']['question'])
     print(sampled_batch['question_dict']['ans'])
     print(sampled_batch['question_dict']['len'])
-    print(sampled_batch['index'])
+    print(sampled_batch['index'], sampled_batch['res_ft_index'])
 
     break
 
-dataset = Clevrermac_des(cfg, 'val')
+dataset = Clevrerresnet_des(cfg, 'val')
 print("Dataset len = {}".format(len(dataset)))
 
 #Test DataLoader
@@ -60,14 +59,14 @@ print("Ans_vocab = {}".format(dataset.ans_vocab))
 for i_batch, sampled_batch in enumerate(dataloader):
     index = sampled_batch['index'][0].item()
     print("Video info = {}".format(dataset.get_video_info(index)))
-    print(sampled_batch['slow_ft'].size())
-    print(sampled_batch['fast_ft'].size())
+    print(sampled_batch['res_ft'].size())
     print(sampled_batch['question_dict']['question'])
     print(sampled_batch['question_dict']['ans'])
     print(sampled_batch['question_dict']['len'])
-    print(sampled_batch['index'])
+    print(sampled_batch['index'], sampled_batch['res_ft_index'])
 
     break
+    
 for i in range(10):
-    print(dataset[i]['slow_ft'].sum())
-    print(dataset[i]['fast_ft'].sum())
+    print(dataset[i]['res_ft'].sum())
+    print(dataset[i]['res_ft_index'],i)

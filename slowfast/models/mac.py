@@ -24,7 +24,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-
 import torch
 from torch.autograd import Variable
 from torch import nn
@@ -188,14 +187,9 @@ class MACNetwork(nn.Module):
                 classes=21, dropout=0.15):
         super().__init__()
 
-        self.conv_slow = nn.Sequential(nn.Conv3d(1280, dim, 3, padding=1),
+        self.conv = nn.Sequential(nn.Conv2d(1024, dim, 3, padding=1),
                                 nn.ELU(),
-                                nn.Conv3d(dim, dim, 3, padding=1),
-                                nn.ELU())
-
-        self.conv_fast = nn.Sequential(nn.Conv3d(128, dim, 3, padding=1),
-                                nn.ELU(),
-                                nn.Conv3d(dim, dim, 3, padding=1),
+                                nn.Conv2d(dim, dim, 3, padding=1),
                                 nn.ELU())
 
         self.embed = nn.Embedding(n_vocab, embed_hidden)
@@ -223,27 +217,21 @@ class MACNetwork(nn.Module):
     def reset(self):
         self.embed.weight.data.uniform_(0, 1)
 
-        kaiming_uniform_(self.conv_slow[0].weight)
-        self.conv_slow[0].bias.data.zero_()
-        kaiming_uniform_(self.conv_slow[2].weight)
-        self.conv_slow[2].bias.data.zero_()
-
-        kaiming_uniform_(self.conv_fast[0].weight)
-        self.conv_fast[0].bias.data.zero_()
-        kaiming_uniform_(self.conv_fast[2].weight)
-        self.conv_fast[2].bias.data.zero_()
+        kaiming_uniform_(self.conv[0].weight)
+        self.conv[0].bias.data.zero_()
+        kaiming_uniform_(self.conv[2].weight)
+        self.conv[2].bias.data.zero_()
 
         kaiming_uniform_(self.classifier[0].weight)
 
-    def forward(self, slow_ft, fast_ft, question, question_len, is_des, dropout=0.15):
+    def forward(self, video, question, question_len, is_des, dropout=0.15):
         b_size = question.size(0)
 
-        slow_img = self.conv_slow(slow_ft)
-        slow_img = slow_img.view(b_size, self.dim, -1)
-
-        fast_img = self.conv_fast(fast_ft)
-        fast_img = fast_img.view(b_size, self.dim, -1)
-        knowledge_sf = torch.cat((slow_img, fast_img), dim=2)
+        cb_sz = video.size()
+        img = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+        print("After conv img size = {}".format(img.size()))
+        img = img.view(b_size, self.dim, -1)
+        print("After view img size = {}".format(img.size()))
 
         embed = self.embed(question)
         embed = nn.utils.rnn.pack_padded_sequence(embed, question_len,
@@ -253,11 +241,11 @@ class MACNetwork(nn.Module):
                                                     batch_first=True)
         lstm_out = self.lstm_proj(lstm_out)
         h = h.permute(1, 0, 2).contiguous().view(b_size, -1)
-        #print("MAC input lstm_out = {}".format(lstm_out))
-        #print("MAC input knowledge_sf = {}".format(knowledge_sf))
-        memory = self.mac(lstm_out, h, knowledge_sf)
+
+        memory = self.mac(lstm_out, h, img)
 
         out = torch.cat([memory, h], 1)
+
         if is_des:
             out = self.classifier(out)
         else:
