@@ -49,8 +49,8 @@ def train(epoch):
         question = sampled_batch['question_dict']['question']
         answer = sampled_batch['question_dict']['ans']
         q_len = sampled_batch['question_dict']['len']
-        res_net, question, answer = (
-            res_ft.to(device),
+        video_ft, question, answer = (
+            video_ft.to(device),
             question.to(device),
             answer.to(device),
         )
@@ -98,7 +98,6 @@ def valid(epoch):
             q_len = sampled_batch['question_dict']['len']
             video_ft, question, answer = (
                 video_ft.to(device),
-                fast_ft.to(device),
                 question.to(device),
                 answer.to(device),
             )
