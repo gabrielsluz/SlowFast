@@ -221,7 +221,7 @@ class BERT_CNN_MAC(nn.Module):
         self.BERT = BertModel.from_pretrained('bert-base-uncased')
         self.bert_hid_dim = self.BERT.config.hidden_size
         self.bert_proj = nn.Linear(self.bert_hid_dim, dim)
-        self.bert_cls_proj = nn.Linear(self.bert_hid_dim, dim)
+        self.bert_cls_proj = nn.Linear(self.bert_hid_dim, dim*2)
         #CONV
         self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, stride=3, padding=1),
                                 nn.ELU(),

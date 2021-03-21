@@ -26,7 +26,7 @@ python3 clevrer_dev/bert_mac/train_bert_mac.py \
   MAC.DIM 512 \
   MAC.MAX_STEPS 12 \
   MAC.DROPOUT 0.15 \
-  TRAIN.BATCH_SIZE 32 \
+  TRAIN.BATCH_SIZE 8 \
   NUM_GPUS 1 \
   LOG_PERIOD 200 \
   TRAIN.EVAL_PERIOD 1 \
