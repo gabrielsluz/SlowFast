@@ -5,6 +5,7 @@ import torch.utils.data
 from iopath.common.file_io import g_pathmgr
 import json
 import copy
+import h5py
 from transformers import BertTokenizer
 import torchvision.transforms as transforms
 
@@ -153,7 +154,7 @@ class Clevrerbert_resnet(torch.utils.data.Dataset):
 
         self.ans_vocab = {' counter ': 21, '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, 'yes': 6, 'no': 7, 'rubber': 8, 'metal': 9, 'sphere': 10, 'cube': 11, 'cylinder': 12, 'gray': 13, 'brown': 14, 'green': 15, 'red': 16, 'blue': 17, 'purple': 18, 'yellow': 19, 'cyan': 20}
         self.bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
-        self.q_max_len = 64
+        self.q_max_len = 45
         #Main data structure
         self._dataset = []
 
@@ -163,7 +164,6 @@ class Clevrerbert_resnet(torch.utils.data.Dataset):
                 path = get_filepath(self.mode, int(data[i]['scene_index']))
                 full_path = os.path.join(self.cfg.DATA.PATH_PREFIX, path)
                 self._dataset += self._constructs_questions_ans(data[i], full_path)
-
         assert (
             len(self._dataset) > 0
         ), "Failed to load Clevrer from {}".format(

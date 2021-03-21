@@ -29,8 +29,6 @@ print("Dataset len = {}".format(len(dataset)))
 #Test DataLoader
 dataloader = DataLoader(dataset, batch_size=2,
                         shuffle=True, num_workers=0)
-print("Vocab = {}".format(dataset.vocab))
-print("Ans_vocab = {}".format(dataset.ans_vocab))
 
 for i in range(10):
     print("Size = {}".format(dataset[i]['res_ft'].size()))
@@ -40,10 +38,11 @@ for i in range(10):
 for i_batch, sampled_batch in enumerate(dataloader):
     index = sampled_batch['index'][0].item()
     print("Video info = {}".format(dataset.get_video_info(index)))
+    print("Video info = {}".format(dataset.get_video_info(sampled_batch['index'][1].item())))
     print(sampled_batch['res_ft'].size())
     print(sampled_batch['question_dict']['question'])
+    print(sampled_batch['question_dict']['question_type'])
     print(sampled_batch['question_dict']['ans'])
-    print(sampled_batch['question_dict']['len'])
     print(sampled_batch['index'], sampled_batch['res_ft_index'])
 
     break
@@ -54,12 +53,11 @@ print("Dataset len = {}".format(len(dataset)))
 #Test DataLoader
 dataloader = DataLoader(dataset, batch_size=2,
                         shuffle=True, num_workers=0)
-print("Vocab = {}".format(dataset.vocab))
-print("Ans_vocab = {}".format(dataset.ans_vocab))
 
 for i_batch, sampled_batch in enumerate(dataloader):
     index = sampled_batch['index'][0].item()
     print("Video info = {}".format(dataset.get_video_info(index)))
+    print("Video info = {}".format(dataset.get_video_info(sampled_batch['index'][1].item())))
     print(sampled_batch['res_ft'].size())
     print(sampled_batch['question_dict']['question'])
     print(sampled_batch['question_dict']['question_type'])
