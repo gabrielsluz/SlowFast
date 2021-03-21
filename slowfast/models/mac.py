@@ -190,7 +190,8 @@ class MACNetwork(nn.Module):
         self.conv = nn.Sequential(nn.Conv2d(1024, dim, 3, padding=1),
                                 nn.ELU(),
                                 nn.Conv2d(dim, dim, 3, padding=1),
-                                nn.ELU())
+                                nn.ELU(),
+                                nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
 
         self.embed = nn.Embedding(n_vocab, embed_hidden)
         self.lstm = nn.LSTM(embed_hidden, dim,
@@ -229,9 +230,12 @@ class MACNetwork(nn.Module):
 
         cb_sz = video.size()
         img = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+        print("After conv img size = {}".format(img.size()))
         #N*T x C x H x W => N x T x C x H x W => N x C x T x H x W
-        img = img.view(cb_sz[0], cb_sz[1], self.dim, cb_sz[3], cb_sz[4]).permute(0,2,1,3,4)
+        img = img.view(cb_sz[0], cb_sz[1], self.dim, 7, 7).permute(0,2,1,3,4)
+        print("After view change img size = {}".format(img.size()))
         img = img.view(b_size, self.dim, -1)
+        print("After second view change img size = {}".format(img.size()))
 
         embed = self.embed(question)
         embed = nn.utils.rnn.pack_padded_sequence(embed, question_len,
