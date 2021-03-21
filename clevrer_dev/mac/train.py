@@ -82,6 +82,8 @@ def valid(epoch, valid_set):
     dataset = iter(valid_set)
 
     net_running.train(False)
+    q_type_correct = {}
+    q_type_total = {}
     correct_cnt = 0.0
     total_cnt = 0.0
     with torch.no_grad():
@@ -90,6 +92,7 @@ def valid(epoch, valid_set):
             question = sampled_batch['question_dict']['question']
             answer = sampled_batch['question_dict']['ans']
             q_len = sampled_batch['question_dict']['len']
+            q_types = sampled_batch['question_dict']['question_type']
             video_ft, question, answer, q_len = (
                 video_ft.to(device),
                 question.to(device),
@@ -99,15 +102,22 @@ def valid(epoch, valid_set):
 
             output = net_running(video_ft, question, q_len, True)
             correct = output.detach().argmax(1) == answer.to(device)
-            for c in correct:
+            for c, q_t in zip(correct, q_types):
+                if not q_t in q_type_correct:
+                    q_type_correct[q_t] = 0
+                if not q_t in q_type_total:
+                    q_type_total[q_t] = 0
                 if c:
                     correct_cnt += 1
+                    q_type_correct[q_t] += 1
                 total_cnt += 1
+                q_type_total[q_t] += 1
 
     # with open('log/log_{}.txt'.format(str(epoch + 1).zfill(2)), 'w') as w:
     #     for k, v in family_total.items():
     #         w.write('{}: {:.5f}\n'.format(k, family_correct[k] / v))
-
+    for k,v in q_type_total.items():
+        print("Question type {} Acc: {:.5f}".format(k, q_type_correct[k]/v))
     print(
         'Avg Acc: {:.5f}'.format(
             correct_cnt / total_cnt
