@@ -9,7 +9,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from slowfast.datasets.clevrer_mac import Clevrermac_des
+from slowfast.datasets.clevrer_resnet import Clevrerresnet_des
 from slowfast.models.mac import MACNetwork
 from slowfast.config.defaults import get_cfg
 
@@ -34,7 +34,7 @@ def accumulate(model1, model2, decay=0.999):
 
 
 def train(epoch):
-    clevr = Clevrermac_des(cfg, "train")
+    clevr = Clevrerresnet_des(cfg, "train")
     train_set = DataLoader(
         clevr, batch_size=batch_size, num_workers=4
     )
@@ -45,20 +45,18 @@ def train(epoch):
 
     net.train(True)
     for sampled_batch in pbar:
-        slow_ft = sampled_batch['slow_ft']
-        fast_ft = sampled_batch['fast_ft']
+        video_ft = sampled_batch['res_ft']
         question = sampled_batch['question_dict']['question']
         answer = sampled_batch['question_dict']['ans']
         q_len = sampled_batch['question_dict']['len']
-        slow_ft, fast_ft, question, answer = (
-            slow_ft.to(device),
-            fast_ft.to(device),
+        res_net, question, answer = (
+            res_ft.to(device),
             question.to(device),
             answer.to(device),
         )
 
         net.zero_grad()
-        output = net(slow_ft, fast_ft, question, q_len, True)
+        output = net(video_ft, question, q_len, True)
         loss = criterion(output, answer)
         loss.backward()
         optimizer.step()
@@ -83,7 +81,7 @@ def train(epoch):
 
 
 def valid(epoch):
-    clevr = Clevrermac_des(cfg, "val")
+    clevr = Clevrerresnet_des(cfg, "val")
     valid_set = DataLoader(
         clevr, batch_size=batch_size, num_workers=4
     )
@@ -94,19 +92,18 @@ def valid(epoch):
     total_cnt = 0.0
     with torch.no_grad():
         for sampled_batch in tqdm(dataset):
-            slow_ft = sampled_batch['slow_ft']
-            fast_ft = sampled_batch['fast_ft']
+            video_ft = sampled_batch['res_ft']
             question = sampled_batch['question_dict']['question']
             answer = sampled_batch['question_dict']['ans']
             q_len = sampled_batch['question_dict']['len']
-            slow_ft, fast_ft, question, answer = (
-                slow_ft.to(device),
+            video_ft, question, answer = (
+                video_ft.to(device),
                 fast_ft.to(device),
                 question.to(device),
                 answer.to(device),
             )
 
-            output = net_running(slow_ft, fast_ft, question, q_len, True)
+            output = net_running(video_ft, question, q_len, True)
             correct = output.detach().argmax(1) == answer.to(device)
             for c in correct:
                 if c:
