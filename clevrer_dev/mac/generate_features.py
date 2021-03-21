@@ -26,7 +26,7 @@ python3 clevrer_dev/mac/generate_features.py \
   DATA.PATH_PREFIX /datasets/clevrer 
 """
 
-#ResNet to extract features from pool5
+#ResNet to extract features
 def forward(self, x):
     x = self.conv1(x)
     x = self.bn1(x)
@@ -58,7 +58,7 @@ def gen_dataset(cfg, mode, root):
     #Slow
     h5_path = os.path.join(root, '{}_res101_features.hdf5'.format(mode))
     f_h5 = h5py.File(h5_path, 'w', libver='latest')
-    d_set_h5 = f_h5.create_dataset('data', (size * batch_size, cfg.DATA.NUM_FRAMES, 1024, 14, 14),
+    d_set_h5 = f_h5.create_dataset('data', (size * batch_size, cfg.DATA.NUM_FRAMES, 1024, 3, 3),
                             dtype='f4')
     index_set_h5 = f_h5.create_dataset('indexes', (size * batch_size, 1),
                             dtype='f4')
@@ -71,7 +71,8 @@ def gen_dataset(cfg, mode, root):
                 inputs = inputs.cuda(non_blocking=True)
             cb_sz = inputs.size()
             out = model(inputs.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
-            out = out.view(cb_sz[0], cb_sz[1], 1024, 14, 14)
+            out = nn.MaxPool2d(kernel_size=3, stride=5, padding=1)(out)
+            out = out.view(cb_sz[0], cb_sz[1], 1024, 3, 3)
             d_set_h5[i_batch * batch_size:(i_batch + 1) * batch_size] = out.detach().cpu().numpy()
             index_set_h5[i_batch * batch_size:(i_batch + 1) * batch_size] = indexes.detach().cpu().numpy().reshape(batch_size,1)
     f_h5.close()
