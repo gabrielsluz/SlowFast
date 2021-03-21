@@ -71,9 +71,9 @@ def gen_dataset(cfg, mode, root):
                 inputs = inputs.cuda(non_blocking=True)
             cb_sz = inputs.size()
             out = model(inputs.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
-            out = out.view(cb_sz[0], cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4])
+            out = out.view(cb_sz[0], cb_sz[1], 1024, 14, 14)
             d_set_h5[i_batch * batch_size:(i_batch + 1) * batch_size] = out.detach().cpu().numpy()
-            index_set_h5[i_batch * batch_size:(i_batch + 1) * batch_size] = indexes.detach().cpu().numpy()
+            index_set_h5[i_batch * batch_size:(i_batch + 1) * batch_size] = indexes.detach().cpu().numpy().reshape(batch_size,1)
     f_h5.close()
 
 
