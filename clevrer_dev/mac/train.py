@@ -145,8 +145,8 @@ if __name__ == '__main__':
     for epoch in range(n_epoch):
         train(epoch)
         valid(epoch)
-
-        with open(
-            'checkpoint_mac/checkpoint_{}.model'.format(str(epoch + 1).zfill(2)), 'wb'
-        ) as f:
-            torch.save(net_running.state_dict(), f)
+        if epoch % 10 == 0:
+            with open(
+                'checkpoint_mac/checkpoint_{}.model'.format(str(epoch + 1).zfill(2)), 'wb'
+            ) as f:
+                torch.save(net_running.state_dict(), f)
