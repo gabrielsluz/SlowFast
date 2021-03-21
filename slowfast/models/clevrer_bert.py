@@ -244,10 +244,10 @@ class BERT_CNN_MAC(nn.Module):
         self.reset()
 
     def reset(self):
-        kaiming_uniform_(self.conv[0].weight)
-        self.conv[0].bias.data.zero_()
-        kaiming_uniform_(self.conv[2].weight)
-        self.conv[2].bias.data.zero_()
+        # kaiming_uniform_(self.conv[0].weight)
+        # self.conv[0].bias.data.zero_()
+        # kaiming_uniform_(self.conv[2].weight)
+        # self.conv[2].bias.data.zero_()
 
         kaiming_uniform_(self.classifier[0].weight)
 
