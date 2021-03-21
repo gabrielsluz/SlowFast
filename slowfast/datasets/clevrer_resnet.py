@@ -102,7 +102,7 @@ class Clevrerresnet_des(torch.utils.data.Dataset):
         logger.info("Constructing Clevrerresnet_des {}...".format(mode))
         self._construct_loader()
 
-        h5_path = os.path.join(cfg.DATA.PATH_TO_DATA_DIR, '{}_res50_features.hdf5'.format(mode))
+        h5_path = os.path.join(cfg.DATA.PATH_TO_DATA_DIR, '{}_{}_features.hdf5'.format(mode, cfg.RESNET_SZ))
         self.f_h5 = h5py.File(h5_path, 'r')
         self.res_fts = self.f_h5['data']
 

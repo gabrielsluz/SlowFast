@@ -53,5 +53,9 @@ def add_custom_config(_C):
     _C.WORD_EMB.GLOVE_PATH = '/datasets/word_embs/glove.6B.50d.txt'
     _C.WORD_EMB.EMB_DIM = 50
 
+
+    #ResNet features usesd
+    _C.RESNET_SZ = 'res101'
+
     
 
