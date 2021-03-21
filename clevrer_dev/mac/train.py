@@ -76,7 +76,6 @@ def train(epoch, train_set):
 
         accumulate(net_running, net)
 
-    clevr.close()
 
 
 def valid(epoch, valid_set):
@@ -115,8 +114,6 @@ def valid(epoch, valid_set):
         )
     )
 
-    clevr.close()
-
 
 if __name__ == '__main__':
     #Vocabs
@@ -153,3 +150,5 @@ if __name__ == '__main__':
                 'checkpoint_mac/checkpoint_{}.model'.format(str(epoch + 1).zfill(2)), 'wb'
             ) as f:
                 torch.save(net_running.state_dict(), f)
+    train_dst.close()
+    valid_tst.close()
