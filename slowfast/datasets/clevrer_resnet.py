@@ -75,7 +75,7 @@ def get_token_for_index(vocab, tgt_index):
 class Clevrerresnet(torch.utils.data.Dataset):
     """
     CLEVRERmac_des Dataset.
-    __getitem__  Returns one descriptive question and ResNet features
+    __getitem__  Returns one descriptive question and ResNet or MONet features
     """
     def __init__(self, cfg, mode):
         """
@@ -105,7 +105,7 @@ class Clevrerresnet(torch.utils.data.Dataset):
         h5_path = os.path.join(cfg.DATA.PATH_TO_DATA_DIR, '{}_{}_features.hdf5'.format(mode, cfg.RESNET_SZ))
         self.f_h5 = h5py.File(h5_path, 'r')
         self.res_fts = self.f_h5['data']
-        if self.cfg.RESNET_SZ == 'res101':
+        if self.cfg.RESNET_SZ != 'res50':
             self.res_fts_index = self.f_h5['indexes']
 
     def close(self):
@@ -116,7 +116,7 @@ class Clevrerresnet(torch.utils.data.Dataset):
         Creates the vocabularies used to tokenize questions and answers
         It uses only the train.json file
         """
-        self.vocab = {'[CLS]': 0, ' PAD ': 1, '[SEP]': 2, ' counter ': 78, 'what': 3, 'is': 4, 'the': 5, 'shape': 6, 'of': 7, 'object': 8, 'to': 9, 'collide': 10, 'with': 11, 'purple': 12, '?': 13, 'color': 14, 'first': 15, 'gray': 16, 'sphere': 17, 'material': 18, 'how': 19, 'many': 20, 'collisions': 21, 'happen': 22, 'after': 23, 'cube': 24, 'enters': 25, 'scene': 26, 'objects': 27, 'enter': 28, 'are': 29, 'there': 30, 'before': 31, 'stationary': 32, 'rubber': 33, 'metal': 34, 'that': 35, 'moving': 36, 'cubes': 37, 'when': 38, 'blue': 39, 'exits': 40, 'any': 41, 'brown': 42, 'which': 43, 'following': 44, 'responsible': 45, 'for': 46, 'collision': 47, 'between': 48, 'and': 49, 'presence': 50, "'s": 51, 'entering': 52, 'colliding': 53, 'event': 54, 'will': 55, 'if': 56, 'cylinder': 57, 'removed': 58, 'collides': 59, 'without': 60, ',': 61, 'not': 62, 'red': 63, 'spheres': 64, 'exit': 65, 'cylinders': 66, 'video': 67, 'begins': 68, 'ends': 69, 'next': 70, 'last': 71, 'yellow': 72, 'cyan': 73, 'entrance': 74, 'green': 75, 'second': 76, 'exiting': 77}
+        self.vocab = {'[CLS]': 0, '[PAD]': 1, '[SEP]': 2, ' counter ': 78, 'what': 3, 'is': 4, 'the': 5, 'shape': 6, 'of': 7, 'object': 8, 'to': 9, 'collide': 10, 'with': 11, 'purple': 12, '?': 13, 'color': 14, 'first': 15, 'gray': 16, 'sphere': 17, 'material': 18, 'how': 19, 'many': 20, 'collisions': 21, 'happen': 22, 'after': 23, 'cube': 24, 'enters': 25, 'scene': 26, 'objects': 27, 'enter': 28, 'are': 29, 'there': 30, 'before': 31, 'stationary': 32, 'rubber': 33, 'metal': 34, 'that': 35, 'moving': 36, 'cubes': 37, 'when': 38, 'blue': 39, 'exits': 40, 'any': 41, 'brown': 42, 'which': 43, 'following': 44, 'responsible': 45, 'for': 46, 'collision': 47, 'between': 48, 'and': 49, 'presence': 50, "'s": 51, 'entering': 52, 'colliding': 53, 'event': 54, 'will': 55, 'if': 56, 'cylinder': 57, 'removed': 58, 'collides': 59, 'without': 60, ',': 61, 'not': 62, 'red': 63, 'spheres': 64, 'exit': 65, 'cylinders': 66, 'video': 67, 'begins': 68, 'ends': 69, 'next': 70, 'last': 71, 'yellow': 72, 'cyan': 73, 'entrance': 74, 'green': 75, 'second': 76, 'exiting': 77}
         self.ans_vocab = {' counter ': 21, '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, 'yes': 6, 'no': 7, 'rubber': 8, 'metal': 9, 'sphere': 10, 'cube': 11, 'cylinder': 12, 'gray': 13, 'brown': 14, 'green': 15, 'red': 16, 'blue': 17, 'purple': 18, 'yellow': 19, 'cyan': 20}
         self.max_seq_len = 45
     
@@ -125,7 +125,7 @@ class Clevrerresnet(torch.utils.data.Dataset):
         Transforms a token list into a tensor with padding.
         Adds 
         """
-        tensor = torch.ones(self.max_seq_len, dtype=torch.long) * self.vocab[' PAD ']
+        tensor = torch.ones(self.max_seq_len, dtype=torch.long) * self.vocab['[PAD]']
         for i in range(len(token_list)):
             tensor[i] = self.vocab[token_list[i]]
         return tensor
@@ -242,8 +242,6 @@ class Clevrerresnet(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         """
-        Given the dataset index, return slow_feature, fast_feature, question_dict, and question
-        index
         Args:
             index (int): the dataset index provided by the pytorch sampler.
         Returns:
@@ -257,7 +255,7 @@ class Clevrerresnet(torch.utils.data.Dataset):
         output_dict = {}
         ft_i = self.get_ft_index(self._dataset[index]['video_path'])
         output_dict['res_ft'] = torch.from_numpy(self.res_fts[ft_i])
-        if self.cfg.RESNET_SZ == 'res101':
+        if self.cfg.RESNET_SZ != 'res50':
             output_dict['res_ft_index'] = torch.from_numpy(self.res_fts_index[ft_i])
         output_dict['question_dict'] = question_dict
         output_dict['index'] = index
@@ -404,8 +402,8 @@ class Clevrerresnet_des(torch.utils.data.Dataset):
 
         # vocab = {}
         # vocab[' CLS '] = 0
-        # vocab[' PAD '] = 1
-        # vocab['|'] = 2
+        # vocab['[PAD]'] = 1
+        # vocab['[SEP]'] = 2
         # vocab[' counter '] = 3 #Has spaces in key => not a valid token
 
         des_q_lens = [] #Description question lens

@@ -182,12 +182,20 @@ class MACUnit(nn.Module):
 
 
 class MACNetwork(nn.Module):
-    def __init__(self, n_vocab, dim, embed_hidden=300,
-                max_step=12, self_attention=False, memory_gate=False,
-                classes=21, dropout=0.15, resnet_sz='res101'):
+    def __init__(self, cfg):
         super().__init__()
+        #MAC params
+        classes = 21
+        dim = cfg.MAC.DIM
+        max_step = cfg.MAC.MAX_STEPS
+        self_attention = False
+        memory_gate = False
+        dropout = cfg.MAC.DROPOUT
+        n_vocab = 78
+        embed_hidden=cfg.WORD_EMB.EMB_DIM
+        resnet_sz = cfg.RESNET_SZ
 
-        #CONV
+        #Video features treatment
         self.use_conv = resnet_sz == 'res101'
         if self.use_conv:
             self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, padding=1),

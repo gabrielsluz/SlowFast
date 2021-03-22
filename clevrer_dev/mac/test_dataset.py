@@ -14,7 +14,8 @@ Example:
 python3 clevrer_dev/mac/test_dataset.py \
   --cfg clevrer_dev/mac/mac.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
-  DATA.PATH_PREFIX /datasets/clevrer
+  DATA.PATH_PREFIX /datasets/clevrer \
+  RESNET_SZ monet
 """
 
 args = parse_args()
