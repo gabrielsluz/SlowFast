@@ -349,7 +349,7 @@ class CNN_BERT(nn.Module):
             cb_sz = video.size()
             frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
             frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim)
-        attention_mask = torch.cat((torch.ones(cb_sz[0], cb_sz[1]).cuda(non_blocking=True), question_mask), dim=1)
+        attention_mask = torch.cat((torch.ones(frame_encs.size(0), frame_encs.size(1)).cuda(non_blocking=True), question_mask), dim=1)
         q_encs = self.embed(question)
         bert_in = torch.cat((frame_encs, q_encs), dim=1)
         bert_out = self.BERT(inputs_embeds=bert_in,
