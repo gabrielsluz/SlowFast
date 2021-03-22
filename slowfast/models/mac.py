@@ -182,6 +182,29 @@ class MACUnit(nn.Module):
 
 
 class MACNetwork(nn.Module):
+    def res101_v_p(self, video):
+        cb_sz = video.size()
+        frame_encs = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+        #N*T x C x H x W => N x T x C x H x W
+        frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim, 3, 3)
+        frame_encs = frame_encs.permute(0,2,1,3,4).contiguous().view(cb_sz[0], self.dim, -1)
+        return frame_encs
+    
+    def res50_v_p(self, video):
+        cb_sz = video.size()
+        frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
+        frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim).permute(0,2,1)
+        frame_encs = frame_encs.reshape(cb_sz[0], self.dim, -1)
+        return frame_encs
+    
+    def monet_v_p(self, video):
+        cb_sz = video.size()
+        frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1]*cb_sz[2],cb_sz[3]))
+        frame_encs = frame_encs.view(cb_sz[0], cb_sz[1]*cb_sz[2], self.dim).permute(0,2,1)
+        frame_encs = frame_encs.reshape(cb_sz[0], self.dim, -1)
+        return frame_encs
+
+
     def __init__(self, cfg):
         super().__init__()
         #MAC params
@@ -196,15 +219,19 @@ class MACNetwork(nn.Module):
         resnet_sz = cfg.RESNET_SZ
 
         #Video features treatment
-        self.use_conv = resnet_sz == 'res101'
-        if self.use_conv:
+        if resnet_sz == 'res101':
             self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, padding=1),
                                     nn.ELU(),
                                     nn.Conv2d(dim, dim, 3, padding=1),
                                     nn.ELU())
             #Generates => N x dim x 3 x 3
-        else:
+            self.proccess_video = self.res101_v_p
+        elif resnet_sz == 'res50':
             self.res_proj = nn.Linear(2048, dim)
+            self.proccess_video = self.res50_v_p
+        elif resnet_sz == 'monet':
+            self.res_proj = nn.Linear(16, dim)
+            self.proccess_video = self.monet_v_p
 
         self.embed = nn.Embedding(n_vocab, embed_hidden)
         self.lstm = nn.LSTM(embed_hidden, dim,
@@ -218,10 +245,6 @@ class MACNetwork(nn.Module):
         self.classifier = nn.Sequential(linear(dim * 3, dim),
                                         nn.ELU(),
                                         linear(dim, classes))
-
-        self.mc_pred_head = nn.Sequential(linear(dim * 3, dim),
-                                        nn.ELU(),
-                                        linear(dim, 4))
 
         self.max_step = max_step
         self.dim = dim
@@ -239,21 +262,10 @@ class MACNetwork(nn.Module):
 
         kaiming_uniform_(self.classifier[0].weight)
 
-    def forward(self, video, question, question_len, is_des, dropout=0.15):
+    def forward(self, video, question, question_len):
         b_size = question.size(0)
 
-        if self.use_conv:
-            cb_sz = video.size()
-            frame_encs = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
-            #N*T x C x H x W => N x T x C x H x W
-            frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim, 3, 3)
-            frame_encs = frame_encs.permute(0,2,1,3,4).contiguous().view(cb_sz[0], self.dim, -1)
-        else:
-            cb_sz = video.size()
-            frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
-            frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim).permute(0,2,1)
-            frame_encs = frame_encs.reshape(cb_sz[0], self.dim, -1)
-
+        frame_encs = self.proccess_video(video)
 
         embed = self.embed(question)
         embed = nn.utils.rnn.pack_padded_sequence(embed, question_len,
@@ -267,10 +279,7 @@ class MACNetwork(nn.Module):
         memory = self.mac(lstm_out, h, frame_encs)
 
         out = torch.cat([memory, h], 1)
-
-        if is_des:
-            out = self.classifier(out)
-        else:
-            out = self.mc_pred_head(out)
+        
+        out = self.classifier(out)
 
         return out
