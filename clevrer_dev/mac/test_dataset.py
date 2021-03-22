@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from slowfast.datasets.clevrer_resnet import Clevrerresnet_des
+from slowfast.datasets.clevrer_resnet import Clevrerresnet
 import torch
 from torch.utils.data import DataLoader
 
@@ -23,7 +23,7 @@ cfg = load_config(args)
 logger = logging.get_logger(__name__)
 logging.setup_logging(cfg.OUTPUT_DIR)
 
-dataset = Clevrerresnet_des(cfg, 'train')
+dataset = Clevrerresnet(cfg, 'train')
 print("Dataset len = {}".format(len(dataset)))
 
 #Test DataLoader
@@ -41,13 +41,14 @@ for i_batch, sampled_batch in enumerate(dataloader):
     print("Video info = {}".format(dataset.get_video_info(index)))
     print(sampled_batch['res_ft'].size())
     print(sampled_batch['question_dict']['question'])
+    print(sampled_batch['question_dict']['attention_mask'])
     print(sampled_batch['question_dict']['ans'])
     print(sampled_batch['question_dict']['len'])
     print(sampled_batch['index'], sampled_batch['res_ft_index'])
 
     break
 
-dataset = Clevrerresnet_des(cfg, 'val')
+dataset = Clevrerresnet(cfg, 'val')
 print("Dataset len = {}".format(len(dataset)))
 
 #Test DataLoader
@@ -61,12 +62,13 @@ for i_batch, sampled_batch in enumerate(dataloader):
     print("Video info = {}".format(dataset.get_video_info(index)))
     print(sampled_batch['res_ft'].size())
     print(sampled_batch['question_dict']['question'])
+    print(sampled_batch['question_dict']['attention_mask'])
     print(sampled_batch['question_dict']['ans'])
     print(sampled_batch['question_dict']['len'])
     print(sampled_batch['index'], sampled_batch['res_ft_index'])
 
     break
-    
+
 for i in range(10):
     print(dataset[i]['res_ft'].sum())
     print(dataset[i]['res_ft_index'],i)
