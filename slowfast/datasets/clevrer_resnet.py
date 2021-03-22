@@ -116,13 +116,14 @@ class Clevrerresnet(torch.utils.data.Dataset):
         Creates the vocabularies used to tokenize questions and answers
         It uses only the train.json file
         """
-        self.vocab = {' CLS ': 0, ' PAD ': 1, '|': 2, ' counter ': 78, 'what': 3, 'is': 4, 'the': 5, 'shape': 6, 'of': 7, 'object': 8, 'to': 9, 'collide': 10, 'with': 11, 'purple': 12, '?': 13, 'color': 14, 'first': 15, 'gray': 16, 'sphere': 17, 'material': 18, 'how': 19, 'many': 20, 'collisions': 21, 'happen': 22, 'after': 23, 'cube': 24, 'enters': 25, 'scene': 26, 'objects': 27, 'enter': 28, 'are': 29, 'there': 30, 'before': 31, 'stationary': 32, 'rubber': 33, 'metal': 34, 'that': 35, 'moving': 36, 'cubes': 37, 'when': 38, 'blue': 39, 'exits': 40, 'any': 41, 'brown': 42, 'which': 43, 'following': 44, 'responsible': 45, 'for': 46, 'collision': 47, 'between': 48, 'and': 49, 'presence': 50, "'s": 51, 'entering': 52, 'colliding': 53, 'event': 54, 'will': 55, 'if': 56, 'cylinder': 57, 'removed': 58, 'collides': 59, 'without': 60, ',': 61, 'not': 62, 'red': 63, 'spheres': 64, 'exit': 65, 'cylinders': 66, 'video': 67, 'begins': 68, 'ends': 69, 'next': 70, 'last': 71, 'yellow': 72, 'cyan': 73, 'entrance': 74, 'green': 75, 'second': 76, 'exiting': 77}
+        self.vocab = {'[CLS]': 0, ' PAD ': 1, '[SEP]': 2, ' counter ': 78, 'what': 3, 'is': 4, 'the': 5, 'shape': 6, 'of': 7, 'object': 8, 'to': 9, 'collide': 10, 'with': 11, 'purple': 12, '?': 13, 'color': 14, 'first': 15, 'gray': 16, 'sphere': 17, 'material': 18, 'how': 19, 'many': 20, 'collisions': 21, 'happen': 22, 'after': 23, 'cube': 24, 'enters': 25, 'scene': 26, 'objects': 27, 'enter': 28, 'are': 29, 'there': 30, 'before': 31, 'stationary': 32, 'rubber': 33, 'metal': 34, 'that': 35, 'moving': 36, 'cubes': 37, 'when': 38, 'blue': 39, 'exits': 40, 'any': 41, 'brown': 42, 'which': 43, 'following': 44, 'responsible': 45, 'for': 46, 'collision': 47, 'between': 48, 'and': 49, 'presence': 50, "'s": 51, 'entering': 52, 'colliding': 53, 'event': 54, 'will': 55, 'if': 56, 'cylinder': 57, 'removed': 58, 'collides': 59, 'without': 60, ',': 61, 'not': 62, 'red': 63, 'spheres': 64, 'exit': 65, 'cylinders': 66, 'video': 67, 'begins': 68, 'ends': 69, 'next': 70, 'last': 71, 'yellow': 72, 'cyan': 73, 'entrance': 74, 'green': 75, 'second': 76, 'exiting': 77}
         self.ans_vocab = {' counter ': 21, '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, 'yes': 6, 'no': 7, 'rubber': 8, 'metal': 9, 'sphere': 10, 'cube': 11, 'cylinder': 12, 'gray': 13, 'brown': 14, 'green': 15, 'red': 16, 'blue': 17, 'purple': 18, 'yellow': 19, 'cyan': 20}
         self.max_seq_len = 45
     
     def _token_list_to_tensor(self, token_list):
         """
         Transforms a token list into a tensor with padding.
+        Adds 
         """
         tensor = torch.ones(self.max_seq_len, dtype=torch.long) * self.vocab[' PAD ']
         for i in range(len(token_list)):
@@ -147,7 +148,12 @@ class Clevrerresnet(torch.utils.data.Dataset):
                 data_list[l_index]['question_type'] = q['question_type']
 
                 split_q = string_to_token_list(q['question'])
+                split_q = ['[CLS]'] + split_q + ['[SEP]']
                 data_list[l_index]['len'] = len(split_q)
+                attention_mask = torch.zeros(self.max_q_len)
+                for i in range(len(split_q)):
+                    attention_mask[i] = 1.0
+                data_list[l_index]['attention_mask'] = attention_mask
                 data_list[l_index]['question'] = self._token_list_to_tensor(split_q)
                 if self.mode != 'test':
                     data_list[l_index]['ans'] = self.ans_vocab[q['answer']]
@@ -161,7 +167,12 @@ class Clevrerresnet(torch.utils.data.Dataset):
 
                     trans_mc_q = q['question'] + ' | ' + c['choice']
                     split_q = string_to_token_list(trans_mc_q)
+                    split_q = ['[CLS]'] + split_q + ['[SEP]']
                     data_list[l_index]['len'] = len(split_q)
+                    attention_mask = torch.zeros(self.max_q_len)
+                    for i in range(len(split_q)):
+                        attention_mask[i] = 1.0
+                    data_list[l_index]['attention_mask'] = attention_mask
                     data_list[l_index]['question'] = self._token_list_to_tensor(split_q)
                     if self.mode != 'test':
                         trans_mc_ans = 'yes' if c['answer'] == 'correct' else 'no'

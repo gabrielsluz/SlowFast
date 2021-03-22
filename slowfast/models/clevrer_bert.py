@@ -32,6 +32,7 @@ import numpy as np
 from torch.autograd import Variable
 from torch.nn.init import kaiming_uniform_, xavier_uniform_, normal
 from transformers import BertModel
+from transformers import AlbertModel
 
 from .build import MODEL_REGISTRY
 
@@ -284,7 +285,77 @@ class BERT_CNN_MAC(nn.Module):
 
 
 
+@MODEL_REGISTRY.register()
+class CNN_BERT(nn.Module):
+    """
+    """
+    def __init__(self, cfg):
+        """
+        The `__init__` method of any subclass should also contain these
+            arguments.
 
+        Args:
+            cfg (CfgNode): model building configs, details are in the
+                comments of the config file.
+        """
+        print("CNN_BERT model")
+        super(CNN_BERT, self).__init__()
+        #CUDA
+        self.num_gpus = cfg.NUM_GPUS
+        classes = 21
+        #BERT
+        self.BERT = AlbertModel()
+        self.bert_hid_dim = self.BERT.config.hidden_size
+        dim = self.BERT.config.embedding_size
+        #CONV
+        self.use_conv = cfg.RESNET_SZ == 'res101'
+        if self.use_conv:
+            self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, padding=1),
+                                    nn.ELU(),
+                                    nn.Conv2d(dim, dim, 3, padding=1),
+                                    nn.ELU())
+            #Generates => N x dim x 3 x 3
+        else:
+            self.res_proj = nn.Linear(2048, dim)
+        #Embeddings
+        self.embed = nn.Embedding(n_vocab, dim, padding_idx=1)
+        #Final prediction head
+        self.classifier = linear(self.bert_hid_dim, classes)
+        self.dim = dim
+
+        self.reset()
+
+    def reset(self):
+        if self.use_conv:
+            kaiming_uniform_(self.conv[0].weight)
+            self.conv[0].bias.data.zero_()
+            kaiming_uniform_(self.conv[2].weight)
+            self.conv[2].bias.data.zero_()
+        kaiming_uniform_(self.embed.weight, mode='fan_in', nonlinearity='relu')
+        nn.init.zeros_(self.embed.weight[layer.padding_idx])
+        kaiming_uniform_(self.classifier[0].weight)
+
+
+    def forward(self, video, question, question_mask):
+        if self.use_conv:
+            cb_sz = video.size()
+            frame_encs = self.conv(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
+            #N*T x C x H x W => N x T x C x H x W
+            frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim, 3, 3)
+            frame_encs = frame_encs.permute(0,1,3,4,2).contiguous().view(cb_sz[0], cb_sz[1]*9, self.dim)
+        else:
+            cb_sz = video.size()
+            frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
+            frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim)
+        attention_mask = torch.cat((torch.ones(frame_encs.size()).cuda(non_blocking=True), question_mask), dim=1)
+        q_encs = self.embed(question)
+        bert_in = torch.cat((frame_encs, q_encs), dim=1)
+        bert_out = self.BERT(input_embeds=bert_in,
+                            attention_mask=attention_mask)
+        out = bert_out.pooler_output
+        out = self.classifier(out)
+
+        return out
 
 
 
