@@ -150,7 +150,7 @@ class Clevrerresnet(torch.utils.data.Dataset):
                 split_q = string_to_token_list(q['question'])
                 split_q = ['[CLS]'] + split_q + ['[SEP]']
                 data_list[l_index]['len'] = len(split_q)
-                attention_mask = torch.zeros(self.max_q_len)
+                attention_mask = torch.zeros(self.max_seq_len)
                 for i in range(len(split_q)):
                     attention_mask[i] = 1.0
                 data_list[l_index]['attention_mask'] = attention_mask
@@ -169,7 +169,7 @@ class Clevrerresnet(torch.utils.data.Dataset):
                     split_q = string_to_token_list(trans_mc_q)
                     split_q = ['[CLS]'] + split_q + ['[SEP]']
                     data_list[l_index]['len'] = len(split_q)
-                    attention_mask = torch.zeros(self.max_q_len)
+                    attention_mask = torch.zeros(self.max_seq_len)
                     for i in range(len(split_q)):
                         attention_mask[i] = 1.0
                     data_list[l_index]['attention_mask'] = attention_mask
