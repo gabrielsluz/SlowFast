@@ -6,6 +6,7 @@ import torchvision
 
 import sys
 import os
+import argparse
 
 from tqdm import tqdm
 import h5py
@@ -15,6 +16,7 @@ import slowfast.utils.checkpoint as cu
 from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
 
+sys.path.insert(1, '/home/gabrielsluz/MONet')
 from models import create_model
 from models.monet_model import  MONetModel
 
@@ -22,8 +24,8 @@ from models.monet_model import  MONetModel
 Generates MONet features
 
 Example:
-python3 generate_features.py \
-  --cfg /home/gabrielsluz/SlowFast/clevrer_dev/mac/mac.yaml \
+python3 clevrer_dev/mac/gen_monet_features.py \
+  --cfg clevrer_dev/mac/mac.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer 
 """
@@ -38,7 +40,7 @@ def get_slot_repr(self, x):
     # Initial s_k = 1: shape = (N, 1, H, W)
     shape = list(x.shape)
     shape[1] = 1
-    log_s_k = self.x.new_zeros(shape)
+    log_s_k = x.new_zeros(shape)
     z_mu_k_t = torch.zeros((self.opt.num_slots, x.size(0), self.opt.z_dim)) 
     for k in range(self.opt.num_slots):
         # Derive mask from current scope
@@ -99,15 +101,15 @@ if __name__ == "__main__":
     logger = logging.get_logger(__name__)
     logging.setup_logging(cfg.OUTPUT_DIR)
     use_gpu = cfg.NUM_GPUS > 0
-    opt = Namespace(batch_size=64, beta=0.5, beta1=0.5, checkpoints_dir='./checkpoints', continue_train=True, crop_size=192, dataroot='./datasets/CLEVR_v1.0', dataset_mode='clevr', direction='AtoB', display_env='main', display_freq=400, display_id=1, display_ncols=11, display_port=8097, display_server='http://localhost', display_winsize=256, epoch='latest', epoch_count=1, gamma=0.5, gan_mode='lsgan', gpu_ids=[], init_gain=0.02, init_type='normal', input_nc=3, isTrain=True, load_iter=0, load_size=64, lr=0.0001, lr_decay_iters=50, lr_policy='linear', max_dataset_size=inf, model='monet', n_layers_D=3, name='clevr_monet', ndf=64, netD='basic', netG='resnet_9blocks', ngf=64, niter=914, niter_decay=0, no_dropout=False, no_flip=False, no_html=False, norm='instance', num_slots=8, num_threads=4, output_nc=3, phase='train', pool_size=50, preprocess='resize_and_crop', print_freq=100, save_by_iter=False, save_epoch_freq=5, save_latest_freq=5000, serial_batches=False, suffix='', update_html_freq=1000, verbose=False, z_dim=16)
+    opt = argparse.Namespace(batch_size=64, beta=0.5, beta1=0.5, checkpoints_dir='/home/gabrielsluz/MONet/checkpoints', continue_train=True, crop_size=192, dataroot='./datasets/CLEVR_v1.0', dataset_mode='clevr', direction='AtoB', display_env='main', display_freq=400, display_id=1, display_ncols=11, display_port=8097, display_server='http://localhost', display_winsize=256, epoch='latest', epoch_count=1, gamma=0.5, gan_mode='lsgan', gpu_ids=[0], init_gain=0.02, init_type='normal', input_nc=3, isTrain=True, load_iter=0, load_size=64, lr=0.0001, lr_decay_iters=50, lr_policy='linear', max_dataset_size=1e9, model='monet', n_layers_D=3, name='clevr_monet', ndf=64, netD='basic', netG='resnet_9blocks', ngf=64, niter=914, niter_decay=0, no_dropout=False, no_flip=False, no_html=False, norm='instance', num_slots=8, num_threads=4, output_nc=3, phase='train', pool_size=50, preprocess='resize_and_crop', print_freq=100, save_by_iter=False, save_epoch_freq=5, save_latest_freq=5000, serial_batches=False, suffix='', update_html_freq=1000, verbose=False, z_dim=16)
     #num_slots = 8
     #z_dim = 16
     #Set model and load checkpoint
     model = create_model(opt)
     model.setup(opt)
-    if use_gpu:
-        cur_device = torch.cuda.current_device()
-        model = model.cuda(device=cur_device)
+    #if use_gpu:
+    #    cur_device = torch.cuda.current_device()
+    #    model = model.cuda(device=cur_device)
     model.get_slot_repr = get_slot_repr.__get__(model, MONetModel)
     model.eval()
 

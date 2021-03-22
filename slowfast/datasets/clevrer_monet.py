@@ -68,13 +68,13 @@ class Clevrer_monet(torch.utils.data.Dataset):
             "train",
             "val",
             "test",
-        ], "Split '{}' not supported for Clevrer_video".format(mode)
+        ], "Split '{}' not supported for Clevrer_monet".format(mode)
         self.mode = mode
         self.cfg = cfg  
 
         self._num_retries = 10  
 
-        logger.info("Constructing Clevrer_video {}...".format(mode))
+        logger.info("Constructing Clevrer_monet {}...".format(mode))
         self._construct_loader()
 
 
@@ -197,7 +197,7 @@ class Clevrer_monet(torch.utils.data.Dataset):
                 frames = frames.permute(0, 3, 1, 2)
                 # Perform resize
                 frames_size = frames.size()
-                resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
+                resized_frames = torch.zeros(frames_size[0], frames_size[1], 64, 64)
                 for i in range(frames_size[0]):
                     resized_frames[i] = self._transform(frames[i])
                 # T C H W -> C T H W. 
@@ -209,7 +209,7 @@ class Clevrer_monet(torch.utils.data.Dataset):
                 frames = frames.permute(0, 3, 1, 2)
                 # Perform resize
                 frames_size = frames.size()
-                resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
+                resized_frames = torch.zeros(frames_size[0], frames_size[1], 64, 64)
                 for i in range(frames_size[0]):
                     resized_frames[i] = self._transform(frames[i])
             
