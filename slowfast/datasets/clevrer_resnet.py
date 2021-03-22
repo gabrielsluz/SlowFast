@@ -165,7 +165,7 @@ class Clevrerresnet(torch.utils.data.Dataset):
                     data_list[l_index]['video_path'] = video_path
                     data_list[l_index]['question_type'] = q['question_type']
 
-                    trans_mc_q = q['question'] + ' | ' + c['choice']
+                    trans_mc_q = q['question'] + ' [SEP] ' + c['choice']
                     split_q = string_to_token_list(trans_mc_q)
                     split_q = ['[CLS]'] + split_q + ['[SEP]']
                     data_list[l_index]['len'] = len(split_q)
