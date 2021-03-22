@@ -32,7 +32,7 @@ import numpy as np
 from torch.autograd import Variable
 from torch.nn.init import kaiming_uniform_, xavier_uniform_, normal
 from transformers import BertModel
-from transformers import AlbertModel
+from transformers import AlbertModel, AlbertConfig
 
 from .build import MODEL_REGISTRY
 
@@ -303,8 +303,10 @@ class CNN_BERT(nn.Module):
         #CUDA
         self.num_gpus = cfg.NUM_GPUS
         classes = 21
+        n_vocab = 78
         #BERT
-        self.BERT = AlbertModel()
+        albert_config = AlbertConfig.from_pretrained("albert-base-v1")
+        self.BERT = AlbertModel(albert_config)
         self.bert_hid_dim = self.BERT.config.hidden_size
         dim = self.BERT.config.embedding_size
         #CONV
@@ -332,8 +334,8 @@ class CNN_BERT(nn.Module):
             kaiming_uniform_(self.conv[2].weight)
             self.conv[2].bias.data.zero_()
         kaiming_uniform_(self.embed.weight, mode='fan_in', nonlinearity='relu')
-        nn.init.zeros_(self.embed.weight[layer.padding_idx])
-        kaiming_uniform_(self.classifier[0].weight)
+        nn.init.zeros_(self.embed.weight[self.embed.padding_idx])
+        kaiming_uniform_(self.classifier.weight)
 
 
     def forward(self, video, question, question_mask):
@@ -347,10 +349,10 @@ class CNN_BERT(nn.Module):
             cb_sz = video.size()
             frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1], cb_sz[2]))
             frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.dim)
-        attention_mask = torch.cat((torch.ones(frame_encs.size()).cuda(non_blocking=True), question_mask), dim=1)
+        attention_mask = torch.cat((torch.ones(cb_sz[0], cb_sz[1]).cuda(non_blocking=True), question_mask), dim=1)
         q_encs = self.embed(question)
         bert_in = torch.cat((frame_encs, q_encs), dim=1)
-        bert_out = self.BERT(input_embeds=bert_in,
+        bert_out = self.BERT(inputs_embeds=bert_in,
                             attention_mask=attention_mask)
         out = bert_out.pooler_output
         out = self.classifier(out)

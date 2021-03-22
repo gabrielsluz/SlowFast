@@ -16,8 +16,8 @@ from slowfast.config.defaults import get_cfg
 batch_size = 64
 n_epoch = 60
 dim = 512
-dropout = 0.3
-res_sz = 'res50'
+dropout = 0.15
+res_sz = 'res101'
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

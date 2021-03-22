@@ -13,7 +13,7 @@ import slowfast.utils.metrics as metrics
 import slowfast.utils.misc as misc
 from slowfast.utils.meters import ClevrerTrainMeter, ClevrerValMeter
 #Clevrer specific
-from slowfast.datasets.clevrer_bert_resnet import Clevrerresnet
+from slowfast.datasets.clevrer_resnet import Clevrerresnet
 from slowfast.models.clevrer_bert import CNN_BERT
 
 logger = logging.get_logger(__name__)
@@ -58,7 +58,7 @@ def train_epoch(
     for cur_iter, sampled_batch in enumerate(train_loader): 
         video_ft = sampled_batch['res_ft']
         des_q = sampled_batch['question_dict']['question']
-        attn_masks = sampled_batch['question_dict']['attention_masks']
+        attn_masks = sampled_batch['question_dict']['attention_mask']
         des_ans = sampled_batch['question_dict']['ans']
         # Transfer the data to the current GPU device.
         if cfg.NUM_GPUS:
@@ -136,7 +136,7 @@ def eval_epoch(val_loader, model, val_meter, cur_epoch, cfg, test_imp=False):
     for cur_iter, sampled_batch in enumerate(val_loader):
         video_ft = sampled_batch['res_ft']
         des_q = sampled_batch['question_dict']['question']
-        attn_masks = sampled_batch['question_dict']['attention_masks']
+        attn_masks = sampled_batch['question_dict']['attention_mask']
         des_ans = sampled_batch['question_dict']['ans']
         # Transfer the data to the current GPU device.
         if cfg.NUM_GPUS:
