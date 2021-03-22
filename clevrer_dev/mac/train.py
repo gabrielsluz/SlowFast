@@ -14,8 +14,8 @@ from slowfast.models.mac import MACNetwork
 from slowfast.utils.parser import load_config, parse_args
 
 """
-python3 clevrer_dev/bert_mac/train_bert_mac.py \
-  --cfg clevrer_dev/bert_mac/bert_mac.yaml \
+python3 clevrer_dev/mac/train.py \
+  --cfg clevrer_dev/mac/mac.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
   TRAIN.DATASET Clevrerresnet \
