@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 from torch.autograd import Variable
+from torch.nn import functional as F
 
 def init_modules(modules, w_init='kaiming_uniform'):
     if w_init == "normal":
