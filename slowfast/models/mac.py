@@ -1,6 +1,5 @@
 """
-Implementation taken from https://github.com/rosinality/mac-network-pytorch
-It was modified to use video input (SlowFast network features).
+Implementation taken and modified from https://github.com/rosinality/mac-network-pytorch
 
 MIT License
 
@@ -218,6 +217,7 @@ class MACNetwork(nn.Module):
         embed_hidden=cfg.WORD_EMB.EMB_DIM
         resnet_sz = cfg.RESNET_SZ
 
+        self.use_conv = resnet_sz == 'res101'
         #Video features treatment
         if resnet_sz == 'res101':
             self.conv = nn.Sequential(nn.Conv2d(1024, dim, kernel_size=3, padding=1),

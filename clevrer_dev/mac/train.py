@@ -12,6 +12,7 @@ from tqdm import tqdm
 from slowfast.datasets.clevrer_resnet import Clevrerresnet
 from slowfast.models.mac import MACNetwork
 from slowfast.utils.parser import load_config, parse_args
+import slowfast.utils.logging as logging
 
 """
 python3 clevrer_dev/mac/train.py \
@@ -28,10 +29,13 @@ python3 clevrer_dev/mac/train.py \
   LOG_PERIOD 200 \
   TRAIN.EVAL_PERIOD 1 \
   TRAIN.CHECKPOINT_PERIOD 10 \
+  TRAIN.CHECKPOINT_FILE_PATH None \
   SOLVER.BASE_LR 1e-4 \
   NUM_GPUS 1 \
   SOLVER.MAX_EPOCH 60
 """
+
+logger = logging.get_logger(__name__)
 
 def accumulate(model1, model2, decay=0.999):
     par1 = dict(model1.named_parameters())
@@ -60,12 +64,12 @@ def train(epoch, train_set):
         )
 
         net.zero_grad()
-        output = net(video_ft, question, q_len, True)
+        output = net(video_ft, question, q_len)
         loss = criterion(output, answer)
         loss.backward()
         optimizer.step()
         correct = output.detach().argmax(1) == answer
-        correct = torch.tensor(correct, dtype=torch.float32).sum() / batch_size
+        correct = torch.tensor(correct, dtype=torch.float32).sum() / cfg.TRAIN.BATCH_SIZE
 
         if moving_loss == 0:
             moving_loss = correct
@@ -105,7 +109,7 @@ def valid(epoch, valid_set):
                 q_len.to(device)
             )
 
-            output = net_running(video_ft, question, q_len, True)
+            output = net_running(video_ft, question, q_len)
             correct = output.detach().argmax(1) == answer.to(device)
             for c, q_t in zip(correct, q_types):
                 if not q_t in q_type_correct:
@@ -143,8 +147,8 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() and cfg.NUM_GPUS else 'cpu')
 
     net = MACNetwork(cfg).to(device)
-    if len(sys.argv) > 1:
-        net.load_state_dict(torch.load(sys.argv[1]))
+    if cfg.TRAIN.CHECKPOINT_FILE_PATH != "":
+        net.load_state_dict(torch.load(cfg.TRAIN.CHECKPOINT_FILE_PATH))
     net_running = MACNetwork(cfg).to(device)
     accumulate(net_running, net, 0)
 
@@ -154,15 +158,15 @@ if __name__ == '__main__':
     #Dataloaders
     train_dst = Clevrerresnet(cfg, "train")
     train_set = DataLoader(
-        train_dst, batch_size=batch_size, num_workers=8
+        train_dst, batch_size=cfg.TRAIN.BATCH_SIZE, num_workers=cfg.DATA_LOADER.NUM_WORKERS
     )
 
     valid_dst = Clevrerresnet(cfg, "val")
     valid_set = DataLoader(
-        valid_dst, batch_size=batch_size, num_workers=8
+        valid_dst, batch_size=cfg.TRAIN.BATCH_SIZE, num_workers=cfg.DATA_LOADER.NUM_WORKERS
     )
 
-    for epoch in range(n_epoch):
+    for epoch in range(cfg.SOLVER.MAX_EPOCH):
         train(epoch, train_set)
         if epoch % cfg.TRAIN.EVAL_PERIOD == 0:
             valid(epoch, valid_set)

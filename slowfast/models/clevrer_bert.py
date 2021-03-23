@@ -386,6 +386,8 @@ class MONET_BERT(nn.Module):
         albert_config.embedding_size=dim+2
         albert_config.num_attention_heads=10
         albert_config.num_hidden_layers=28
+        albert_config.hidden_size=200
+        albert_config.intermediate_size=512
         self.BERT = AlbertModel(albert_config)
         self.bert_hid_dim = self.BERT.config.hidden_size
         #Embeddings
@@ -393,7 +395,7 @@ class MONET_BERT(nn.Module):
         #Final prediction head
         self.classifier = nn.Sequential(
             linear(self.bert_hid_dim, 128),
-            nn.ReLu(),
+            nn.ReLU(),
             linear(128, classes)
         )
         self.dim = dim
@@ -409,13 +411,12 @@ class MONET_BERT(nn.Module):
 
     def forward(self, video, question, question_mask):
         cb_sz = video.size()
-        frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1]*cb_sz[2],cb_sz[3]))
-        frame_encs = frame_encs.view(cb_sz[0], cb_sz[1]*cb_sz[2], self.dim).permute(0,2,1)
-        frame_encs = frame_encs.reshape(cb_sz[0], self.dim, -1)
+        frame_encs = video.view(cb_sz[0], cb_sz[1]*cb_sz[2], self.dim)
 
         attention_mask = torch.cat((torch.ones(frame_encs.size(0), frame_encs.size(1)).cuda(non_blocking=True), question_mask), dim=1)
         q_encs = self.embed(question)
 
+        cb_sz = frame_encs.size()
         #Indicate which are words and which are frames
         ones_v = torch.ones((cb_sz[0], cb_sz[1]+q_encs.size(1), 1))
         zeros_v = torch.zeros((cb_sz[0], cb_sz[1]+q_encs.size(1), 1))
