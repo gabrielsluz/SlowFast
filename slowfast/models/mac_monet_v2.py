@@ -278,9 +278,10 @@ class InputUnit(nn.Module):
         embed = self.embedding_dropout(embed)
         embed = nn.utils.rnn.pack_padded_sequence(embed, question_len, enforce_sorted = False, batch_first=True)
 
-        contextual_words, (question_embedding, _) = self.encoder(embed)
+        contextual_words, (question_embedding, c_q_n) = self.encoder(embed)
         if self.bidirectional:
             question_embedding = torch.cat([question_embedding[0], question_embedding[1]], -1)
+            c_q_n = torch.cat([c_q_n[0], c_q_n[1]], -1)
         question_embedding = self.question_dropout(question_embedding)
 
         contextual_words, _ = nn.utils.rnn.pad_packed_sequence(contextual_words, batch_first=True)
@@ -289,7 +290,7 @@ class InputUnit(nn.Module):
         cb_sz = video.size()
         frame_encs = self.set_encoder(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3]))
         frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.f_enc_dim)
-        frame_encs, _ = self.f_encoder(frame_encs)
+        frame_encs, _ = self.f_encoder(frame_encs, (question_embedding, c_q_n))
 
         return question_embedding, contextual_words, frame_encs
 
