@@ -5,6 +5,7 @@ import torch
 import copy
 from torch.utils.data import DataLoader
 from transformers import AdamW, get_linear_schedule_with_warmup
+from slowfast.models.lamb import Lamb
 
 import slowfast.models.losses as losses
 import slowfast.utils.checkpoint as cu
@@ -24,13 +25,14 @@ python3 clevrer_dev/bert_mac/train_albert.py \
   DATA.PATH_PREFIX /datasets/clevrer \
   TRAIN.DATASET Clevrerresnet \
   RESNET_SZ monet \
-  TRAIN.BATCH_SIZE 32 \
+  TRAIN.BATCH_SIZE 16 \
+  SOLVER.WEIGHT_DECAY 1e-6\
   NUM_GPUS 1 \
   LOG_PERIOD 200 \
-  TRAIN.EVAL_PERIOD 1 \
-  TRAIN.CHECKPOINT_PERIOD 10 \
-  SOLVER.BASE_LR 0.00001 \
-  SOLVER.MAX_EPOCH 40
+  TRAIN.EVAL_PERIOD 2 \
+  TRAIN.CHECKPOINT_PERIOD 5 \
+  SOLVER.BASE_LR 0.002 \
+  SOLVER.MAX_EPOCH 13
 """
 
 
@@ -222,10 +224,18 @@ def train_des(cfg):
         model = model.cuda(device=cur_device)
 
     # Construct the optimizer.
-    optimizer = AdamW(model.parameters(),
-                  lr = cfg.SOLVER.BASE_LR,
-                  eps = 1e-8
-                )
+    # optimizer = AdamW(model.parameters(),
+    #               lr = cfg.SOLVER.BASE_LR,
+    #               eps = 1e-8
+    #             )
+    optimizer = Lamb(
+                model.parameters(),
+                lr=cfg.SOLVER.BASE_LR,
+                betas=(0.9, 0.999),
+                eps=1e-6,
+                weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+                adam=False
+            )
     start_epoch = cu.load_train_checkpoint(cfg, model, optimizer)
     # Create the video train and val loaders.
     train_loader = build_dataloader(cfg, "train")
@@ -235,7 +245,7 @@ def train_des(cfg):
 
     # Create the learning rate scheduler.
     scheduler = get_linear_schedule_with_warmup(optimizer, 
-                                                num_warmup_steps = 0, # Default value in run_glue.py
+                                                num_warmup_steps = 4000, # Default value in run_glue.py
                                                 num_training_steps = total_steps)
 
     # Create meters.
