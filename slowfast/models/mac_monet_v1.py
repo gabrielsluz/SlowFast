@@ -199,7 +199,7 @@ class ReadUnit(nn.Module):
         #Use batch trick to feed batch*num_frames into ReadUnit_Frame
         #Generating batch*num_frames x module_dim
         k_sz = know.size()
-        frame_encs = self.read_frame(know.view(k_sz[0]*k_sz[1], cb_sz[2], cb_sz[3]))
+        frame_encs = self.read_frame(know.view(k_sz[0]*k_sz[1], k_sz[2], k_sz[3]))
         frame_encs = frame_encs.view(k_sz[0], k_sz[1], self.module_dim)
         print(frame_encs.size())
         _, (h_n, _) = self.frame_lstm(frame_encs)
