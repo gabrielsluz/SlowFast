@@ -14,7 +14,7 @@ import slowfast.utils.misc as misc
 from slowfast.utils.meters import ClevrerTrainMeter, ClevrerValMeter
 #Clevrer specific
 from slowfast.datasets.clevrer_resnet import Clevrerresnet
-from slowfast.models.clevrer_bert import CNN_BERT
+from slowfast.models.clevrer_bert import MONET_BERT
 
 logger = logging.get_logger(__name__)
 """
@@ -23,13 +23,13 @@ python3 clevrer_dev/bert_mac/train_albert.py \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
   TRAIN.DATASET Clevrerresnet \
-  RESNET_SZ res50 \
+  RESNET_SZ monet \
   TRAIN.BATCH_SIZE 32 \
   NUM_GPUS 1 \
   LOG_PERIOD 200 \
   TRAIN.EVAL_PERIOD 1 \
   TRAIN.CHECKPOINT_PERIOD 10 \
-  SOLVER.BASE_LR 0.0001 \
+  SOLVER.BASE_LR 0.00001 \
   SOLVER.MAX_EPOCH 40
 """
 
@@ -214,7 +214,7 @@ def train_des(cfg):
     logger.info(pprint.pformat(cfg))
 
     # Build the video model and print model statistics.
-    model = CNN_BERT(cfg)
+    model = MONET_BERT(cfg)
     if cfg.NUM_GPUS:
         # Determine the GPU used by the current process
         cur_device = torch.cuda.current_device()

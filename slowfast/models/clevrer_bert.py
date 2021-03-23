@@ -360,6 +360,79 @@ class CNN_BERT(nn.Module):
         return out
 
 
+@MODEL_REGISTRY.register()
+class MONET_BERT(nn.Module):
+    """
+    """
+    def __init__(self, cfg):
+        """
+        The `__init__` method of any subclass should also contain these
+            arguments.
+
+        Args:
+            cfg (CfgNode): model building configs, details are in the
+                comments of the config file.
+        """
+        print("MONET_BERT model")
+        super(MONET_BERT, self).__init__()
+        #CUDA
+        self.num_gpus = cfg.NUM_GPUS
+        classes = 21
+        n_vocab = 78
+        #BERT
+        dim = 16
+        albert_config = AlbertConfig.from_pretrained("albert-base-v1")
+        albert_config.vocab_size=n_vocab
+        albert_config.embedding_size=dim+2
+        albert_config.num_attention_heads=10
+        albert_config.num_hidden_layers=28
+        self.BERT = AlbertModel(albert_config)
+        self.bert_hid_dim = self.BERT.config.hidden_size
+        #Embeddings
+        self.embed = nn.Embedding(n_vocab, dim, padding_idx=1)
+        #Final prediction head
+        self.classifier = nn.Sequential(
+            linear(self.bert_hid_dim, 128),
+            nn.ReLu(),
+            linear(128, classes)
+        )
+        self.dim = dim
+
+        self.reset()
+
+    def reset(self):
+        kaiming_uniform_(self.embed.weight, mode='fan_in', nonlinearity='relu')
+        nn.init.zeros_(self.embed.weight[self.embed.padding_idx])
+        kaiming_uniform_(self.classifier[0].weight)
+        kaiming_uniform_(self.classifier[2].weight)
+
+
+    def forward(self, video, question, question_mask):
+        cb_sz = video.size()
+        frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1]*cb_sz[2],cb_sz[3]))
+        frame_encs = frame_encs.view(cb_sz[0], cb_sz[1]*cb_sz[2], self.dim).permute(0,2,1)
+        frame_encs = frame_encs.reshape(cb_sz[0], self.dim, -1)
+
+        attention_mask = torch.cat((torch.ones(frame_encs.size(0), frame_encs.size(1)).cuda(non_blocking=True), question_mask), dim=1)
+        q_encs = self.embed(question)
+
+        #Indicate which are words and which are frames
+        ones_v = torch.ones((cb_sz[0], cb_sz[1]+q_encs.size(1), 1))
+        zeros_v = torch.zeros((cb_sz[0], cb_sz[1]+q_encs.size(1), 1))
+        if self.num_gpus:
+            cur_device = torch.cuda.current_device()
+            ones_v = ones_v.cuda(device=cur_device)
+            zeros_v = zeros_v.cuda(device=cur_device)
+        q_encs = torch.cat((q_encs, ones_v[:,0:q_encs.size(1)], zeros_v[:,0:q_encs.size(1)]), dim=2)
+        frame_encs = torch.cat((frame_encs, zeros_v[:,0:cb_sz[1]], ones_v[:,0:cb_sz[1]]), dim=2)
+
+        bert_in = torch.cat((frame_encs, q_encs), dim=1)
+        bert_out = self.BERT(inputs_embeds=bert_in,
+                            attention_mask=attention_mask)
+        out = bert_out.pooler_output
+        out = self.classifier(out)
+
+        return out
 
 
 # @MODEL_REGISTRY.register()
@@ -368,7 +441,7 @@ class CNN_BERT(nn.Module):
 #     Implemetation of a baseline BERT+CNN+LSTM model for Clevrer
 #     Receives ResNet101 layer3 features, pass them through a small CNN
 #     Pass question through BERT
-#     Pass word_encs and frame_encs through a LSTM and Linear head to generate output
+#     Pass q_encs and frame_encs through a LSTM and Linear head to generate output
 #     """
 
 #     def init_params(self, layer):
