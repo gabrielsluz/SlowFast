@@ -1,4 +1,8 @@
-#Used in MONet-pytorch code, not here
+"""
+Used in MONet-pytorch code, not here
+
+python3 train.py --dataroot /datasets/dcl_clevrer --dataset_mode clevrer --name clevrer_monet --model monet --gpu_ids 0 --continue_train --num_slots 8 --save_epoch_freq 2 --batch_size 50 --print_freq 1000
+"""
 import os
 import random
 
@@ -57,8 +61,8 @@ class CLEVRERDataset(BaseDataset):
             min_i = 10000
         self.A_paths = [] #List of video frames paths
         #Sample 30 frames per video
-        for index in range(min_i, max_id+1):
-            sampled_frames = random.sample(range(0,127), 30)
+        for index in range(min_i, max_i+1):
+            sampled_frames = random.sample(range(0,127), 15)
             for frame_id in sampled_frames:
                 self.A_paths.append(os.path.join(opt.dataroot, get_filepath(index), str(frame_id)+'.png'))
 
