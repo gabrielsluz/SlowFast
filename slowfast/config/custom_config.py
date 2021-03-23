@@ -64,5 +64,11 @@ def add_custom_config(_C):
     _C.MAC.DROPOUT = 0.15
     _C.MAC.VAR_DROPOUT = False
 
+    #Set encoder
+    _C.SET_ENC = CfgNode()
+    _C.SET_ENC.N_HEADS = 1
+    _C.SET_ENC.HID_DIM = 512
+    _C.SET_ENC.N_LAYERS = 1
+
     
 
