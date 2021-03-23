@@ -158,25 +158,24 @@ class Clevrerresnet(torch.utils.data.Dataset):
                 if self.mode != 'test':
                     data_list[l_index]['ans'] = self.ans_vocab[q['answer']]
             else: #Multiple choice questions
-                continue
-                # choices = q['choices']
-                # for c in choices: #A question for each choice
-                #     l_index += 1
-                #     data_list.append({})
-                #     data_list[l_index]['video_path'] = video_path
-                #     data_list[l_index]['question_type'] = q['question_type']
+                choices = q['choices']
+                for c in choices: #A question for each choice
+                    l_index += 1
+                    data_list.append({})
+                    data_list[l_index]['video_path'] = video_path
+                    data_list[l_index]['question_type'] = q['question_type']
 
-                #     split_q = string_to_token_list(q['question']) + ['[SEP]'] + string_to_token_list(c['choice'])
-                #     split_q = ['[CLS]'] + split_q + ['[SEP]']
-                #     data_list[l_index]['len'] = len(split_q)
-                #     attention_mask = torch.zeros(self.max_seq_len)
-                #     for i in range(len(split_q)):
-                #         attention_mask[i] = 1.0
-                #     data_list[l_index]['attention_mask'] = attention_mask
-                #     data_list[l_index]['question'] = self._token_list_to_tensor(split_q)
-                #     if self.mode != 'test':
-                #         trans_mc_ans = 'yes' if c['answer'] == 'correct' else 'no'
-                #         data_list[l_index]['ans'] = self.ans_vocab[trans_mc_ans]
+                    split_q = string_to_token_list(q['question']) + ['[SEP]'] + string_to_token_list(c['choice'])
+                    split_q = ['[CLS]'] + split_q + ['[SEP]']
+                    data_list[l_index]['len'] = len(split_q)
+                    attention_mask = torch.zeros(self.max_seq_len)
+                    for i in range(len(split_q)):
+                        attention_mask[i] = 1.0
+                    data_list[l_index]['attention_mask'] = attention_mask
+                    data_list[l_index]['question'] = self._token_list_to_tensor(split_q)
+                    if self.mode != 'test':
+                        trans_mc_ans = 'yes' if c['answer'] == 'correct' else 'no'
+                        data_list[l_index]['ans'] = self.ans_vocab[trans_mc_ans]
 
         return data_list
 
