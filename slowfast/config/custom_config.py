@@ -62,6 +62,7 @@ def add_custom_config(_C):
     _C.MAC.DIM = 512
     _C.MAC.MAX_STEPS = 12
     _C.MAC.DROPOUT = 0.15
+    _C.MAC.VAR_DROPOUT = False
 
     
 
