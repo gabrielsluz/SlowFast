@@ -231,13 +231,14 @@ class MACUnit(nn.Module):
         return memory
 
 
-class SetEncoder(nn.module):
+class SetEncoder(nn.Module):
     #Encodes a set of vectors into a single vector
     #Set must be of constant size
     def __init__(self, set_size=8, input_dim=16, out_dim=256, nhead=2, hid_dim=128, nlayers=2, dropout=0.1, activation='relu'):
+        super(SetEncoder, self).__init__()
         encoder_layers = nn.TransformerEncoderLayer(input_dim, nhead, hid_dim, dropout, activation)
         self.transformer = nn.TransformerEncoder(encoder_layers, nlayers)
-        self.proj_head(set_size*input_dim, out_dim)
+        self.proj_head = nn.Linear(set_size*input_dim, out_dim)
 
     def forward(self, set_b):
         sb_sz = set_b.size()
@@ -268,7 +269,7 @@ class InputUnit(nn.Module):
         self.embedding_dropout = nn.Dropout(p=self.cfg.MAC.DROPOUT)
         self.question_dropout = nn.Dropout(p=0.08)
 
-    def forward(self, image, question, question_len):
+    def forward(self, video, question, question_len):
         b_size = question.size(0)
 
         # get question and contextual word embeddings
