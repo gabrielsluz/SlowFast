@@ -123,7 +123,7 @@ class ReadUnit(nn.Module):
         self.concat = nn.Linear(module_dim * 2, module_dim)
         self.concat_2 = nn.Linear(module_dim, module_dim)
         self.attn = nn.Linear(module_dim, 1)
-        self.dropout = nn.Dropout(0.15)
+        self.dropout = nn.Dropout(cfg.MAC.DROPOUT)
         self.kproj = nn.Linear(module_dim, module_dim)
         self.mproj = nn.Linear(module_dim, module_dim)
 
@@ -266,7 +266,7 @@ class InputUnit(nn.Module):
 
         self.encoder_embed = nn.Embedding(vocab_size, wordvec_dim)
         self.encoder = nn.LSTM(wordvec_dim, rnn_dim, batch_first=True, bidirectional=bidirectional)
-        self.embedding_dropout = nn.Dropout(p=0.15)
+        self.embedding_dropout = nn.Dropout(p=cfg.MAC.DROPOUT)
         self.question_dropout = nn.Dropout(p=0.08)
 
     def forward(self, image, question, question_len):
@@ -296,10 +296,10 @@ class OutputUnit(nn.Module):
 
         self.question_proj = nn.Linear(module_dim, module_dim)
 
-        self.classifier = nn.Sequential(nn.Dropout(0.15),
+        self.classifier = nn.Sequential(nn.Dropout(cfg.MAC.DROPOUT),
                                         nn.Linear(module_dim * 2, module_dim),
                                         nn.ELU(),
-                                        nn.Dropout(0.15),
+                                        nn.Dropout(cfg.MAC.DROPOUT),
                                         nn.Linear(module_dim, num_answers))
 
     def forward(self, question_embedding, memory):
