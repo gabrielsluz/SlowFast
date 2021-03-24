@@ -69,6 +69,7 @@ def add_custom_config(_C):
     _C.SET_ENC.N_HEADS = 1
     _C.SET_ENC.HID_DIM = 512
     _C.SET_ENC.N_LAYERS = 1
+    _C.SET_ENC.FRAME_ENC_DIM = 256
 
     
 

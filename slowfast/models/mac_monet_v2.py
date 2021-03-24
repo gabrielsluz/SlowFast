@@ -280,7 +280,7 @@ class InputUnit(nn.Module):
             rnn_dim = rnn_dim // 2
 
         #Video process
-        self.f_enc_dim = 256
+        self.f_enc_dim = self.cfg.SET_ENC.FRAME_ENC_DIM
         self.set_encoder = SetEncoder(set_size=8, input_dim=16, out_dim=self.f_enc_dim, nhead=cfg.SET_ENC.N_HEADS, 
                                       hid_dim=cfg.SET_ENC.HID_DIM, nlayers=cfg.SET_ENC.N_LAYERS, dropout=self.cfg.MAC.DROPOUT)
         self.f_encoder = nn.LSTM(self.f_enc_dim, rnn_dim, batch_first=True, bidirectional=bidirectional)
