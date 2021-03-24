@@ -135,6 +135,13 @@ class Clevrer_video(torch.utils.data.Dataset):
         temporal_sample_index = -1
         spatial_sample_index = -1
         sampling_rate = self.cfg.DATA.SAMPLING_RATE
+        min_scale, max_scale, crop_size = (
+            [self.cfg.DATA.TEST_CROP_SIZE] * 3
+            if self.cfg.TEST.NUM_SPATIAL_CROPS > 1
+            else [self.cfg.DATA.TRAIN_JITTER_SCALES[0]] * 2
+            + [self.cfg.DATA.TEST_CROP_SIZE]
+        )
+        assert len({min_scale, max_scale}) == 1
         # Try to decode and sample a clip from a video. If the video cannot be
         # decoded, try again
         for i_try in range(self._num_retries):
@@ -169,7 +176,7 @@ class Clevrer_video(torch.utils.data.Dataset):
                 video_meta=None,
                 target_fps=self.cfg.DATA.TARGET_FPS,
                 backend=self.cfg.DATA.DECODING_BACKEND,
-                max_spatial_scale=0
+                max_spatial_scale=min_scale
             )
             # If decoding failed (wrong format, video is too short, and etc),
             # select another video.
@@ -181,22 +188,23 @@ class Clevrer_video(torch.utils.data.Dataset):
                 )
 
             if self.cfg.MODEL.ARCH == "slowfast":
-                # T H W C -> T C H W. 
-                frames = frames.permute(0, 3, 1, 2)
-                # Perform resize
-                transform_rs = transforms.Compose([
-                    transforms.ToPILImage(),
-                    transforms.Resize([self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W]),
-                    transforms.ToTensor(),
-                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-                ])
-                frames_size = frames.size()
-                resized_frames = torch.zeros(frames_size[0], frames_size[1], self.cfg.DATA.RESIZE_H, self.cfg.DATA.RESIZE_W)
-                for i in range(frames_size[0]):
-                    resized_frames[i] = transform_rs(frames[i])
-                # T C H W -> C T H W. 
-                resized_frames = resized_frames.permute(1, 0, 2, 3)
-                resized_frames = utils.pack_pathway_output(self.cfg, resized_frames)
+                # Perform color normalization.
+                frames = utils.tensor_normalize(
+                    frames, self.cfg.DATA.MEAN, self.cfg.DATA.STD
+                )
+                # T H W C -> C T H W.
+                frames = frames.permute(3, 0, 1, 2)
+                # Perform data augmentation.
+                frames = utils.spatial_sampling(
+                    frames,
+                    spatial_idx=spatial_sample_index,
+                    min_scale=min_scale,
+                    max_scale=max_scale,
+                    crop_size=crop_size,
+                    random_horizontal_flip=False,
+                    inverse_uniform_sampling=self.cfg.DATA.INV_UNIFORM_SAMPLE,
+                )
+                resized_frames = utils.pack_pathway_output(self.cfg, frames)
 
             else:
                 # T H W C -> T C H W.
