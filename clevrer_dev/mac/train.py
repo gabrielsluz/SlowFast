@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from slowfast.datasets.clevrer_resnet import Clevrerresnet
-from slowfast.models.mac_v2 import MACNetwork
+from slowfast.models.mac_monet_v1 import MACNetwork
 from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
 

@@ -152,8 +152,6 @@ class ReadUnit_Frame(nn.Module):
         know_proj = self.kproj(know)
         memory_proj = self.mproj(memory)
         memory_proj = memory_proj.unsqueeze(1)
-        print("mem proj = {}".format(memory_proj.size()))
-        print("know_proj size = {}".format(know_proj.size()))
         interactions = know_proj * memory_proj
 
         # project memory interactions back to hidden dimension
@@ -201,20 +199,15 @@ class ReadUnit(nn.Module):
         #Use batch trick to feed batch*num_frames into ReadUnit_Frame
         #Generating batch*num_frames x module_dim
         k_sz = know.size()
-        print("Know size = {}".format(k_sz))
         mem_dim = memory.size(1)
         memory = memory.repeat(1, k_sz[1]).view(k_sz[0]*k_sz[1], mem_dim)
         ctrl_dim = memory.size(1)
         control = control.repeat(1, k_sz[1]).view(k_sz[0]*k_sz[1], ctrl_dim)
-        print("Memory size = {} Control size = {}".format(memory.size(), control.size()))
 
         frame_encs = self.read_frame(memory, know.view(k_sz[0]*k_sz[1], k_sz[2], k_sz[3]), control, memDpMask)
         frame_encs = frame_encs.view(k_sz[0], k_sz[1], self.module_dim)
-        print("Fraeme encs size = {}".format(frame_encs.size()))
         _, (h_n, _) = self.frame_lstm(frame_encs)
-        print("h_n size = {}".format(h_n.size()))
         read = h_n[-1]
-        print("Read size = {}".format(read.size()))
         return read
 
 
