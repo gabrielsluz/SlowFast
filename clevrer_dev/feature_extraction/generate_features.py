@@ -63,12 +63,12 @@ def gen_dataset(cfg, mode, root):
     #Slow
     slow_path = os.path.join(root, '{}_slow_features.hdf5'.format(mode))
     slow_h5 = h5py.File(slow_path, 'w', libver='latest')
-    slow_dset = slow_h5.create_dataset('data', (size * batch_size, 1280, 4, 14, 14),
+    slow_dset = slow_h5.create_dataset('data', (size * batch_size, 1280, 4, 16, 16),
                             dtype='f4')
     #Fast
     fast_path = os.path.join(root, '{}_fast_features.hdf5'.format(mode))
     fast_h5 = h5py.File(fast_path, 'w', libver='latest')
-    fast_dset = fast_h5.create_dataset('data', (size * batch_size, 128, 32, 14, 14),
+    fast_dset = fast_h5.create_dataset('data', (size * batch_size, 128, 32, 16, 16),
                             dtype='f4')
 
     with torch.no_grad():
