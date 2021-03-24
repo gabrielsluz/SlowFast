@@ -54,13 +54,12 @@ def train(epoch, train_set):
         question = sampled_batch['question_dict']['question']
         answer = sampled_batch['question_dict']['ans']
         q_len = sampled_batch['question_dict']['len']
-        video_ft, question, answer, q_len = (
-            video_ft.to(device),
+        video_ft['slow_ft'] = video_ft['slow_ft'].to(device)
+        question, answer, q_len = (
             question.to(device),
             answer.to(device),
             q_len.to(device)
         )
-
         net.zero_grad()
         output = net(video_ft, question, q_len)
         loss = criterion(output, answer)
@@ -100,8 +99,8 @@ def valid(epoch, valid_set):
             answer = sampled_batch['question_dict']['ans']
             q_len = sampled_batch['question_dict']['len']
             q_types = sampled_batch['question_dict']['question_type']
-            video_ft, question, answer, q_len = (
-                video_ft.to(device),
+            video_ft['slow_ft'] = video_ft['slow_ft'].to(device)
+            question, answer, q_len = (
                 question.to(device),
                 answer.to(device),
                 q_len.to(device)

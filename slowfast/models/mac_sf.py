@@ -235,32 +235,17 @@ class MACUnit(nn.Module):
 class InputUnit(nn.Module):    
     def slowfast_v_p(self, video):
         slow_ft = video['slow_ft']
-        fast_ft = video['fast_ft']
         b_sz = slow_ft.size(0)
-        slow_ft = self.slow_conv(slow_ft).view(b_sz, self.slow_dim, -1).permute(0,2,1)
-        fast_ft = self.fast_conv(fast_ft).view(b_sz, self.fast_dim, -1).permute(0,2,1)
-        frame_encs = torch.cat((slow_ft, fast_ft), dim=1)
-        return frame_encs
+        slow_ft = self.slow_conv(slow_ft).view(b_sz, self.dim, -1).permute(0,2,1)
+        return slow_ft
     
     def __init__(self, cfg, vocab_size, wordvec_dim=300, rnn_dim=512, module_dim=512, bidirectional=True):
         super(InputUnit, self).__init__()
 
         self.dim = module_dim
         self.cfg = cfg
-        self.fast_dim = 128
-        self.slow_dim = 384
-        self.fast_conv = nn.Sequential(nn.Dropout(p=0.18),
-                                nn.Conv3d(128, self.fast_dim, kernel_size=(8, 3, 3), stride=(8, 1, 1), padding=(1,1,1)),
-                                nn.ELU(),
-                                nn.Dropout(p=0.18),
-                                nnn.Conv3d(self.fast_dim, self.fast_dim, kernel_size=(4, 3, 3), stride=(4, 1, 1), padding=(1,1,1)),
-                                nn.ELU())
-
         self.slow_conv = nn.Sequential(nn.Dropout(p=0.18),
-                                  nn.Conv3d(1280, self.slow_dim, kernel_size=(3, 3, 3), stride=(1, 1, 1), padding=(1,1,1)),
-                                  nn.ELU(),
-                                  nn.Dropout(p=0.18),
-                                  nn.Conv3d(self.slow_dim, self.slow_dim, kernel_size=(4, 3, 3), stride=(4, 1, 1), padding=(1,1,1)),
+                                  nn.Conv3d(1280, module_dim, kernel_size=(4, 3, 3), stride=(4, 1, 1), padding=(1,1,1)),
                                   nn.ELU())
 
                                 
