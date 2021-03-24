@@ -231,6 +231,27 @@ class MACUnit(nn.Module):
         return memory
 
 
+class PositionalEncoding(nn.Module):
+    "Implement the PE function."
+    def __init__(self, d_model=512, dropout=0.15, max_len=25):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+        
+        # Compute the positional encodings once in log space.
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) *
+                             -(math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)
+        self.register_buffer('pe', pe)
+        
+    def forward(self, x):
+        x = x + Variable(self.pe[:, :x.size(1)], 
+                         requires_grad=False)
+        return self.dropout(x)
+
 class InputUnit(nn.Module):    
     def res50_v_p(self, video):
         cb_sz = video.size()
@@ -243,6 +264,7 @@ class InputUnit(nn.Module):
         frame_encs = self.res_proj(video.view(cb_sz[0]*cb_sz[1]*cb_sz[2],cb_sz[3]))
         frame_encs = frame_encs.view(cb_sz[0], cb_sz[1]*cb_sz[2], self.dim).permute(0,2,1)
         frame_encs = frame_encs.reshape(cb_sz[0], self.dim, -1)
+        frame_encs = self.pos(frame_encs)
         return frame_encs
 
     def __init__(self, cfg, vocab_size, wordvec_dim=300, rnn_dim=512, module_dim=512, bidirectional=True):
@@ -259,6 +281,7 @@ class InputUnit(nn.Module):
         #                           nn.ELU())
         self.res_proj = nn.Linear(2048, module_dim)
         self.proccess_video = self.res50_v_p
+        self.pos_enc = PositionalEncoding(d_model=module_dim, dropout=self.cfg.MAC.DROPOUT, max_len=245)
 
         self.bidirectional = bidirectional
         if bidirectional:
