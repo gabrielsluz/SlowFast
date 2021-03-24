@@ -18,7 +18,7 @@ import slowfast.utils.logging as logging
 
 
 """
-Generates ResNet101 for the MAC model
+Generates ResNet50 for the MAC model
 
 Example:
 python3 clevrer_dev/mac/generate_features.py \
@@ -42,7 +42,7 @@ def forward(self, x):
 
 
 def gen_dataset(cfg, mode, root):
-    #Generates one datasets for a certain split. => ResNet50 features pool5
+    #Generates one datasets for a certain split. => ResNet50
     #When using the generated file must indicate in which index the dataset starts to work
     #Train starts in 0
     #Val starts in 10000
@@ -55,14 +55,12 @@ def gen_dataset(cfg, mode, root):
     size = len(dataloader)
     batch_size = cfg.TRAIN.BATCH_SIZE
 
-    #h5py slow and fast datasets
-    #Slow
-    h5_path = os.path.join(root, '{}_res101_features.hdf5'.format(mode))
+    h5_path = os.path.join(root, '{}_res50conv_features.hdf5'.format(mode))
     f_h5 = h5py.File(h5_path, 'w', libver='latest')
-    d_set_h5 = f_h5.create_dataset('data', (size * batch_size, cfg.DATA.NUM_FRAMES, 1024, 3, 3),
-                            dtype='f4')
-    index_set_h5 = f_h5.create_dataset('indexes', (size * batch_size, 1),
-                            dtype='f4')
+    d_set_h5 = f_h5.create_dataset('data', (size * batch_size, cfg.DATA.NUM_FRAMES, 1024, 14, 14),
+                            dtype='f4', chunks=True)
+    # index_set_h5 = f_h5.create_dataset('indexes', (size * batch_size, 1),
+    #                         dtype='f4')
 
     with torch.no_grad():
         for i_batch, sampled_batch in tqdm(enumerate(dataloader)):
@@ -72,10 +70,9 @@ def gen_dataset(cfg, mode, root):
                 inputs = inputs.cuda(non_blocking=True)
             cb_sz = inputs.size()
             out = model(inputs.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3], cb_sz[4]))
-            out = nn.MaxPool2d(kernel_size=3, stride=5, padding=1)(out)
-            out = out.view(cb_sz[0], cb_sz[1], 1024, 3, 3)
+            out = out.view(cb_sz[0], cb_sz[1], 1024, 14, 14)
             d_set_h5[i_batch * batch_size:(i_batch + 1) * batch_size] = out.detach().cpu().numpy()
-            index_set_h5[i_batch * batch_size:(i_batch + 1) * batch_size] = indexes.detach().cpu().numpy().reshape(batch_size,1)
+            #index_set_h5[i_batch * batch_size:(i_batch + 1) * batch_size] = indexes.detach().cpu().numpy().reshape(batch_size,1)
     f_h5.close()
 
 
@@ -87,7 +84,7 @@ if __name__ == "__main__":
     logging.setup_logging(cfg.OUTPUT_DIR)
     use_gpu = cfg.NUM_GPUS > 0
     #Set model 
-    model = torchvision.models.resnet101(pretrained=True, progress=True)
+    model = torchvision.models.resnet50(pretrained=True, progress=True)
     if use_gpu:
         cur_device = torch.cuda.current_device()
         model = model.cuda(device=cur_device)
