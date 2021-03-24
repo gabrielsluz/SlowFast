@@ -230,6 +230,26 @@ class MACUnit(nn.Module):
 
         return memory
 
+class PositionalEncoding(nn.Module):
+    "Implement the PE function."
+    def __init__(self, d_model=512, dropout=0.15, max_len=245):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+        
+        # Compute the positional encodings once in log space.
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) *
+                             -(math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)
+        self.register_buffer('pe', pe)
+        
+    def forward(self, x):
+        x = x + Variable(self.pe[:, :x.size(1)], 
+                         requires_grad=False)
+        return self.dropout(x)
 
 class SetEncoder(nn.Module):
     #Encodes a set of vectors into a single vector
@@ -263,6 +283,7 @@ class InputUnit(nn.Module):
         self.set_encoder = SetEncoder(set_size=8, input_dim=16, out_dim=self.f_enc_dim, nhead=cfg.SET_ENC.N_HEADS, 
                                       hid_dim=cfg.SET_ENC.HID_DIM, nlayers=cfg.SET_ENC.N_LAYERS, dropout=self.cfg.MAC.DROPOUT)
         self.f_encoder = nn.LSTM(self.f_enc_dim, rnn_dim, batch_first=True, bidirectional=bidirectional)
+        self.pos_enc = PositionalEncoding(d_model=module_dim, dropout=self.cfg.MAC.DROPOUT, max_len=245)
 
         #Question process
         self.encoder_embed = nn.Embedding(vocab_size, wordvec_dim)
@@ -278,8 +299,7 @@ class InputUnit(nn.Module):
         embed = self.embedding_dropout(embed)
         embed = nn.utils.rnn.pack_padded_sequence(embed, question_len, enforce_sorted = False, batch_first=True)
 
-        contextual_words, (question_embedding, c_q_n) = self.encoder(embed)
-        h_0 = question_embedding.clone()
+        contextual_words, (question_embedding, _) = self.encoder(embed)
         if self.bidirectional:
             question_embedding = torch.cat([question_embedding[0], question_embedding[1]], -1)
         question_embedding = self.question_dropout(question_embedding)
@@ -290,7 +310,8 @@ class InputUnit(nn.Module):
         cb_sz = video.size()
         frame_encs = self.set_encoder(video.view(cb_sz[0]*cb_sz[1], cb_sz[2], cb_sz[3]))
         frame_encs = frame_encs.view(cb_sz[0], cb_sz[1], self.f_enc_dim)
-        frame_encs, _ = self.f_encoder(frame_encs, (h_0, c_q_n))
+        frame_encs, _ = self.f_encoder(frame_encs)
+        frame_encs = self.pos_enc(frame_encs)
 
         return question_embedding, contextual_words, frame_encs
 
