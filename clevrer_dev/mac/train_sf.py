@@ -15,7 +15,7 @@ from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
 
 """
-python3 clevrer_dev/mac/train.py \
+python3 clevrer_dev/mac/train_sf.py \
   --cfg clevrer_dev/mac/mac.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
@@ -24,7 +24,7 @@ python3 clevrer_dev/mac/train.py \
   MAC.MAX_STEPS 8 \
   MAC.DROPOUT 0.15 \
   WORD_EMB.EMB_DIM 300 \
-  TRAIN.BATCH_SIZE 64 \
+  TRAIN.BATCH_SIZE 16 \
   LOG_PERIOD 200 \
   TRAIN.EVAL_PERIOD 1 \
   TRAIN.CHECKPOINT_PERIOD 10 \
