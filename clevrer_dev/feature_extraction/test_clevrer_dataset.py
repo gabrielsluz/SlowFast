@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from slowfast.datasets.clevrer_video import Clevrer_video
+from slowfast.datasets.clevrer_sf import Clevrer_sf
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
@@ -24,22 +24,51 @@ cfg = load_config(args)
 logger = logging.get_logger(__name__)
 logging.setup_logging(cfg.OUTPUT_DIR)
 
-dataset = Clevrer_video(cfg, 'train')
+dataset = Clevrer_sf(cfg, 'train')
 print("Dataset len = {}".format(len(dataset)))
 
-# tensor_image = dataset[0][0][0].permute(1,2,0)
-# plt.imshow(tensor_image)
-# plt.savefig('sample_frame.png')
+#Test DataLoader
+dataloader = DataLoader(dataset, batch_size=2,
+                        shuffle=True, num_workers=0)
+print("Vocab = {}".format(dataset.vocab))
+print("Ans_vocab = {}".format(dataset.ans_vocab))
+
+for i in range(10):
+    print(dataset[i]['res_ft']['slow_ft'].sum())
+    print(dataset[i]['res_ft']['fast_ft'].sum())
+
+for i_batch, sampled_batch in enumerate(dataloader):
+    index = sampled_batch['index'][0].item()
+    print("Video info = {}".format(dataset.get_video_info(index)))
+    print(sampled_batch['res_ft'].size())
+    print(sampled_batch['question_dict']['question'])
+    print(sampled_batch['question_dict']['attention_mask'])
+    print(sampled_batch['question_dict']['ans'])
+    print(sampled_batch['question_dict']['len'])
+
+    break
+
+dataset = Clevrer_sf(cfg, 'val')
+print("Dataset len = {}".format(len(dataset)))
 
 #Test DataLoader
-dataloader = DataLoader(dataset, batch_size=1,
+dataloader = DataLoader(dataset, batch_size=2,
                         shuffle=True, num_workers=0)
-for i_batch, sample_batched in enumerate(dataloader):
-    print(sample_batched[1])
-    print(sample_batched[0][0].size())
-    print(sample_batched[0][1].size())
+print("Vocab = {}".format(dataset.vocab))
+print("Ans_vocab = {}".format(dataset.ans_vocab))
 
-    for i_frame in range(sample_batched[0][1][0].size()[1]):
-        plt.imshow(sample_batched[0][1][0].permute(1,2,3,0)[i_frame])
-        plt.savefig('./clevrer_dev/feature_extraction/sample_frame{}.png'.format(i_frame))
+for i_batch, sampled_batch in enumerate(dataloader):
+    index = sampled_batch['index'][0].item()
+    print("Video info = {}".format(dataset.get_video_info(index)))
+    print(sampled_batch['res_ft']['slow_ft'].size())
+    print(sampled_batch['res_ft']['fast_ft'].size())
+    print(sampled_batch['question_dict']['question'])
+    print(sampled_batch['question_dict']['attention_mask'])
+    print(sampled_batch['question_dict']['ans'])
+    print(sampled_batch['question_dict']['len'])
+
     break
+
+for i in range(10):
+    print(dataset[i]['res_ft']['slow_ft'].sum())
+    print(dataset[i]['res_ft']['fast_ft'].sum())

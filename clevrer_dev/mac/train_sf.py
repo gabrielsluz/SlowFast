@@ -9,8 +9,8 @@ from torch import optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from slowfast.datasets.clevrer_resnet import Clevrerresnet
-from slowfast.models.mac_v3 import MACNetwork
+from slowfast.datasets.clevrer_sf import Clevrer_sf
+from slowfast.models.mac_sf import MACNetwork
 from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
 
@@ -19,55 +19,11 @@ python3 clevrer_dev/mac/train.py \
   --cfg clevrer_dev/mac/mac.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
-  TRAIN.DATASET Clevrerresnet \
-  RESNET_SZ res50 \
-  MAC.DIM 1024 \
-  MAC.MAX_STEPS 12 \
-  MAC.DROPOUT 0.4 \
-  WORD_EMB.EMB_DIM 512 \
-  TRAIN.BATCH_SIZE 64 \
-  LOG_PERIOD 200 \
-  TRAIN.EVAL_PERIOD 1 \
-  TRAIN.CHECKPOINT_PERIOD 10 \
-  SOLVER.BASE_LR 1e-4 \
-  NUM_GPUS 1 \
-  SOLVER.MAX_EPOCH 60
-
-python3 clevrer_dev/mac/train.py \
-  --cfg clevrer_dev/mac/mac.yaml \
-  DATA.PATH_TO_DATA_DIR /datasets/clevrer \
-  DATA.PATH_PREFIX /datasets/clevrer \
-  TRAIN.DATASET Clevrerresnet \
-  RESNET_SZ monet \
+  TRAIN.DATASET Clevrer_sf \
   MAC.DIM 512 \
   MAC.MAX_STEPS 8 \
-  MAC.DROPOUT 0.4 \
+  MAC.DROPOUT 0.15 \
   WORD_EMB.EMB_DIM 300 \
-  SET_ENC.N_HEADS 1 \
-  SET_ENC.HID_DIM 512 \
-  SET_ENC.N_LAYERS 2 \
-  TRAIN.BATCH_SIZE 64 \
-  LOG_PERIOD 200 \
-  TRAIN.EVAL_PERIOD 1 \
-  TRAIN.CHECKPOINT_PERIOD 10 \
-  SOLVER.BASE_LR 1e-4 \
-  NUM_GPUS 1 \
-  SOLVER.MAX_EPOCH 60
-
-python3 clevrer_dev/mac/train.py \
-  --cfg clevrer_dev/mac/mac.yaml \
-  DATA.PATH_TO_DATA_DIR /datasets/clevrer \
-  DATA.PATH_PREFIX /datasets/clevrer \
-  TRAIN.DATASET Clevrerresnet \
-  RESNET_SZ monet \
-  MAC.DIM 32 \
-  MAC.MAX_STEPS 12 \
-  MAC.DROPOUT 0.4 \
-  WORD_EMB.EMB_DIM 32 \
-  SET_ENC.N_HEADS 1 \
-  SET_ENC.HID_DIM 512 \
-  SET_ENC.N_LAYERS 3 \
-  SET_ENC.FRAME_ENC_DIM 32\
   TRAIN.BATCH_SIZE 64 \
   LOG_PERIOD 200 \
   TRAIN.EVAL_PERIOD 1 \
@@ -198,12 +154,12 @@ if __name__ == '__main__':
     optimizer = optim.Adam(net.parameters(), lr=cfg.SOLVER.BASE_LR)
 
     #Dataloaders
-    train_dst = Clevrerresnet(cfg, "train")
+    train_dst = Clevrer_sf(cfg, "train")
     train_set = DataLoader(
         train_dst, batch_size=cfg.TRAIN.BATCH_SIZE, num_workers=cfg.DATA_LOADER.NUM_WORKERS
     )
 
-    valid_dst = Clevrerresnet(cfg, "val")
+    valid_dst = Clevrer_sf(cfg, "val")
     valid_set = DataLoader(
         valid_dst, batch_size=cfg.TRAIN.BATCH_SIZE, num_workers=cfg.DATA_LOADER.NUM_WORKERS
     )
