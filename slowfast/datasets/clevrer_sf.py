@@ -106,13 +106,13 @@ class Clevrer_sf(torch.utils.data.Dataset):
         self.slow_h5 = h5py.File(slow_path, 'r')
         self.slow_fts = self.slow_h5['data']
 
-        fast_path = os.path.join(cfg.DATA.PATH_TO_DATA_DIR, '{}_fast_features.hdf5'.format(mode))
-        self.fast_h5 = h5py.File(fast_path, 'r')
-        self.fast_fts = self.fast_h5['data']
+        #fast_path = os.path.join(cfg.DATA.PATH_TO_DATA_DIR, '{}_fast_features.hdf5'.format(mode))
+        #self.fast_h5 = h5py.File(fast_path, 'r')
+        #self.fast_fts = self.fast_h5['data']
 
     def close(self):
         self.slow_h5.close()
-        self.fast_h5.close()
+        #self.fast_h5.close()
 
     def _create_vocabs(self, path_to_file):
         """
@@ -258,8 +258,8 @@ class Clevrer_sf(torch.utils.data.Dataset):
         output_dict = {}
         ft_i = self.get_ft_index(self._dataset[index]['video_path'])
         s_slow_ft = torch.from_numpy(self.slow_fts[ft_i])
-        s_fast_ft = torch.from_numpy(self.fast_fts[ft_i])
-        output_dict['res_ft'] = {'slow_ft': s_slow_ft, 'fast_ft': s_fast_ft}
+        #s_fast_ft = torch.from_numpy(self.fast_fts[ft_i])
+        output_dict['res_ft'] = {'slow_ft': s_slow_ft}
         output_dict['question_dict'] = question_dict
         output_dict['index'] = index
         # print("DATASET PRINT BEGIN ---")
