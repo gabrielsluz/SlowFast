@@ -6,6 +6,7 @@ import copy
 from torch.utils.data import DataLoader
 from transformers import AdamW, get_linear_schedule_with_warmup
 from slowfast.models.lamb import Lamb
+from torch import optim
 
 import slowfast.models.losses as losses
 import slowfast.utils.checkpoint as cu
@@ -31,7 +32,7 @@ python3 clevrer_dev/bert_mac/train_albert.py \
   LOG_PERIOD 200 \
   TRAIN.EVAL_PERIOD 2 \
   TRAIN.CHECKPOINT_PERIOD 5 \
-  SOLVER.BASE_LR 0.002 \
+  SOLVER.BASE_LR 0.0001 \
   SOLVER.MAX_EPOCH 13
 """
 
@@ -228,14 +229,15 @@ def train_des(cfg):
     #               lr = cfg.SOLVER.BASE_LR,
     #               eps = 1e-8
     #             )
-    optimizer = Lamb(
-                model.parameters(),
-                lr=cfg.SOLVER.BASE_LR,
-                betas=(0.9, 0.999),
-                eps=1e-6,
-                weight_decay=cfg.SOLVER.WEIGHT_DECAY,
-                adam=False
-            )
+    # optimizer = Lamb(
+    #             model.parameters(),
+    #             lr=cfg.SOLVER.BASE_LR,
+    #             betas=(0.9, 0.999),
+    #             eps=1e-6,
+    #             weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+    #             adam=False
+    #         )
+    optimizer = optim.Adam(model.parameters(), lr=cfg.SOLVER.BASE_LR)
     start_epoch = cu.load_train_checkpoint(cfg, model, optimizer)
     # Create the video train and val loaders.
     train_loader = build_dataloader(cfg, "train")
