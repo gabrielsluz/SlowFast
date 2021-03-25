@@ -413,7 +413,8 @@ class MONET_BERT(nn.Module):
         cb_sz = video.size()
         frame_encs = video.view(cb_sz[0], cb_sz[1]*cb_sz[2], self.dim)
 
-        attention_mask = torch.cat((torch.ones(frame_encs.size(0), frame_encs.size(1)).cuda(non_blocking=True), question_mask), dim=1)
+        #attention_mask = torch.cat((torch.ones(frame_encs.size(0), frame_encs.size(1)).cuda(non_blocking=True), question_mask), dim=1)
+        attention_mask = torch.cat(question_mask, (torch.ones(frame_encs.size(0), frame_encs.size(1)).cuda(non_blocking=True)), dim=1)
         q_encs = self.embed(question)
 
         cb_sz = frame_encs.size()
@@ -427,7 +428,8 @@ class MONET_BERT(nn.Module):
         q_encs = torch.cat((q_encs, ones_v[:,0:q_encs.size(1)], zeros_v[:,0:q_encs.size(1)]), dim=2)
         frame_encs = torch.cat((frame_encs, zeros_v[:,0:cb_sz[1]], ones_v[:,0:cb_sz[1]]), dim=2)
 
-        bert_in = torch.cat((frame_encs, q_encs), dim=1)
+        #bert_in = torch.cat((frame_encs, q_encs), dim=1)
+        bert_in = torch.cat((q_encs, frame_encs), dim=1)
         bert_out = self.BERT(inputs_embeds=bert_in,
                             attention_mask=attention_mask)
         out = bert_out.pooler_output
