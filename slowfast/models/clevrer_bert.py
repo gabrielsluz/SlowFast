@@ -385,9 +385,9 @@ class MONET_BERT(nn.Module):
         albert_config.vocab_size=n_vocab
         albert_config.embedding_size=dim+2
         albert_config.num_attention_heads=10
-        albert_config.num_hidden_layers=28
-        albert_config.hidden_size=500
-        albert_config.intermediate_size=2048
+        albert_config.num_hidden_layers=12
+        albert_config.hidden_size=110
+        #albert_config.intermediate_size=2048
         self.BERT = AlbertModel(albert_config)
         self.bert_hid_dim = self.BERT.config.hidden_size
         #Embeddings
