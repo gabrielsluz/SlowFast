@@ -386,8 +386,8 @@ class MONET_BERT(nn.Module):
         albert_config.embedding_size=dim+2
         albert_config.num_attention_heads=10
         albert_config.num_hidden_layers=28
-        albert_config.hidden_size=200
-        albert_config.intermediate_size=512
+        albert_config.hidden_size=500
+        albert_config.intermediate_size=2048
         self.BERT = AlbertModel(albert_config)
         self.bert_hid_dim = self.BERT.config.hidden_size
         #Embeddings
@@ -414,7 +414,7 @@ class MONET_BERT(nn.Module):
         frame_encs = video.view(cb_sz[0], cb_sz[1]*cb_sz[2], self.dim)
 
         #attention_mask = torch.cat((torch.ones(frame_encs.size(0), frame_encs.size(1)).cuda(non_blocking=True), question_mask), dim=1)
-        attention_mask = torch.cat(question_mask, (torch.ones(frame_encs.size(0), frame_encs.size(1)).cuda(non_blocking=True)), dim=1)
+        attention_mask = torch.cat((question_mask, (torch.ones(frame_encs.size(0), frame_encs.size(1)).cuda(non_blocking=True))), dim=1)
         q_encs = self.embed(question)
 
         cb_sz = frame_encs.size()
