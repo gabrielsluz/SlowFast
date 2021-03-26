@@ -239,6 +239,14 @@ def train_des(cfg):
             )
     # optimizer = optim.Adam(model.parameters(), lr=cfg.SOLVER.BASE_LR)
     start_epoch = cu.load_train_checkpoint(cfg, model, optimizer)
+    optimizer = Lamb(
+                model.parameters(),
+                lr=cfg.SOLVER.BASE_LR,
+                betas=(0.9, 0.999),
+                eps=1e-6,
+                weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+                adam=False
+            )
     # Create the video train and val loaders.
     train_loader = build_dataloader(cfg, "train")
     val_loader = build_dataloader(cfg, "val")
