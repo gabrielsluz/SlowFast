@@ -58,7 +58,7 @@ def gen_dataset(cfg, mode, root):
     h5_path = os.path.join(root, '{}_res50conv_features.hdf5'.format(mode))
     f_h5 = h5py.File(h5_path, 'w', libver='latest')
     d_set_h5 = f_h5.create_dataset('data', (size * batch_size, cfg.DATA.NUM_FRAMES, 1024, 14, 14),
-                            dtype='f4', chunks=True)
+                            dtype='f4', chunks=(16, cfg.DATA.NUM_FRAMES, 1024, 14, 14))
     # index_set_h5 = f_h5.create_dataset('indexes', (size * batch_size, 1),
     #                         dtype='f4')
 
