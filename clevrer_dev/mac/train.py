@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from slowfast.datasets.clevrer_resnet import Clevrerresnet
-from slowfast.models.mac_v3 import MACNetwork
+from slowfast.models.mac_model_v4 import MACNetwork
 from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
 
@@ -21,13 +21,13 @@ python3 clevrer_dev/mac/train.py \
   DATA.PATH_PREFIX /datasets/clevrer \
   TRAIN.DATASET Clevrerresnet \
   RESNET_SZ res50 \
-  MAC.DIM 768 \
-  MAC.MAX_STEPS 20 \
-  MAC.DROPOUT 0.42 \
+  MAC.DIM 512 \
+  MAC.MAX_STEPS 12 \
+  MAC.DROPOUT 0.3 \
   WORD_EMB.EMB_DIM 300 \
   TRAIN.BATCH_SIZE 64 \
   LOG_PERIOD 200 \
-  TRAIN.EVAL_PERIOD 1 \
+  TRAIN.EVAL_PERIOD 3 \
   TRAIN.CHECKPOINT_PERIOD 10 \
   SOLVER.BASE_LR 1e-4 \
   NUM_GPUS 1 \
