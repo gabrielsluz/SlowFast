@@ -20,7 +20,6 @@ python3 clevrer_dev/mac/check_answers.py \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
   TRAIN.DATASET Clevrer_res_monet \
-  RESNET_SZ res50 \
   MAC.DIM 512 \
   MAC.MAX_STEPS 12 \
   MAC.DROPOUT 0.3 \
@@ -28,11 +27,10 @@ python3 clevrer_dev/mac/check_answers.py \
   TRAIN.BATCH_SIZE 64 \
   LOG_PERIOD 200 \
   TRAIN.EVAL_PERIOD 3 \
-  TRAIN.CHECKPOINT_PERIOD 10 \
   TRAIN.CHECKPOINT_FILE_PATH  ./checkpoint_mac/checkpoint_21_best.model \
   SOLVER.BASE_LR 1e-4 \
   NUM_GPUS 1 \
-  DATA_LOADER.NUM_WORKERS 1\
+  DATA_LOADER.NUM_WORKERS 8\
   SOLVER.MAX_EPOCH 60
 
 """
@@ -57,8 +55,9 @@ def get_answers(epoch, valid_set):
             answer = sampled_batch['question_dict']['ans']
             q_len = sampled_batch['question_dict']['len']
             q_types = sampled_batch['question_dict']['question_type']
-            video_ft, question, answer, q_len = (
-                video_ft.to(device),
+            video_ft['res_ft'] = video_ft['res_ft'].to(device)
+            video_ft['monet_ft'] = video_ft['monet_ft'].to(device)
+            question, answer, q_len = (
                 question.to(device),
                 answer.to(device),
                 q_len.to(device)
