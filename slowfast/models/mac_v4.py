@@ -267,7 +267,7 @@ class InputUnit(nn.Module):
                                   nn.Conv2d(module_dim, module_dim, kernel_size=3, stride=1, padding=1),
                                   nn.ELU())
 
-        self.temp_attn = Variable(torch.rand(25, 1), requires_grad=True)#Weights the frames    
+        self.temp_attn = nn.Parameter(torch.rand(25, 1), requires_grad=True)#Weights the frames    
         self.softm = nn.Softmax(0)             
 
         self.bidirectional = bidirectional
