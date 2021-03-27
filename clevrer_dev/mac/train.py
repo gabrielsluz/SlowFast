@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from slowfast.datasets.clevrer_resnet import Clevrerresnet
-from slowfast.models.mac_monet_v4 import MACNetwork
+from slowfast.models.mac_v4 import MACNetwork
 from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
 
@@ -40,11 +40,11 @@ python3 clevrer_dev/mac/train.py \
   TRAIN.DATASET Clevrerresnet \
   RESNET_SZ monet \
   MAC.DIM 512 \
-  MAC.MAX_STEPS 8 \
-  MAC.DROPOUT 0.4 \
+  MAC.MAX_STEPS 12 \
+  MAC.DROPOUT 0.3 \
   WORD_EMB.EMB_DIM 300 \
   SET_ENC.N_HEADS 4 \
-  SET_ENC.HID_DIM 128 \
+  SET_ENC.HID_DIM 256 \
   SET_ENC.N_LAYERS 2 \
   SET_ENC.FRAME_ENC_DIM 512\
   TRAIN.BATCH_SIZE 64 \
@@ -246,12 +246,12 @@ if __name__ == '__main__':
     #Dataloaders
     train_dst = Clevrerresnet(cfg, "train")
     train_set = DataLoader(
-        train_dst, batch_size=cfg.TRAIN.BATCH_SIZE, num_workers=cfg.DATA_LOADER.NUM_WORKERS
+        train_dst, batch_size=cfg.TRAIN.BATCH_SIZE, num_workers=cfg.DATA_LOADER.NUM_WORKERS, shuffle=False
     )
 
     valid_dst = Clevrerresnet(cfg, "val")
     valid_set = DataLoader(
-        valid_dst, batch_size=cfg.TRAIN.BATCH_SIZE, num_workers=cfg.DATA_LOADER.NUM_WORKERS
+        valid_dst, batch_size=cfg.TRAIN.BATCH_SIZE, num_workers=cfg.DATA_LOADER.NUM_WORKERS, shuffle=False
     )
 
     for epoch in range(cfg.SOLVER.MAX_EPOCH):
@@ -267,4 +267,4 @@ if __name__ == '__main__':
             ) as f:
                 torch.save(net_running.state_dict(), f)
     train_dst.close()
-    valid_tst.close()
+    valid_dst.close()
