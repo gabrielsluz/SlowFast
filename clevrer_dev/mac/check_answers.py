@@ -87,8 +87,8 @@ def get_answers(epoch, valid_set):
                     des_wrong[ans] += 1
 
     with open('answers_dist.txt'.format(str(epoch + 1).zfill(2)), 'w') as w:
-        w.write(des_correct)
-        w.write(des_wrong)
+        w.write(str(des_correct) + "\n")
+        w.write(str(des_wrong) + "\n")
 
     for k,v in q_type_total.items():
         print("Question type {} Acc: {:.5f}".format(k, q_type_correct[k]/v))
