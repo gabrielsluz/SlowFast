@@ -257,10 +257,10 @@ if __name__ == '__main__':
     for epoch in range(cfg.SOLVER.MAX_EPOCH):
         train(epoch, train_set)
         if epoch % cfg.TRAIN.EVAL_PERIOD == 0:
-            print("Net_running val:")
+            # print("Net_running val:")
             valid(epoch, valid_set)
-            print("Net val:")
-            valid_net(epoch, valid_set)
+            # print("Net val:")
+            # valid_net(epoch, valid_set)
         if epoch % cfg.TRAIN.CHECKPOINT_PERIOD == 0:
             with open(
                 'checkpoint_mac/checkpoint_{}.model'.format(str(epoch + 1).zfill(2)), 'wb'
