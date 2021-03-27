@@ -86,7 +86,7 @@ def get_answers(epoch, valid_set):
                 else:
                     des_wrong[ans] += 1
 
-    with open('log/log_{}.txt'.format(str(epoch + 1).zfill(2)), 'w') as w:
+    with open('answers_dist.txt'.format(str(epoch + 1).zfill(2)), 'w') as w:
         w.write(des_correct)
         w.write(des_wrong)
 
