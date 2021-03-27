@@ -9,18 +9,18 @@ from torch import optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from slowfast.datasets.clevrer_resnet import Clevrerresnet
+from slowfast.datasets.clevrer_res_monet import Clevrer_res_monet
 from slowfast.models.mac_monet_v3 import MACNetwork
 from slowfast.utils.parser import load_config, parse_args
 import slowfast.utils.logging as logging
 
 """
-python3 clevrer_dev/mac/train.py \
+python3 clevrer_dev/mac/check_answers.py \
   --cfg clevrer_dev/mac/mac.yaml \
   DATA.PATH_TO_DATA_DIR /datasets/clevrer \
   DATA.PATH_PREFIX /datasets/clevrer \
-  TRAIN.DATASET Clevrerresnet \
-  RESNET_SZ res50conv \
+  TRAIN.DATASET Clevrer_res_monet \
+  RESNET_SZ res50 \
   MAC.DIM 512 \
   MAC.MAX_STEPS 12 \
   MAC.DROPOUT 0.3 \
@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
 
     #Dataloaders
-    valid_dst = Clevrerresnet(cfg, "val")
+    valid_dst = Clevrer_res_monet(cfg, "val")
     valid_set = DataLoader(
         valid_dst, batch_size=cfg.TRAIN.BATCH_SIZE, num_workers=cfg.DATA_LOADER.NUM_WORKERS, shuffle=False
     )
