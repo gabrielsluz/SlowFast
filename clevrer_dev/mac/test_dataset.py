@@ -35,7 +35,7 @@ print("Ans_vocab = {}".format(dataset.ans_vocab))
 
 for i in range(10):
     print(dataset[i]['res_ft'].sum())
-    print(dataset[i]['res_ft_index'],i)
+    #print(dataset[i]['res_ft_index'],i)
 
 for i_batch, sampled_batch in enumerate(dataloader):
     index = sampled_batch['index'][0].item()
@@ -45,9 +45,10 @@ for i_batch, sampled_batch in enumerate(dataloader):
     print(sampled_batch['question_dict']['attention_mask'])
     print(sampled_batch['question_dict']['ans'])
     print(sampled_batch['question_dict']['len'])
-    print(sampled_batch['index'], sampled_batch['res_ft_index'])
+    #print(sampled_batch['index'], sampled_batch['res_ft_index'])
 
-    break
+    if i_batch > 2:
+        break
 
 dataset = Clevrerresnet(cfg, 'val')
 print("Dataset len = {}".format(len(dataset)))
@@ -66,10 +67,11 @@ for i_batch, sampled_batch in enumerate(dataloader):
     print(sampled_batch['question_dict']['attention_mask'])
     print(sampled_batch['question_dict']['ans'])
     print(sampled_batch['question_dict']['len'])
-    print(sampled_batch['index'], sampled_batch['res_ft_index'])
+    #print(sampled_batch['index'], sampled_batch['res_ft_index'])
 
-    break
+    if i_batch > 2:
+        break
 
 for i in range(10):
     print(dataset[i]['res_ft'].sum())
-    print(dataset[i]['res_ft_index'],i)
+    #print(dataset[i]['res_ft_index'],i)

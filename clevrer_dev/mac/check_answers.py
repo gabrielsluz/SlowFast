@@ -44,6 +44,8 @@ def get_answers(epoch, valid_set):
     net.train(False)
     des_correct = {}
     des_wrong = {}
+    anse_correct = {}
+    anse_wrong = {}
     q_type_correct = {}
     q_type_total = {}
     correct_cnt = 0.0
@@ -77,6 +79,7 @@ def get_answers(epoch, valid_set):
                 q_type_total[q_t] += 1
             
             for c, ans in zip(correct, output.detach().argmax(1)):
+                ans = ans.item()
                 if not ans in des_correct:
                     des_correct[ans] = 0
                 if not ans in des_wrong:
@@ -85,10 +88,23 @@ def get_answers(epoch, valid_set):
                     des_correct[ans] += 1
                 else:
                     des_wrong[ans] += 1
+            
+            for c, ans in zip(correct, answer.detach()):
+                ans = ans.item()
+                if not ans in anse_correct:
+                    anse_correct[ans] = 0
+                if not ans in anse_wrong:
+                    anse_wrong[ans] = 0
+                if c:
+                    anse_correct[ans] += 1
+                else:
+                    anse_wrong[ans] += 1
 
     with open('answers_dist.txt'.format(str(epoch + 1).zfill(2)), 'w') as w:
         w.write(str(des_correct) + "\n")
         w.write(str(des_wrong) + "\n")
+        w.write(str(anse_correct) + "\n")
+        w.write(str(anse_wrong) + "\n")
 
     for k,v in q_type_total.items():
         print("Question type {} Acc: {:.5f}".format(k, q_type_correct[k]/v))
